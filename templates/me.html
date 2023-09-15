@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Me
+{% endblock %}
+
+{% block main %}
+    <table class="table table-striped">
+        <th>Giorno</th>
+        {% for timespan in timespans %}
+            <th>{{ timespan }}</th>
+        {% endfor %}
+
+        {% for day in bookings %}
+            <tr>
+                <td>{{ day.date }}</td>
+                {% for timespan in day.timespans %}
+                    <td>{{ timespan }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

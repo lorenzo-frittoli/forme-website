@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $("td").click(function() {
+            window.location = $(this).data("href");
+        });
+    });
+</script>
+
+
+{% block title %}
+    Le Nostre Attività
+{% endblock %}
+
+{% block main %}
+    <div class="mb-3">
+        <table class="table table-striped">
+            <thead>
+                <th>Titolo</th>
+                <th>Tipo</th>
+            </thead>
+            {% for activity in activities %}
+            <tr>
+                <td>{{ activity.title }}</td>
+                <td>{{ activity.type }}</td>
+                <td>
+                    <form action="/activities" method="post">
+                        <input type="hidden" name="activity_id" value="{{ activity.id }}">
+                        <button class="btn btn-primary" type="submit" name="submit">View Details</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endblock %}

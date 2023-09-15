@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Attività
+{% endblock %}
+
+{% block main %}
+    <!-- Makes a warning appear if you have already booked this course -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            isBooked = "{{ booked }}";
+            availableSlots = "{{ available_slots }}";
+            
+            if (isBooked === "True") {
+                bookedField = document.querySelector("#booked");
+                bookedField.innerHTML = "HAI GIA' PRENOTATO QUESTO CORSO";
+                bookedField.classList.toggle("booked");
+            }
+            
+            if (availableSlots != "") {
+                availableSlotsField = document.querySelector("#available-slots");
+                availableSlotsField.innerHTML = "Posti disponibili: {{ available_slots }}"
+            }
+        });
+    </script>
+
+    <h3 id="booked"></h3>
+    <h1>{{ activity.title }}</h1>
+    <small class="type">{{ activity.type }}</small>
+    <p>{{ activity.abstract }}</p>
+
+    <!-- Buttons for the days -->
+    <div class="container-fluid">
+        {% for day in days %}
+            <button class="btn btn-primary">{{ day }}</button>
+        {% endfor %}
+    </div>
+
+    <!-- Buttons for the timespans -->
+    <div class="container-fluid", style="margin-top: 1rem; margin-bottom: 1rem;">
+        {% for timespan in timespans %}
+            <button class="btn btn-primary">{{ timespan }}</button>
+        {% endfor %}
+    </div>
+
+    <!-- Number of available slots -->
+    <p id="available-slots"></p>
+
+    <!-- Booking button -->
+    <button class="btn btn-primary">Prenota</button>
+{% endblock %}
