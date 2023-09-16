@@ -60,7 +60,7 @@ def login():
     # Query db for id and hash from email
     cur = con.cursor()
     # query_result is like [(id, pw_hash)] 
-    query_result = cur.execute("SELECT id, hash FROM students WHERE email = ?;", (request.form.get("email"),)).fetchall()
+    query_result = cur.execute("SELECT id, hash FROM users WHERE email = ?;", (request.form.get("email"),)).fetchall()
     if not query_result:
         return apology("email e/o password invalidi", 400)
     
@@ -97,7 +97,7 @@ def register():
         # Check if form fields are filled
         name = request.form.get("name")
         surname = request.form.get("surname")
-        student_class = request.form.get("class")
+        user_class = request.form.get("class")
         email = request.form.get("email")
         password = request.form.get("password")
         confirmation = request.form.get("confirmation")
@@ -111,7 +111,7 @@ def register():
             return apology("Cognome non valido", 400)
 
         # Checks if class field was filled
-        elif not student_class:
+        elif not user_class:
             return apology("Classe non valida", 400)
         
         # Checks if email field was filled
@@ -135,13 +135,13 @@ def register():
         cur = con.cursor()
         
         # cur.execute returns a list like [(el1,), (el2,)] etc
-        emails = map(lambda x: x[0], cur.execute("SELECT email FROM students").fetchall())
+        emails = map(lambda x: x[0], cur.execute("SELECT email FROM users").fetchall())
         if email in emails:
             return apology("email registrata", 400)
 
         # Save the new user
-        cur.execute("INSERT INTO students (name, surname, class, email, hash) VALUES (?, ?, ?, ?, ?)",
-                    (name, surname, student_class, email, generate_password_hash(password)))
+        cur.execute("INSERT INTO users (email, hash, name, surname, type, class) VALUES (?, ?, ?, ?, ?, ?)",
+                    (email, generate_password_hash(password), name, surname, "student", user_class))
         
         con.commit()
 
