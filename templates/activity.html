@@ -8,18 +8,44 @@
     <!-- Makes a warning appear if you have already booked this course -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            isBooked = "{{ booked }}";
-            availableSlots = "{{ available_slots }}";
+            dayButtonsLabels = document.getElementsByName("day-button-label");
+            timespanButtonsLabels = document.getElementsByName("timespan-button-label");
+            availability = JSON.parse('{{ availability|tojson }}');
             
-            if (isBooked === "True") {
-                bookedField = document.querySelector("#booked");
-                bookedField.innerHTML = "HAI GIA' PRENOTATO QUESTO CORSO";
-                bookedField.classList.toggle("booked");
-            }
-            
-            if (availableSlots != "") {
-                availableSlotsField = document.querySelector("#available-slots");
-                availableSlotsField.innerHTML = "Posti disponibili: {{ available_slots }}"
+            for (let i = 0; i < dayButtonsLabels.length; i++) {
+                dayButtonsLabels[i].addEventListener("click", function() {
+                    // Reloads the timespans buttons div, so that no button is selected when switching day
+                    $.get(document.URL, function(data) {
+                        var content = $(data).find("#timespans-buttons-div").html();
+                        $("#timespans-buttons-div").html(content);
+                        
+                        // Make the buttons visible
+                        $("#timespans-buttons-div label").css({
+                            "display": "inline"
+                        });
+
+                        // Disable buttons where there are no slots left
+                        for (let j = 0; j < timespanButtonsLabels.length; j++) {
+                            // ids are in form: {day}-day-button-label, same goes for the timespans
+                            day = dayButtonsLabels[i].id.replace("-day-button-label", "");
+                            timespan = timespanButtonsLabels[j].id.replace("-timespan-button-label", "");
+                            
+                            // If a timespan is not available, then disable the button (.disabled) and make it grey (.btn-outline-secondary)
+                            if (availability[day][timespan] <= 0) {
+                                console.log(j)
+                                timespanButtonsLabels[j].classList.remove("btn-outline-primary");
+                                timespanButtonsLabels[j].classList.add("btn-outline-secondary");
+                                timespanButtonsLabels[j].classList.add("disabled");
+    
+                            } else {
+                                timespanButtonsLabels[j].classList.remove("btn-outline-secondary");
+                                timespanButtonsLabels[j].classList.remove("disabled");
+                                timespanButtonsLabels[j].classList.add("btn-outline-primary");
+                            }
+                        }
+                    });
+                                        
+                });
             }
         });
     </script>
@@ -27,25 +53,74 @@
     <h3 id="booked"></h3>
     <h1>{{ activity.title }}</h1>
     <small class="type">{{ activity.type }}</small>
-    <p>{{ activity.abstract }}</p>
+    
+    <div class="row">
+        <!-- Left column -->
+        <div class="col-lg-6" style="text-align: center;">
+            <!-- Description -->
+            <h2 style="margin: 0">Descrizione</h2>
+            <div style="text-align: left; margin: 5%;">
+                <!-- Makes \n linebreak, while adding a bit of extra spacing -->
+                {% for section in activity.abstract.split("\n") %}
+                    <div style="margin-bottom: 20px;">
+                        <p>{{ section }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>        
+        
+        <!-- Right column -->
+        <div class="col-lg-6">
+            <!-- Availability table -->
+            <h2>Disponibilità</h2>
+            <div style="margin: 5%;">
+                <table class="table table-striped">
+                    <thead>
+                        <th>Giorni</th>
+                        {% for timespan in availability.values()|first %}
+                            <th>{{ timespan }}</th>
+                        {% endfor %}
+                    </thead>
+                    
+                    {% for day, timespans in availability.items() %}
+                        <tr>
+                            <td>{{ day }}</td>
+                            {% for timespan in timespans.values() %}
+                                <td>{{ timespan }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
 
-    <!-- Buttons for the days -->
-    <div class="container-fluid">
-        {% for day in days %}
-            <button class="btn btn-primary">{{ day }}</button>
-        {% endfor %}
+            <!-- Booking buttons -->
+            <h2>Prenota</h2>
+
+            <!-- Buttons for the days -->
+            <div class="btn-group container-fluid" role="group" style="margin-top: 5%">
+                {% for day in availability %}
+                    <input type="radio" class="btn-check" name="day-button" id="{{ day }}-day-button" autocomplete="off">
+                    <label class="btn btn-outline-primary" name="day-button-label" id="{{ day }}-day-button-label" for="{{ day }}-day-button">{{ day }}</label>
+                {% endfor %}
+            </div>
+
+            <!-- Buttons for the timespans -->
+            <div class="btn-group container-fluid" id="timespans-buttons-div" role="group" style="margin-top: 5%">
+                {% for timespan in availability.values()|first %}
+                    <input type="radio" class="btn-check" name="timespan-button" id="{{ timespan }}-timespan-button" autocomplete="off">
+                    <label class="btn btn-outline-primary" name="timespan-button-label" id="{{ timespan }}-timespan-button-label" for="{{ timespan }}-timespan-button" style="display: none">{{ timespan }}</label>
+                {% endfor %}
+            </div>
+                
+            <div class="container-fluid" style="margin-top: 5%;">
+                <!-- Number of available slots -->
+                <p id="available-slots"></p>
+                
+                <!-- Booking button -->
+                <button class="btn btn-primary" id="book-button" style="display: none">Prenota</button>
+            </div>
+        </div>
     </div>
+    
 
-    <!-- Buttons for the timespans -->
-    <div class="container-fluid", style="margin-top: 1rem; margin-bottom: 1rem;">
-        {% for timespan in timespans %}
-            <button class="btn btn-primary">{{ timespan }}</button>
-        {% endfor %}
-    </div>
-
-    <!-- Number of available slots -->
-    <p id="available-slots"></p>
-
-    <!-- Booking button -->
-    <button class="btn btn-primary">Prenota</button>
 {% endblock %}

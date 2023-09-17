@@ -193,6 +193,12 @@ def activity():
         cur.execute("SELECT title, abstract, type, availability FROM activities WHERE id = ?;", (activity_id,))
         activity_title, activity_abstract, activity_type, activity_availability = cur.fetchone()
         
+        # TEST
+        activity_abstract = """
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam in bibendum augue. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Praesent id ipsum lacus. Nulla facilisi. Sed at mi finibus, aliquam nunc nec, tempor diam. Donec eros metus, pretium eget porttitor nec, bibendum ac ligula. In hac habitasse platea dictumst.
+        Ut laoreet faucibus ligula. Interdum et malesuada fames ac ante ipsum primis in faucibus. Donec euismod mauris efficitur vulputate molestie. Nullam leo mi, sodales in euismod vel, eleifend id diam. Phasellus congue pellentesque vulputate. Donec eu enim auctor, tincidunt ante eu, dignissim diam. Pellentesque tincidunt orci a enim tempus, et eleifend risus consectetur. Duis dictum scelerisque faucibus. Aenean sit amet turpis eu augue molestie mollis. Quisque ultrices dignissim nulla, a accumsan justo. Mauris consequat tristique lorem a finibus. Fusce a diam eu est feugiat volutpat in fringilla urna. Ves
+        """
+        
         # Factors of the activity
         activity_dict = {"title": activity_title,
                         "abstract": activity_abstract,
@@ -201,13 +207,12 @@ def activity():
         
         # Days and hours the course is available on
         activity_availability = json.loads(activity_availability)
-        days = activity_availability.keys()
-        timespans = activity_availability[next(iter(activity_availability))].keys()
+        activity_availability["09/11"]["1"] = 0
         
-        return render_template("activity.html", activity=activity_dict, days=days, timespans=timespans)
+        return render_template("activity.html", activity=activity_dict, availability=activity_availability)
     
-    con = sqlite3.connect(DATABASE)
-    cur = con.cursor()
+    # con = sqlite3.connect(DATABASE)
+    # cur = con.cursor()
 
 
 @app.route("/me")

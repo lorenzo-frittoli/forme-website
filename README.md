@@ -46,4 +46,5 @@ flask run --host=0.0.0.0
 ## Authors
 
 - [@lorenzo-frittoli](https://www.github.com/lorenzo-frittoli)
+- [@Giulia-aurora](https://github.com/Giulia-aurora)
 
