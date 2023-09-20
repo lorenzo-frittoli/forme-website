@@ -5,19 +5,56 @@
 {% endblock %}
 
 {% block main %}
-    <table class="table table-striped">
-        <th>Giorno</th>
-        {% for timespan in timespans %}
-            <th>{{ timespan }}</th>
-        {% endfor %}
+    <!-- Makes a warning appear if you have already booked this course -->
+    <script>
+        $(document).ready(function() {
+            schedule = JSON.parse('{{ schedule|tojson }}');
+            fully_booked = 1;
+            
+            // Check every title to spot empty spots
+            outerLoop: for (const day of Object.values(schedule)) {
+                for (const title of Object.values(day)) {
+                    if (title == "") {
+                        console.log("found empty field")
+                        fully_booked = 0;
+                        break outerLoop;
+                    }
+                }
+            }
 
-        {% for day in bookings %}
-            <tr>
-                <td>{{ day.date }}</td>
-                {% for timespan in day.timespans %}
-                    <td>{{ timespan }}</td>
+            // If there are empty spots, display a warning
+            if (fully_booked == 0) {
+                console.log("displaying warning")
+                $(".warning").css("display", "block");
+            }
+        });
+    </script>
+
+    <h3 class="warning">CI SONO POSTI NON PRENOTATI</h3>
+    <h1>Orario</h1>
+    <div class="mb-3" style="margin: 2rem 5%;">
+        <table class="table table-striped">
+            <thead>
+                <th> </th>
+                {% for timespan in schedule.values()|first %}
+                <th>{{ timespan }}</th>
                 {% endfor %}
-            </tr>
-        {% endfor %}
-    </table>
-{% endblock %}
+            </thead>
+            <tbody>
+                {% for day, bookings in schedule.items() %}
+                <tr>
+                    <th>{{ day }}</th>
+                    {% for title in bookings.values() %}
+                        {% if title == "" %}
+                            <td style="color: rgb(117, 117, 117);">Vuoto</td>
+                        {% else %}
+                            <td>{{ title }}</td>
+                        {% endif %}
+                    {% endfor %}
+                    <td>{{ booking }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endblock %}

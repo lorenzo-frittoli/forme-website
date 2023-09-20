@@ -7,32 +7,48 @@
 {% block main %}
     <!-- Makes a warning appear if you have already booked this course -->
     <script>
+        $(document).ready(function() {
+            if ("{{ is_booked }}" === "True") {
+                $(".warning").css("display", "block");
+            }
+        });
+    </script>
+
+    <!-- Handles booking buttons -->
+    <script>
         document.addEventListener("DOMContentLoaded", function() {
             dayButtonsLabels = document.getElementsByName("day-button-label");
             timespanButtonsLabels = document.getElementsByName("timespan-button-label");
             availability = JSON.parse('{{ availability|tojson }}');
             
+            // Add event listeners to day buttons to generate timespan buttons
             for (let i = 0; i < dayButtonsLabels.length; i++) {
                 dayButtonsLabels[i].addEventListener("click", function() {
+                    // Hides the available slots text and the booking button
+                    document.getElementById("booking-button-div").style.visibility = "hidden";
+
                     // Reloads the timespans buttons div, so that no button is selected when switching day
                     $.get(document.URL, function(data) {
                         var content = $(data).find("#timespans-buttons-div").html();
                         $("#timespans-buttons-div").html(content);
                         
                         // Make the buttons visible
-                        $("#timespans-buttons-div label").css({
-                            "display": "inline"
-                        });
+                        document.getElementById("timespans-buttons-div").style.visibility = "visible"
 
-                        // Disable buttons where there are no slots left
                         for (let j = 0; j < timespanButtonsLabels.length; j++) {
                             // ids are in form: {day}-day-button-label, same goes for the timespans
                             day = dayButtonsLabels[i].id.replace("-day-button-label", "");
                             timespan = timespanButtonsLabels[j].id.replace("-timespan-button-label", "");
+                            availableSlots = availability[day][timespan];
                             
-                            // If a timespan is not available, then disable the button (.disabled) and make it grey (.btn-outline-secondary)
-                            if (availability[day][timespan] <= 0) {
-                                console.log(j)
+                            // Add event listeners to timespan buttons to generate booking button
+                            timespanButtonsLabels[j].addEventListener("click", function() {
+                                $("#available-slots").text(`${availableSlots} posti disponibili`);
+                                document.getElementById("booking-button-div").style.visibility = "visible";
+                            });
+                            
+                            // Disable buttons where there are no slots left
+                            if (availableSlots <= 0) {
                                 timespanButtonsLabels[j].classList.remove("btn-outline-primary");
                                 timespanButtonsLabels[j].classList.add("btn-outline-secondary");
                                 timespanButtonsLabels[j].classList.add("disabled");
@@ -44,13 +60,12 @@
                             }
                         }
                     });
-                                        
                 });
             }
         });
     </script>
 
-    <h3 id="booked"></h3>
+    <h3 class="warning">HAI GIA' PRENOTATO QUESTA ATTIVITA'</h3>
     <h1>{{ activity.title }}</h1>
     <small class="type">{{ activity.type }}</small>
     
@@ -78,47 +93,50 @@
                     <thead>
                         <th>Giorni</th>
                         {% for timespan in availability.values()|first %}
-                            <th>{{ timespan }}</th>
+                        <th>{{ timespan }}</th>
                         {% endfor %}
                     </thead>
                     
                     {% for day, timespans in availability.items() %}
-                        <tr>
-                            <td>{{ day }}</td>
-                            {% for timespan in timespans.values() %}
-                                <td>{{ timespan }}</td>
-                            {% endfor %}
-                        </tr>
+                    <tr>
+                        <td>{{ day }}</td>
+                        {% for timespan in timespans.values() %}
+                        <td>{{ timespan }}</td>
+                        {% endfor %}
+                    </tr>
                     {% endfor %}
                 </table>
             </div>
-
+            
             <!-- Booking buttons -->
-            <h2>Prenota</h2>
+            <form action="/activity?id={{ id }}" method="post">
+                <h2>Prenota</h2>
 
-            <!-- Buttons for the days -->
-            <div class="btn-group container-fluid" role="group" style="margin-top: 5%">
-                {% for day in availability %}
-                    <input type="radio" class="btn-check" name="day-button" id="{{ day }}-day-button" autocomplete="off">
-                    <label class="btn btn-outline-primary" name="day-button-label" id="{{ day }}-day-button-label" for="{{ day }}-day-button">{{ day }}</label>
-                {% endfor %}
-            </div>
+                <!-- Buttons for the days -->
+                <div class="btn-group container-fluid" role="group" style="margin-top: 5%">
+                    {% for day in availability %}
+                        <input type="radio" value="{{ day }}" class="btn-check" name="day-button" id="{{ day }}-day-button" autocomplete="off">
+                        <label class="btn btn-outline-primary" name="day-button-label" id="{{ day }}-day-button-label" for="{{ day }}-day-button">{{ day }}</label>
+                    {% endfor %}
+                </div>
 
-            <!-- Buttons for the timespans -->
-            <div class="btn-group container-fluid" id="timespans-buttons-div" role="group" style="margin-top: 5%">
-                {% for timespan in availability.values()|first %}
-                    <input type="radio" class="btn-check" name="timespan-button" id="{{ timespan }}-timespan-button" autocomplete="off">
-                    <label class="btn btn-outline-primary" name="timespan-button-label" id="{{ timespan }}-timespan-button-label" for="{{ timespan }}-timespan-button" style="display: none">{{ timespan }}</label>
-                {% endfor %}
-            </div>
+                <!-- Buttons for the timespans -->
+                <div class="btn-group container-fluid" id="timespans-buttons-div" role="group" style="margin-top: 5%; visibility: hidden;">
+                    {% for timespan in availability.values()|first %}
+                        <input type="radio" value="{{ timespan }}" class="btn-check" name="timespan-button" id="{{ timespan }}-timespan-button" autocomplete="off">
+                        <label class="btn btn-outline-primary" name="timespan-button-label" id="{{ timespan }}-timespan-button-label" for="{{ timespan }}-timespan-button">{{ timespan }}</label>
+                    {% endfor %}
+                </div>
+
+                <!-- Booking button and number of available slots -->
+                <div type="submit" class="container-fluid" id="booking-button-div" style="margin-top: 5%; visibility: hidden;">
+                    <!-- Number of available slots -->
+                    <p id="available-slots">placeholder</p>
                 
-            <div class="container-fluid" style="margin-top: 5%;">
-                <!-- Number of available slots -->
-                <p id="available-slots"></p>
-                
-                <!-- Booking button -->
-                <button class="btn btn-primary" id="book-button" style="display: none">Prenota</button>
-            </div>
+                    <!-- Booking button -->
+                    <button class="btn btn-primary" id="booking-button">Prenota</button>
+                </div>
+            </form>
         </div>
     </div>
     

@@ -34,3 +34,11 @@ nav .navbar-brand .green
 {
     color: rgb(117, 117, 117);
 }
+
+/* Style for the warning bar*/
+.warning
+{
+    background-color: red;
+    padding: 1rem 0 1rem;
+    display: none;
+}

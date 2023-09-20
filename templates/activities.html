@@ -15,7 +15,8 @@
 {% endblock %}
 
 {% block main %}
-    <div class="mb-3">
+    <h1>Attività</h1>
+    <div class="mb-3" style="margin: 2rem 5%;">
         <table class="table table-striped">
             <thead>
                 <th>Titolo</th>
@@ -28,7 +29,7 @@
                 <td>
                     <form action="/activities" method="post">
                         <input type="hidden" name="activity_id" value="{{ activity.id }}">
-                        <button class="btn btn-primary" type="submit" name="submit">View Details</button>
+                        <button class="btn btn-primary" type="submit" name="submit">Dettagli</button>
                     </form>
                 </td>
             </tr>

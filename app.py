@@ -6,10 +6,8 @@ from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 import json
 
-from helpers import apology, login_required
-
-# Constants
-DATABASE = "database.db"
+from helpers import apology, login_required, activity_already_booked, slot_already_booked, decompose_timespan
+from constants import *
 
 # Configure application
 app = Flask(__name__)
@@ -61,6 +59,11 @@ def login():
     cur = con.cursor()
     # query_result is like [(id, pw_hash)] 
     query_result = cur.execute("SELECT id, hash FROM users WHERE email = ?;", (request.form.get("email"),)).fetchall()
+    
+    # Closing db connection
+    cur.close()
+    con.close()
+    
     if not query_result:
         return apology("email e/o password invalidi", 400)
     
@@ -144,6 +147,10 @@ def register():
                     (email, generate_password_hash(password), name, surname, "student", user_class))
         
         con.commit()
+        
+        # Closes cursor and connection
+        cur.close()
+        con.close()
 
         # Redirect to the homepage
         return redirect("/")
@@ -169,6 +176,10 @@ def activities():
     cur = con.cursor()
     query_output = cur.execute("SELECT id, title, type FROM activities").fetchall()
     
+    # Closing database connection
+    cur.close()
+    con.close()
+    
     if not query_output:
         return apology("Nessuna attività disponibile al momento")
     
@@ -184,7 +195,7 @@ def activities():
 @login_required
 def activity():
     """Activity page w/ details"""
-    
+    # If the page is loaded with GET (eg: clicking a link, getting redirected...)
     if request.method == "GET":
         con = sqlite3.connect(DATABASE)
         cur = con.cursor()
@@ -193,11 +204,9 @@ def activity():
         cur.execute("SELECT title, abstract, type, availability FROM activities WHERE id = ?;", (activity_id,))
         activity_title, activity_abstract, activity_type, activity_availability = cur.fetchone()
         
-        # TEST
-        activity_abstract = """
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam in bibendum augue. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Praesent id ipsum lacus. Nulla facilisi. Sed at mi finibus, aliquam nunc nec, tempor diam. Donec eros metus, pretium eget porttitor nec, bibendum ac ligula. In hac habitasse platea dictumst.
-        Ut laoreet faucibus ligula. Interdum et malesuada fames ac ante ipsum primis in faucibus. Donec euismod mauris efficitur vulputate molestie. Nullam leo mi, sodales in euismod vel, eleifend id diam. Phasellus congue pellentesque vulputate. Donec eu enim auctor, tincidunt ante eu, dignissim diam. Pellentesque tincidunt orci a enim tempus, et eleifend risus consectetur. Duis dictum scelerisque faucibus. Aenean sit amet turpis eu augue molestie mollis. Quisque ultrices dignissim nulla, a accumsan justo. Mauris consequat tristique lorem a finibus. Fusce a diam eu est feugiat volutpat in fringilla urna. Ves
-        """
+        # Closing connection to db
+        cur.close()
+        con.close()
         
         # Factors of the activity
         activity_dict = {"title": activity_title,
@@ -205,18 +214,84 @@ def activity():
                         "type": activity_type,
                         }
         
-        # Days and hours the course is available on
+        # Availability of the course
         activity_availability = json.loads(activity_availability)
-        activity_availability["09/11"]["1"] = 0
         
-        return render_template("activity.html", activity=activity_dict, availability=activity_availability)
-    
-    # con = sqlite3.connect(DATABASE)
-    # cur = con.cursor()
+        # Check for booked activity
+        booked = activity_already_booked(session["user_id"], activity_id)
+        
+        return render_template("activity.html", id=activity_id, activity=activity_dict, availability=activity_availability, is_booked=booked)
 
+
+    # If method is POST (booking button has been pressed)
+    # Make connection    
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+
+    activity_id = request.args["id"]
+    day = request.form.get('day-button')
+    timespan = request.form.get("timespan-button")
+
+    print(slot_already_booked(session["user_id"], day, timespan))
+    
+    # Check if the user has already booked this activity  
+    if activity_already_booked(session["user_id"], activity_id):
+        return apology("hai giá prenotato questa attivitá")
+    
+    elif slot_already_booked(session["user_id"], day, timespan):
+        return apology("questo slot e' occupato")
+    
+    
+    # Update availability
+    length = cur.execute("SELECT length FROM activities WHERE id = ?", (activity_id,)).fetchone()[0]
+    availability = json.loads(cur.execute("SELECT availability FROM activities WHERE id = ?", (activity_id,)).fetchone()[0],)
+    availability[day][timespan] -= 1
+    availability = str(json.dumps(availability))
+    cur.execute("UPDATE activities SET availability = ? WHERE id = ?", (f'{availability}', activity_id))    
+    
+    # Update registrations
+    if length == 1:
+        cur.execute("INSERT INTO registrations (user_id, activity_id, day, timespan) VALUES (?, ?, ?, ?)", (session["user_id"], activity_id, day, timespan))
+    
+    else:
+        # Else, update each relevant timespan
+        for t in decompose_timespan(timespan):
+            cur.execute("INSERT INTO registrations (user_id, activity_id, day, timespan) VALUES (?, ?, ?, ?)", (session["user_id"], activity_id, day, t))
+    
+    # Commit and close connection
+    con.commit()
+    cur.close()
+    con.close()
+    
+    return redirect("/me")
+    
 
 @app.route("/me")
 @login_required
 def me():
     """Me page w/ your bookings"""
-    return render_template("me.html")
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+    
+    # Fetch all user registrations -> list[tuple[title, day, timespan]]
+    result = """
+    SELECT activities.title, registrations.day, registrations.timespan
+        FROM registrations JOIN
+        activities ON
+            registrations.activity_id = activities.id
+        WHERE user_id = ?
+    """
+    cur.execute(result, (session["user_id"],))
+    query_results = cur.fetchall()
+        
+    schedule = {day: {timespan: ""
+                      for timespan in TIMESPANS}
+                for day in DAYS}
+        
+    for title, day, timespan in query_results:
+        schedule[day][timespan] = title
+        
+    cur.close()
+    con.close()
+        
+    return render_template("me.html", schedule=schedule)
