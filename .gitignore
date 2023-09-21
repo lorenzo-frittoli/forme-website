@@ -1,3 +1,5 @@
 /__pycache__
 /flask_session
 database.db
+app.py
+database.db
