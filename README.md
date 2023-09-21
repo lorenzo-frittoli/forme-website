@@ -1,7 +1,7 @@
 
 # ForMe Website
 
-**NOT FINISHED YET**
+**VERSION 1.0 OUT NOW. ALL BASIC FEATURES ARE IMPLEMENTED.**
 
 Website for [ForMe](https://www.liceocassini.it/pages/forme.php), a yearly event at [Liceo Cassini](https://www.liceocassini.it/) highschool.
 
