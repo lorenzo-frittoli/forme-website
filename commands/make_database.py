@@ -19,7 +19,6 @@ def main() -> None:
     
     # Init the database
     qry = open(MAKE_DATABASE_COMMAND_FILE, "r")
-
     cur.execute(qry)
     con.commit()
 
