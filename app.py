@@ -3,6 +3,7 @@ from flask import Flask, redirect, render_template, request, session, url_for
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 import json
+import re
 
 from helpers import apology, login_required, activity_already_booked, slot_already_booked, decompose_timespan
 from constants import *
@@ -60,11 +61,7 @@ def login():
     cur = con.cursor()
     # query_result is like [(id, pw_hash)] 
     query_result = cur.execute("SELECT id, hash FROM users WHERE email = ?;", (request.form.get("email"),)).fetchall()
-    
-    # Closing db connection
-    cur.close()
-    con.close()
-    
+        
     # If there is no user saved with the provided email
     if not query_result:
         return apology("email e/o password invalidi", 400)
@@ -75,8 +72,17 @@ def login():
     if not check_password_hash(pw_hash, request.form.get("password")):
         return apology("email e/o password invalidi", 400)
 
+    # Fetch user type
+    cur.execute("SELECT type FROM users WHERE id = ?;", (id,))
+    user_type = cur.fetchone()[0]
+    
+    # Closing db connection
+    cur.close()
+    con.close()
+
     # Remember which user has logged in
     session["user_id"] = id
+    session["user_type"] = user_type
 
     # Redirect user to home page
     return redirect("/")
@@ -106,7 +112,6 @@ def register():
     # Get form data
     name = request.form.get("name")
     surname = request.form.get("surname")
-    user_class = request.form.get("class")
     email = request.form.get("email")
     password = request.form.get("password")
     confirmation = request.form.get("confirmation")
@@ -119,13 +124,13 @@ def register():
     # Checks if surname field was filled
     elif not surname:
         return apology("Cognome non valido", 400)
-
-    # Checks if class field was filled
-    elif not user_class:
-        return apology("Classe non valida", 400)
     
     # Checks if email field was filled
     elif not email:
+        return apology("Email non valida", 400)
+    
+    # Checks if email looks valid w/ regex
+    elif not re.match(EMAIL_REGEX, email):
         return apology("Email non valida", 400)
     
     # Checks if password field was filled
@@ -150,8 +155,8 @@ def register():
         return apology("email registrata", 400)
 
     # Save the new user & commit
-    cur.execute("INSERT INTO users (email, hash, name, surname, type, class) VALUES (?, ?, ?, ?, ?, ?)",
-                (email, generate_password_hash(password), name, surname, "student", user_class))
+    cur.execute("INSERT INTO users (email, hash, name, surname, type) VALUES (?, ?, ?, ?, ?)",
+                (email, generate_password_hash(password), name, surname, "guest"))
     con.commit()
     
     
@@ -212,7 +217,7 @@ def activity():
         cur = con.cursor()
         
         # Fetch data
-        activity_id = request.args["id"]
+        activity_id = request.args["id"]        
         cur.execute("SELECT title, abstract, type, availability FROM activities WHERE id = ?;", (activity_id,))
         activity_title, activity_abstract, activity_type, activity_availability = cur.fetchone()
         
@@ -228,12 +233,12 @@ def activity():
         
         # JSON string -> dict[day: dict[time: availability]]
         activity_availability = json.loads(activity_availability)
+        activity_availability = {day: av for day, av in activity_availability.items() if session["user_type"] in PERMISSIONS[day]}
         
         # Check if the activity has already been booked by the user (to display warning)
         booked = activity_already_booked(session["user_id"], activity_id)
         
         return render_template("activity.html", id=activity_id, activity=activity_dict, availability=activity_availability, is_booked=booked)
-
 
     # If method is POST (booking button has been pressed)
     # Make connection    
@@ -252,7 +257,6 @@ def activity():
     # Check if the user has already booked this day-timespan combo
     elif slot_already_booked(session["user_id"], day, timespan):
         return apology("questo slot e' occupato")
-    
     
     # Update availability
     length = cur.execute("SELECT length FROM activities WHERE id = ?", (activity_id,)).fetchone()[0]
@@ -300,7 +304,8 @@ def me():
     # Make empty schedule
     schedule = {day: {timespan: ""
                       for timespan in TIMESPANS}
-                for day in DAYS}
+                for day in DAYS
+                if session["user_type"] in PERMISSIONS[day]}
     
     # Fill with known data
     for title, day, timespan in query_results:
