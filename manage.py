@@ -38,6 +38,7 @@ def make_db() -> None:
     for command in sql_script.split(";"):
         con.execute(f"{command};")
     
+    # Commit changes
     con.commit()
 
     # Close sqlite3 (optional)
