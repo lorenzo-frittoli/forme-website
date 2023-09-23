@@ -9,6 +9,7 @@
 from flask import redirect, render_template, session
 from functools import wraps
 import sqlite3
+from typing import Union
 
 from constants import *
 
@@ -41,7 +42,7 @@ def login_required(f):
     return decorated_function
 
 
-def activity_already_booked(user_id: int|str, activity_id: int|str) -> bool:
+def activity_already_booked(user_id: Union[int, str], activity_id: Union[int, str]) -> bool:
     """Checks wether a course has been booked already by that student.
 
     Args:
