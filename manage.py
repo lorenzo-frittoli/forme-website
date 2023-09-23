@@ -20,14 +20,24 @@ def make_db() -> None:
     cur = con.cursor()
 
     # Drop all tables
-    cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
-    tables = cur.fetchall()
+    TABLE_PARAMETER = "{TABLE_PARAMETER}"
+    DROP_TABLE_SQL = f"DROP TABLE {TABLE_PARAMETER};"
+    GET_TABLES_SQL = "SELECT name FROM sqlite_schema WHERE type='table' AND name != 'sqlite_sequence';"
     
-    cur.executemany("DROP TABLE IF EXISTS ?;", tables)
+    cur.execute(GET_TABLES_SQL)
+    tables = cur.fetchall()
+
+    for table, in tables:
+        sql = DROP_TABLE_SQL.replace(TABLE_PARAMETER, table)
+        cur.execute(sql)
     
     # Init the database
-    qry = open(MAKE_DATABASE_COMMAND_FILE, "r")
-    cur.execute(qry)
+    with open(MAKE_DATABASE_COMMAND_FILE, 'r') as sql_file:
+        sql_script = sql_file.read()
+        
+    for command in sql_script.split(";"):
+        con.execute(f"{command};")
+    
     con.commit()
 
     # Close sqlite3 (optional)
