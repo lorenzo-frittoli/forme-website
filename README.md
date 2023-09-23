@@ -14,6 +14,10 @@ It features different days for different types of users (ei: students and guests
 It supports randomly filling the unbooked timespans in a user's schedule.
 
 ## Deployment
+First, setup the database by running
+```bash
+python manage.py make-db
+```
 
 To deploy the server for public use, follow [Flask's documentation](https://flask.palletsprojects.com/en/2.2.x/deploying/).
 
