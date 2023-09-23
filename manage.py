@@ -15,6 +15,9 @@ cli = FlaskGroup(app)
 @cli.command()
 def make_db() -> None:
     """Drops all current tables and sets up new ones in the database"""
+    # Create db file if it doesn't exist
+    open(DATABASE, "w")
+    
     # Initialize sqlite3
     con = sqlite3.connect(DATABASE)
     cur = con.cursor()
