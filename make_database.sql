@@ -24,8 +24,9 @@ CREATE TABLE registrations (
     user_id INTEGER NOT NULL,
     activity_id INTEGER NOT NULL,
     day string NOT NULL,
-    timespan string NOT NULL,
+    module_start INTEGER NOT NULL,
+    module_end INTEGER NOT NULL,
     FOREIGN KEY(user_id) REFERENCES users(user_id),
     FOREIGN KEY(activity_id) REFERENCES activities(activity_id),
-    PRIMARY KEY (user_id, activity_id, day, timespan)
+    PRIMARY KEY (user_id, activity_id, day, module_start, module_end)
 );

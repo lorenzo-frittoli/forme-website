@@ -1,7 +1,10 @@
 # Event details
-DAYS = ["07/10", "08/10", "09/10"]
-TIMESPANS = ["08:00-09:00", "09:00-10:00", "10:00-11:00", "11:00-12:00"]
-PERMISSIONS = {"07/10": ["student"], "08/10": ["student", "guest"], "09/10": ["guest"]}
+DAYS = ("07/10", "08/10", "09/10")
+TIMESPANS = (("08:00", "09:00"), ("09:00", "10:00"), ("10:00", "11:00"), ("11:00", "12:00"))
+TIMESPANS_TEXT = tuple("-".join(timespan) for timespan in TIMESPANS)
+PERMISSIONS = (("student", ), ("student", "guest"), ("guest", ))
+
+assert len(PERMISSIONS) == len(DAYS)
 
 # Database
 DATABASE = "database.db"

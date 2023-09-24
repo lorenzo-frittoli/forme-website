@@ -5,7 +5,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import json
 import re
 
-from helpers import apology, login_required, activity_already_booked, slot_already_booked, decompose_timespan
+from helpers import apology, login_required, activity_already_booked, slot_already_booked
 from constants import *
 
 # Configure application
@@ -217,63 +217,81 @@ def activity():
         cur = con.cursor()
         
         # Fetch data
-        activity_id = request.args["id"]        
+        try:
+            activity_id = request.args["id"]
+        except KeyError:
+            return apology("Invalid http request")      
         cur.execute("SELECT title, abstract, type, availability FROM activities WHERE id = ?;", (activity_id,))
         activity_title, activity_abstract, activity_type, activity_availability = cur.fetchone()
-        
-        # Close connection to db
-        cur.close()
-        con.close()
         
         # Details of the activity
         activity_dict = {"title": activity_title,
                         "abstract": activity_abstract,
-                        "type": activity_type,
+                        "type": activity_type
                         }
         
-        # JSON string -> dict[day: dict[time: availability]]
+        # JSON string -> list[list[remaining by time] by day]
         activity_availability = json.loads(activity_availability)
-        activity_availability = {day: av for day, av in activity_availability.items() if session["user_type"] in PERMISSIONS[day]}
+        length = cur.execute("SELECT length FROM activities WHERE id = ?", (activity_id,)).fetchone()[0]
+
+        # Close connection to db
+        cur.close()
+        con.close()
+
+        activity_availability = [av for i, av in enumerate(activity_availability) if session["user_type"] in PERMISSIONS[i]]
         
         # Check if the activity has already been booked by the user (to display warning)
         booked = activity_already_booked(session["user_id"], activity_id)
+
+        activity_timespans = tuple(
+            (i//length, TIMESPANS[i][0] + "-" + TIMESPANS[i + length - 1][1])
+            for i in range(0, len(TIMESPANS), length)
+        )
+        activity_days = tuple((i, day) for i, day in enumerate(DAYS) if session["user_type"] in PERMISSIONS[i])
         
-        return render_template("activity.html", id=activity_id, activity=activity_dict, availability=activity_availability, is_booked=booked)
+        return render_template("activity.html", id=activity_id, activity=activity_dict, days=activity_days, timespans=activity_timespans, availability=activity_availability, is_booked=booked)
 
     # If method is POST (booking button has been pressed)
+
+    # Fetch data
+    try:
+        activity_id = request.args["id"]
+        day = int(request.form.get('day-button'))
+        if day < 0 or day >= len(DAYS) or session["user_type"] not in PERMISSIONS[day]:
+            raise ValueError
+        module = int(request.form.get("timespan-button"))
+        if module < 0:
+            raise ValueError
+    except (KeyError, ValueError):
+        return apology("Invalid http request")
+
     # Make connection    
     con = sqlite3.connect(DATABASE)
     cur = con.cursor()
 
-    # Fetch data
-    activity_id = request.args["id"]
-    day = request.form.get('day-button')
-    timespan = request.form.get("timespan-button")
-
+    length = cur.execute("SELECT length FROM activities WHERE id = ?", (activity_id,)).fetchone()[0]
+    
     # Check if the user has already booked this activity  
     if activity_already_booked(session["user_id"], activity_id):
-        return apology("hai giá prenotato questa attivitá")
-    
+        return apology("Hai giá prenotato questa attivitá")
+
+    module_start = module*length
+    module_end = module_start + length - 1
+    if module_end >= len(TIMESPANS):
+        return apology("Invalid http request")
+
     # Check if the user has already booked this day-timespan combo
-    elif slot_already_booked(session["user_id"], day, timespan):
-        return apology("questo slot e' occupato")
+    if slot_already_booked(session["user_id"], day, module_start, module_end):
+        return apology("Questo slot e' occupato")
     
     # Update availability
-    length = cur.execute("SELECT length FROM activities WHERE id = ?", (activity_id,)).fetchone()[0]
     availability = json.loads(cur.execute("SELECT availability FROM activities WHERE id = ?", (activity_id,)).fetchone()[0],)
-    availability[day][timespan] -= 1
-    availability = str(json.dumps(availability))
+    availability[day][module] -= 1
+    availability = json.dumps(availability)
     cur.execute("UPDATE activities SET availability = ? WHERE id = ?", (f'{availability}', activity_id))    
     
     # Update registrations
-    # If there is just 1 timespan to update, do it
-    if length == 1:
-        cur.execute("INSERT INTO registrations (user_id, activity_id, day, timespan) VALUES (?, ?, ?, ?)", (session["user_id"], activity_id, day, timespan))
-    
-    # Else, update each relevant timespan
-    else:
-        for t in decompose_timespan(timespan):
-            cur.execute("INSERT INTO registrations (user_id, activity_id, day, timespan) VALUES (?, ?, ?, ?)", (session["user_id"], activity_id, day, t))
+    cur.execute("INSERT INTO registrations (user_id, activity_id, day, module_start, module_end) VALUES (?, ?, ?, ?, ?)", (session["user_id"], activity_id, day, module_start, module_end))
     
     # Commit and close connection
     con.commit()
@@ -292,7 +310,7 @@ def me():
     
     # Fetch all user registrations -> list[tuple[title, day, timespan]]
     result = """
-    SELECT activities.title, registrations.day, registrations.timespan
+    SELECT activities.title, registrations.day, registrations.module_start, registrations.module_end
         FROM registrations JOIN
         activities ON
             registrations.activity_id = activities.id
@@ -303,14 +321,16 @@ def me():
     
     # Make empty schedule
     schedule = {day: {timespan: ""
-                      for timespan in TIMESPANS}
-                for day in DAYS
-                if session["user_type"] in PERMISSIONS[day]}
+                      for timespan in TIMESPANS_TEXT}
+                for i, day in enumerate(DAYS)
+                if session["user_type"] in PERMISSIONS[i]}
     
     # Fill with known data
-    for title, day, timespan in query_results:
-        schedule[day][timespan] = title
-        
+    for title, day, module_start, module_end in query_results:
+        for module in range(module_start, module_end+1):
+            assert schedule[DAYS[day]][TIMESPANS_TEXT[module]] == ""
+            schedule[DAYS[day]][TIMESPANS_TEXT[module]] = title
+
     # Close connection to db
     cur.close()
     con.close()
