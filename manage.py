@@ -4,9 +4,11 @@ from flask.cli import FlaskGroup
 import click
 import sqlite3
 import json
+import random
 
-from app import app
+from helpers import make_registration
 from constants import *
+from app import app
 
 
 # SETUP
@@ -48,13 +50,78 @@ def make_db() -> None:
     cur.close()
     con.close()
     
-    
+
 @cli.command()
-@click.option("--user_type", help="Type of user whose schedule is going to be filled.")
+@click.option("--user-type", help="Type of user whose schedule is going to be filled")
 def fill_schedules(user_type: str) -> None:
     """Fill the empty schedules of users of the specified type with random activities"""
-    raise NotImplementedError
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+    
+    slots = [(day, timespan) for day in range(len(DAYS)) for timespan in range(len(TIMESPANS)) if user_type in PERMISSIONS[day]]
+    user_ids = cur.execute("SELECT id FROM users WHERE type = ?;", (user_type,)).fetchall()
 
+    # Fill the schedules
+    for (user_id,) in user_ids:
+        # Fetch all occupied slots
+        registrations = cur.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ?;", (user_id,)).fetchall()
+        booked_slots = []
+        
+        for day, start, end in registrations:
+            for timespan in range(start, end + 1):
+                booked_slots.append((day, timespan))
+                
+        # Fetches available activities
+        query = """
+        SELECT id, length, availability
+        FROM activities
+        WHERE id NOT IN (
+            SELECT activity_id
+            FROM registrations
+            WHERE user_id = ?
+        );
+        """
+        non_booked_activities = sorted(cur.execute(query, (user_id,)).fetchall(), key=lambda a: a[1], reverse=True)
+        
+        print(booked_slots)
+        
+        # Fill empty slots
+        for day, timespan in slots:
+            # If the slot is booked, continue
+            if (day, timespan) in booked_slots:
+                continue
+            
+            # Check every actvity
+            for activity_id, length, availability_str in non_booked_activities:
+                availability = json.loads(availability_str)
+                
+                # Check if actvity length is congruent with the timespan
+                if timespan % length != 0:
+                    continue
+                
+                # Check if the slot is available
+                elif availability[day][timespan // length] == 0:
+                    continue
+                
+                # Check if the next slots are available (in case of length > 1)
+                elif any([(day, pt) in booked_slots for pt in range(timespan, timespan + length) if pt < len(TIMESPANS)]):
+                    continue
+                                
+                # Remove activity
+                non_booked_activities.remove((activity_id, length, availability_str))
+                
+                # Remove used slots
+                for partial_timespan in range(timespan, timespan + length):
+                    booked_slots.append((day, partial_timespan))
+                
+                # Add registration
+                make_registration(user_id, activity_id, day, timespan // length) # Module 
+
+                break
+            
+            # If not break (no activity was found)
+            else:
+                raise ValueError("Not enough activities to cover the whole schedule")
 
 @cli.command()
 def make_filler_activity() -> None:

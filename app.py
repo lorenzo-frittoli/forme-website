@@ -5,7 +5,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import json
 import re
 
-from helpers import apology, login_required, activity_already_booked, slot_already_booked
+from helpers import apology, login_required, activity_already_booked, fetch_schedule, make_registration
 from constants import *
 
 # Configure application
@@ -265,38 +265,12 @@ def activity():
     except (KeyError, ValueError):
         return apology("Invalid http request")
 
-    # Make connection    
-    con = sqlite3.connect(DATABASE)
-    cur = con.cursor()
-
-    length = cur.execute("SELECT length FROM activities WHERE id = ?", (activity_id,)).fetchone()[0]
+    # Make registration
+    try:
+        make_registration(session["user_id"], activity_id, day, module)
     
-    # Check if the user has already booked this activity  
-    if activity_already_booked(session["user_id"], activity_id):
-        return apology("Hai giá prenotato questa attivitá")
-
-    module_start = module*length
-    module_end = module_start + length - 1
-    if module_end >= len(TIMESPANS):
-        return apology("Invalid http request")
-
-    # Check if the user has already booked this day-timespan combo
-    if slot_already_booked(session["user_id"], day, module_start, module_end):
-        return apology("Questo slot e' occupato")
-    
-    # Update availability
-    availability = json.loads(cur.execute("SELECT availability FROM activities WHERE id = ?", (activity_id,)).fetchone()[0],)
-    availability[day][module] -= 1
-    availability = json.dumps(availability)
-    cur.execute("UPDATE activities SET availability = ? WHERE id = ?", (f'{availability}', activity_id))    
-    
-    # Update registrations
-    cur.execute("INSERT INTO registrations (user_id, activity_id, day, module_start, module_end) VALUES (?, ?, ?, ?, ?)", (session["user_id"], activity_id, day, module_start, module_end))
-    
-    # Commit and close connection
-    con.commit()
-    cur.close()
-    con.close()
+    except ValueError:
+        return apology("Prenotazione non valida")
     
     return redirect("/me")
     
@@ -305,34 +279,6 @@ def activity():
 @login_required
 def me():
     """Me page w/ your bookings"""
-    con = sqlite3.connect(DATABASE)
-    cur = con.cursor()
-    
-    # Fetch all user registrations -> list[tuple[title, day, timespan]]
-    result = """
-    SELECT activities.title, registrations.day, registrations.module_start, registrations.module_end
-        FROM registrations JOIN
-        activities ON
-            registrations.activity_id = activities.id
-        WHERE user_id = ?
-    """
-    cur.execute(result, (session["user_id"],))
-    query_results = cur.fetchall()
-    
-    # Make empty schedule
-    schedule = {day: {timespan: ""
-                      for timespan in TIMESPANS_TEXT}
-                for i, day in enumerate(DAYS)
-                if session["user_type"] in PERMISSIONS[i]}
-    
-    # Fill with known data
-    for title, day, module_start, module_end in query_results:
-        for module in range(module_start, module_end+1):
-            assert schedule[DAYS[day]][TIMESPANS_TEXT[module]] == ""
-            schedule[DAYS[day]][TIMESPANS_TEXT[module]] = title
-
-    # Close connection to db
-    cur.close()
-    con.close()
+    schedule = fetch_schedule(session["user_id"], session["user_type"])
         
     return render_template("me.html", schedule=schedule)
