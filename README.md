@@ -35,7 +35,7 @@ flask run --host=0.0.0.0
 ```
 ## Tech Stack
 
-**Frontend:** HTML5, CSS, JavaScript, Django Template Language
+**Frontend:** HTML5, CSS, JavaScript, Jinja Template Language
 
 **Backend:** Python with Flask
 
