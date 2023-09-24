@@ -3,34 +3,34 @@ import os
 from datetime import datetime
 from shutil import copyfile
 
-BACKUP_FREQ = 30
+# In seconds
+BACKUP_FREQ = 24*60*60 # Each day
 MAX_BACKUPS = 5
 
 BACKUPS_DIR = "backups"
-BACKUP_PREFIX = "database"
+FILENAME_FRMT = "database_%Y-%m-%d_%H-%M-%S.db"
 
 DIR_SEP = "\\" if os.name == "nt" else "/"
 
-if not os.path.exists(BACKUPS_DIR):
-    os.mkdir(BACKUPS_DIR)
-
-print("Ctrl-C to kill.")
-
-def extract_time(backup: str) -> datetime:
-    name, extension = backup.split(".")
-    assert extension == "db"
-    prefix, creation_time = name.split("_", 1)
-    assert prefix == BACKUP_PREFIX
-    return datetime.strptime(creation_time, "%Y-%m-%d_%H-%M-%S")
-
-while True:
+def backup_db():
     # Delete the old backups
-    backups = [(extract_time(backup), backup) for backup in os.listdir(BACKUPS_DIR)]
+    backups = [(datetime.strptime(backup, FILENAME_FRMT), backup) for backup in os.listdir(BACKUPS_DIR)]
     backups.sort()
     for backup in backups[:1-MAX_BACKUPS]:
         os.remove(BACKUPS_DIR+DIR_SEP+backup[1])
 
     # Save the new backup
-    copyfile("database.db", BACKUPS_DIR+DIR_SEP+BACKUP_PREFIX+"_"+datetime.strftime(datetime.now(), "%Y-%m-%d_%H-%M-%S")+".db")
+    copyfile("database.db", BACKUPS_DIR+DIR_SEP+datetime.strftime(datetime.now(), FILENAME_FRMT))
 
-    time.sleep(BACKUP_FREQ)
+
+def main():
+    if not os.path.exists(BACKUPS_DIR):
+        os.mkdir(BACKUPS_DIR)
+
+    while True:
+        backup_db()
+        time.sleep(BACKUP_FREQ)
+
+if __name__ == "__main__":
+    print("Ctrl-C to kill")
+    main()
