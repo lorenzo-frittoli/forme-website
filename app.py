@@ -60,7 +60,7 @@ def login():
     # Query db for id and hash from email
     cur = con.cursor()
     # query_result is like [(id, pw_hash)] 
-    query_result = cur.execute("SELECT id, hash FROM users WHERE email = ?;", (request.form.get("email"),)).fetchall()
+    query_result = cur.execute("SELECT id, hash FROM users WHERE email = ?;", (request.form.get("email").lower(),)).fetchall()
         
     # If there is no user saved with the provided email
     if not query_result:
@@ -129,8 +129,10 @@ def register():
     elif not email:
         return apology("Email non valida", 400)
     
+    email = email.lower()
+    
     # Checks if email looks valid w/ regex
-    elif not re.match(EMAIL_REGEX, email):
+    if not re.match(EMAIL_REGEX, email):
         return apology("Email non valida", 400)
     
     # Checks if password field was filled
