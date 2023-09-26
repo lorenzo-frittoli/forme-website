@@ -58,7 +58,7 @@ def activity_already_booked(user_id: Union[int, str], activity_id: Union[int, st
     
     con = sqlite3.connect(DATABASE)
     cur = con.cursor()
-    cur.execute("SELECT activity_id FROM registrations WHERE user_id = ? AND activity_id = ?", (user_id, activity_id))
+    cur.execute("SELECT activity_id FROM registrations WHERE user_id = ? AND activity_id = ?;", (user_id, activity_id))
     
     return bool(cur.fetchall())
 
@@ -92,7 +92,7 @@ def fetch_schedule(user_id: int, user_type: int):
         FROM registrations JOIN
         activities ON
             registrations.activity_id = activities.id
-        WHERE user_id = ?
+        WHERE user_id = ?;
     """
     cur.execute(result, (user_id,))
     query_results = cur.fetchall()
@@ -134,7 +134,7 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int):
     con = sqlite3.connect(DATABASE)
     cur = con.cursor()
 
-    length = cur.execute("SELECT length FROM activities WHERE id = ?", (activity_id,)).fetchone()[0]
+    length = cur.execute("SELECT length FROM activities WHERE id = ?;", (activity_id,)).fetchone()[0]
     
     # Check if the user has already booked this activity  
     if activity_already_booked(user_id, activity_id):
@@ -151,13 +151,13 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int):
         raise ValueError("Occupied slot")
     
     # Update availability
-    availability = json.loads(cur.execute("SELECT availability FROM activities WHERE id = ?", (activity_id,)).fetchone()[0],)
+    availability = json.loads(cur.execute("SELECT availability FROM activities WHERE id = ?;", (activity_id,)).fetchone()[0],)
     availability[day][module] -= 1
     availability = json.dumps(availability)
-    cur.execute("UPDATE activities SET availability = ? WHERE id = ?", (f'{availability}', activity_id))    
+    cur.execute("UPDATE activities SET availability = ? WHERE id = ?;", (f'{availability}', activity_id))    
     
     # Update registrations
-    cur.execute("INSERT INTO registrations (user_id, activity_id, day, module_start, module_end) VALUES (?, ?, ?, ?, ?)", (user_id, activity_id, day, module_start, module_end))
+    cur.execute("INSERT INTO registrations (user_id, activity_id, day, module_start, module_end) VALUES (?, ?, ?, ?, ?);", (user_id, activity_id, day, module_start, module_end))
     
     # Commit and close connection
     con.commit()

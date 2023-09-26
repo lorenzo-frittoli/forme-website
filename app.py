@@ -152,12 +152,13 @@ def register():
     cur = con.cursor()
     
     # cur.execute returns a list like [(el1,), (el2,)] etc
-    emails = map(lambda x: x[0], cur.execute("SELECT email FROM users").fetchall())
-    if email in emails:
+    emails = cur.execute("SELECT email FROM users WHERE email = ?;", (email,)).fetchall()
+
+    if emails:
         return apology("email registrata", 400)
 
     # Save the new user & commit
-    cur.execute("INSERT INTO users (email, hash, name, surname, type) VALUES (?, ?, ?, ?, ?)",
+    cur.execute("INSERT INTO users (email, hash, name, surname, type) VALUES (?, ?, ?, ?, ?);",
                 (email, generate_password_hash(password), name, surname, "guest"))
     con.commit()
     
@@ -189,7 +190,7 @@ def activities():
     cur = con.cursor()
     
     # Query DB for id, title, type of every activity in the form list[tuple[id: int, title: str, type: str]]
-    query_output = cur.execute("SELECT id, title, type FROM activities").fetchall()
+    query_output = cur.execute("SELECT id, title, type FROM activities;").fetchall()
     
     # Closing database connection
     cur.close()
@@ -234,7 +235,7 @@ def activity():
         
         # JSON string -> list[list[remaining by time] by day]
         activity_availability = json.loads(activity_availability)
-        length = cur.execute("SELECT length FROM activities WHERE id = ?", (activity_id,)).fetchone()[0]
+        length = cur.execute("SELECT length FROM activities WHERE id = ?;", (activity_id,)).fetchone()[0]
 
         # Close connection to db
         cur.close()
