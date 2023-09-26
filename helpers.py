@@ -92,41 +92,6 @@ def slot_already_booked(user_id: int, day: str, module_start: int, module_end: i
     return bool(cur.fetchall())
 
 
-def fetch_schedule(user_id: int, user_type: int):
-    con = sqlite3.connect(DATABASE)
-    cur = con.cursor()
-    
-    # Fetch all user registrations -> list[tuple[title, day, timespan]]
-    result = """
-    SELECT activities.title, registrations.day, registrations.module_start, registrations.module_end
-        FROM registrations JOIN
-        activities ON
-            registrations.activity_id = activities.id
-        WHERE user_id = ?;
-    """
-    cur.execute(result, (user_id,))
-    query_results = cur.fetchall()
-    
-    # Make empty schedule
-    schedule = {day: {timespan: ""
-                      for timespan in TIMESPANS_TEXT}
-                for i, day in enumerate(DAYS)
-                if user_type in PERMISSIONS[i]}
-        
-    # Fill with known data
-    for title, day, module_start, module_end in query_results:
-        for module in range(module_start, module_end+1):
-            assert schedule[DAYS[day]][TIMESPANS_TEXT[module]] == ""
-            schedule[DAYS[day]][TIMESPANS_TEXT[module]] = title
-
-    # Close connection to db
-    cur.close()
-    con.close()
-
-    # Return
-    return schedule
-
-
 def make_registration(user_id: int, activity_id: int, day: int, module: int):
     """Add a registration to the database
 

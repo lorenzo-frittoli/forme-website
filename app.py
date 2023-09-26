@@ -5,7 +5,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import json
 import re
 
-from helpers import apology, login_required, activity_already_booked, fetch_schedule, make_registration, update_availability
+from helpers import apology, login_required, activity_already_booked, make_registration, update_availability
 from constants import *
 
 # Configure application
@@ -314,6 +314,37 @@ def activity():
 @login_required
 def me():
     """Me page w/ your bookings"""
-    schedule = fetch_schedule(session["user_id"], session["user_type"])
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+    
+    # Fetch all user registrations -> list[tuple[title, day, timespan]]
+    result = """
+    SELECT activities.id, activities.title, registrations.day, registrations.module_start, registrations.module_end
+        FROM registrations JOIN
+        activities ON
+            registrations.activity_id = activities.id
+        WHERE user_id = ?;
+    """
+    cur.execute(result, (session["user_id"],))
+    query_results = cur.fetchall()
+    
+    # Make empty schedule
+    schedule = {day: {timespan: ("", None)
+                      for timespan in TIMESPANS_TEXT}
+                for i, day in enumerate(DAYS)
+                if session["user_type"] in PERMISSIONS[i]}
+        
+    # Fill with known data
+    for activity_id, title, day, module_start, module_end in query_results:
+        for timespan in range(module_start, module_end + 1):
+            assert schedule[DAYS[day]][TIMESPANS_TEXT[timespan]] is ("", None)
+            link = url_for(".activity", id=activity_id)
+            schedule[DAYS[day]][TIMESPANS_TEXT[timespan]] = (title, link)
+
+    # Close connection to db
+    cur.close()
+    con.close()
+        
+    print(schedule)
         
     return render_template("me.html", schedule=schedule)

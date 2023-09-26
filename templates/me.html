@@ -13,8 +13,8 @@
             
             // Check every title to spot empty spots
             outerLoop: for (const day of Object.values(schedule)) {
-                for (const title of Object.values(day)) {
-                    if (title == "") {
+                for (const data of Object.values(day)) {
+                    if (data[0] == "") {
                         console.log("found empty field")
                         fully_booked = 0;
                         break outerLoop;
@@ -44,11 +44,11 @@
                 {% for day, bookings in schedule.items() %}
                 <tr>
                     <th>{{ day }}</th>
-                    {% for title in bookings.values() %}
+                    {% for title, link in bookings.values() %}
                         {% if title == "" %}
                             <td style="color: rgb(117, 117, 117);">Vuoto</td>
                         {% else %}
-                            <td>{{ title }}</td>
+                            <td><a href="{{ link }}"">{{ title }}</a></td>
                         {% endif %}
                     {% endfor %}
                     <td>{{ booking }}</td>
