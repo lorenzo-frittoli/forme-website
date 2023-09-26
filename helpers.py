@@ -147,18 +147,15 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int):
     con = sqlite3.connect(DATABASE)
     cur = con.cursor()
 
-    query_result = cur.execute("SELECT availability, length FROM activities WHERE id = ?;", (activity_id,)).fetchone()
-    if query_result is None:
-        cur.close()
-        con.close()
+    length = cur.execute("SELECT length FROM activities WHERE id = ?;", (activity_id,)).fetchone()[0]
+    if length is None:
         raise ValueError("Invalid activity id")
-
-    availability, length = query_result
     
     # Check if the user has already booked this activity  
     if activity_already_booked(user_id, activity_id):
         raise ValueError("Activity already booked")
 
+    # Check if the module is valid
     module_start = module * length
     module_end = module_start + length - 1
 
@@ -170,15 +167,42 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int):
         raise ValueError("Occupied slot")
     
     # Update availability
-    availability = json.loads(availability)
-    availability[day][module] -= 1
-    availability = json.dumps(availability)
-    cur.execute("UPDATE activities SET availability = ? WHERE id = ?;", (availability, activity_id))    
+    update_availability(activity_id, day, module, -1)
     
     # Update registrations
     cur.execute("INSERT INTO registrations (user_id, activity_id, day, module_start, module_end) VALUES (?, ?, ?, ?, ?);", (user_id, activity_id, day, module_start, module_end))
-    
-    # Commit and close connection
     con.commit()
+    
+    # Close db
+    cur.close()
+    con.close()
+
+
+def update_availability(activity_id: int, day: int, module: int, amount: int) -> None:
+    """Updates the availability
+
+    Args:
+        activity_id (int): id of the activity
+        day (int): day to update
+        module (int): if length = 2, module 0 = timespans 0, 1. Compute with: timespan // lenght
+        amount (int): amount to change the availability by
+    """
+    # SQL
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+    
+    # Load availability
+    availability = cur.execute("SELECT availability FROM activities WHERE id = ?", (activity_id,)).fetchone()[0]
+    availability = json.loads(availability)
+    
+    # Modify availability
+    availability[day][module] += amount
+    availability = json.dumps(availability)
+    
+    # Update availability
+    cur.execute("UPDATE activities SET availability = ? WHERE id = ?;", (availability, activity_id))  
+    con.commit()
+    
+    # SQL close
     cur.close()
     con.close()

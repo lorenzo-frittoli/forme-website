@@ -82,9 +82,7 @@ def fill_schedules(user_type: str) -> None:
         );
         """
         non_booked_activities = sorted(cur.execute(query, (user_id,)).fetchall(), key=lambda a: a[1], reverse=True)
-        
-        print(booked_slots)
-        
+                
         # Fill empty slots
         for day, timespan in slots:
             # If the slot is booked, continue
@@ -122,6 +120,7 @@ def fill_schedules(user_type: str) -> None:
             # If not break (no activity was found)
             else:
                 raise ValueError("Not enough activities to cover the whole schedule")
+
 
 @cli.command()
 def make_filler_activity() -> None:

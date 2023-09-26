@@ -9,7 +9,11 @@
     <script>
         $(document).ready(function() {
             if ("{{ is_booked }}" === "True") {
-                $(".warning").css("display", "block");
+                $(".booking").css("display", "none");
+                $(".unbooking").css("display", "block");
+            } else {
+                $(".booking").css("display", "block");
+                $(".unbooking").css("display", "none");
             }
         });
     </script>
@@ -64,10 +68,6 @@
             }
         });
     </script>
-
-    <h3 class="warning">HAI GIA' PRENOTATO QUESTA ATTIVITA'</h3>
-    <h1>{{ activity.title }}</h1>
-    <small class="type">{{ activity.type }}</small>
     
     <div class="row">
         <!-- Left column -->
@@ -87,56 +87,69 @@
         <!-- Right column -->
         <div class="col-lg-6">
             <!-- Availability table -->
-            <h2>Disponibilità</h2>
-            <div style="margin: 5%;">
-                <table class="table table-striped">
-                    <thead>
-                        <th>Giorni</th>
-                        {% for timespan in timespans %}
-                        <th>{{ timespan[1] }}</th>
+            <div>
+                <h2>Disponibilità</h2>
+                <div style="margin: 5%;">
+                    <table class="table table-striped">
+                        <thead>
+                            <th>Giorni</th>
+                            {% for timespan in timespans %}
+                                <th>{{ timespan[1] }}</th>
+                            {% endfor %}
+                        </thead>
+                        
+                        {% for day in days %}
+                            <tr>
+                                <td>{{ day[1] }}</td>
+                                {% for rem in availability[loop.index0] %}
+                                    <td>{{ rem }}</td>
+                                {% endfor %}
+                            </tr>
                         {% endfor %}
-                    </thead>
-                    
-                    {% for day in days %}
-                    <tr>
-                        <td>{{ day[1] }}</td>
-                        {% for rem in availability[loop.index0] %}
-                        <td>{{ rem }}</td>
-                        {% endfor %}
-                    </tr>
-                    {% endfor %}
-                </table>
+                    </table>
+                </div>
             </div>
             
-            <!-- Booking buttons -->
-            <form action="/activity?id={{ id }}" method="post">
+            <!-- Booking / Unbooking -->
+            <div>
                 <h2>Prenota</h2>
+                <div class="booking" style="display: none;">
+                    <form action="/activity?id={{ id }}" method="post">
 
-                <!-- Buttons for the days -->
-                <div class="btn-group container-fluid" role="group" style="margin-top: 5%">
-                    {% for day in days %}
-                        <input type="radio" value="{{ day[0] }}" class="btn-check" name="day-button" id="{{ day[0] }}-day-button" autocomplete="off">
-                        <label class="btn btn-outline-primary" name="day-button-label" id="{{ day[0] }}-day-button-label" for="{{ day[0] }}-day-button">{{ day[1] }}</label>
-                    {% endfor %}
+                        <!-- Buttons for the days -->
+                        <div class="btn-group container-fluid" role="group" style="margin-top: 5%">
+                            {% for day in days %}
+                                <input type="radio" value="{{ day[0] }}" class="btn-check" name="day-button" id="{{ day[0] }}-day-button" autocomplete="off">
+                                <label class="btn btn-outline-primary" name="day-button-label" id="{{ day[0] }}-day-button-label" for="{{ day[0] }}-day-button">{{ day[1] }}</label>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Buttons for the timespans -->
+                        <div class="btn-group container-fluid" id="timespans-buttons-div" role="group" style="margin-top: 5%; visibility: hidden;">
+                            {% for timespan in timespans %}
+                                <input type="radio" value="{{ timespan[0] }}" class="btn-check" name="timespan-button" id="{{ timespan[0] }}-timespan-button" autocomplete="off">
+                                <label class="btn btn-outline-primary" name="timespan-button-label" id="{{ timespan[0] }}-timespan-button-label" for="{{ timespan[0] }}-timespan-button">{{ timespan[1] }}</label>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Booking button and number of available slots -->
+                        <div class="container-fluid" id="booking-button-div" style="margin-top: 5%; visibility: hidden;">
+                            <!-- Number of available slots -->
+                            <p id="available-slots">placeholder</p>
+                        
+                            <!-- Booking button -->
+                            <button class="btn btn-primary" name="booking-button">Prenota</button>
+                        </div>
+                    </form>
                 </div>
-
-                <!-- Buttons for the timespans -->
-                <div class="btn-group container-fluid" id="timespans-buttons-div" role="group" style="margin-top: 5%; visibility: hidden;">
-                    {% for timespan in timespans %}
-                        <input type="radio" value="{{ timespan[0] }}" class="btn-check" name="timespan-button" id="{{ timespan[0] }}-timespan-button" autocomplete="off">
-                        <label class="btn btn-outline-primary" name="timespan-button-label" id="{{ timespan[0] }}-timespan-button-label" for="{{ timespan[0] }}-timespan-button">{{ timespan[1] }}</label>
-                    {% endfor %}
-                </div>
-
-                <!-- Booking button and number of available slots -->
-                <div class="container-fluid" id="booking-button-div" style="margin-top: 5%; visibility: hidden;">
-                    <!-- Number of available slots -->
-                    <p id="available-slots">placeholder</p>
                 
-                    <!-- Booking button -->
-                    <button class="btn btn-primary" id="booking-button">Prenota</button>
+                <div class="unbooking" style="display: none;">
+                    <p>Attività già prenotata</p>
+                    <form action="/activity?id={{ id }}" method="post">
+                        <button class="btn btn-primary" name="unbooking-button">Rimuovi Prenotazione</button>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
     

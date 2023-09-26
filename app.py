@@ -5,7 +5,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import json
 import re
 
-from helpers import apology, login_required, activity_already_booked, fetch_schedule, make_registration
+from helpers import apology, login_required, activity_already_booked, fetch_schedule, make_registration, update_availability
 from constants import *
 
 # Configure application
@@ -259,21 +259,53 @@ def activity():
         return render_template("activity.html", id=activity_id, activity=activity_dict, days=activity_days, timespans=activity_timespans, availability=activity_availability, is_booked=booked)
 
     # If method is POST (booking button has been pressed)
-
-    # Fetch data
     try:
         activity_id = request.args["id"]
-        day = int(request.form.get('day-button'))
-        module = int(request.form.get("timespan-button"))
-    except (KeyError, ValueError):
+        
+    except KeyError:
         return apology("Invalid http request")
-
-    # Make registration
-    try:
-        make_registration(session["user_id"], activity_id, day, module)
     
-    except ValueError:
-        return apology("Prenotazione non valida")
+    # If booking
+    if "booking-button" in request.form:    
+        # Fetch data
+        try:
+            day = int(request.form.get('day-button'))
+            module = int(request.form.get("timespan-button"))
+            
+        except (TypeError, ValueError):
+            return apology("Invalid http request")
+
+        # Make registration
+        try:
+            make_registration(session["user_id"], activity_id, day, module)
+        
+        except ValueError:
+            return apology("Prenotazione non valida")
+        
+    # If unbooking
+    elif "unbooking-button" in request.form:
+        con = sqlite3.connect(DATABASE)
+        cur = con.cursor()
+                
+        registration = cur.execute("SELECT day, module_start FROM registrations WHERE user_id = ? AND activity_id = ?", (session["user_id"], activity_id)).fetchone()
+        length = cur.execute("SELECT length FROM activities WHERE id = ?", (activity_id)).fetchone()[0]
+        
+        if None in (registration, length):
+            return apology("Invalid http request")
+        
+        day, module_start = registration
+        module = module_start // length
+
+        # Update availability
+        update_availability(activity_id, day, module, 1)
+        
+        # Remove registration
+        cur.execute("DELETE FROM registrations WHERE user_id = ? AND activity_id = ?", (session["user_id"], activity_id))
+        con.commit()
+        
+    # Wildcard (error)
+    else:
+        return apology("Invalid http request")
     
     return redirect("/me")
     
