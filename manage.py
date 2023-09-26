@@ -135,7 +135,7 @@ def make_filler_activity() -> None:
     Imperdiet dui accumsan sit amet nulla facilisi. Tellus elementum sagittis vitae et leo duis ut diam quam. Quam viverra orci sagittis eu volutpat. Nunc sed id semper risus in hendrerit. Fames ac turpis egestas maecenas pharetra convallis posuere. Ultrices vitae auctor eu augue ut. Amet nisl suscipit adipiscing bibendum est ultricies. Habitasse platea dictumst quisque sagittis purus sit. Lobortis mattis aliquam faucibus purus in. Viverra tellus in hac habitasse. Eu scelerisque felis imperdiet proin fermentum leo. Bibendum ut tristique et egestas quis ipsum suspendisse. Sit amet consectetur adipiscing elit pellentesque. Feugiat vivamus at augue eget arcu dictum varius duis at. Duis at tellus at urna condimentum mattis pellentesque id nibh. Morbi non arcu risus quis varius quam. Fringilla urna porttitor rhoncus dolor purus. Nisl nunc mi ipsum faucibus vitae aliquet nec ullamcorper sit. Pellentesque eu tincidunt tortor aliquam nulla facilisi cras fermentum odio. Quis commodo odio aenean sed.
     """
 
-    AVAILABILITY = json.dumps([[20 for _ in range(0, len(TIMESPANS), LENGTH)] for _ in DAYS])
+    AVAILABILITY = json.dumps([[20 for _ in range(0, len(TIMESPANS)-LENGTH+1, LENGTH)] for _ in DAYS])
     
     # Init sqlite3
     con = sqlite3.connect(DATABASE)

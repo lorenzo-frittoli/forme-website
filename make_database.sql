@@ -23,7 +23,7 @@ CREATE TABLE activities (
 CREATE TABLE registrations (
     user_id INTEGER NOT NULL,
     activity_id INTEGER NOT NULL,
-    day STRING NOT NULL,
+    day INTEGER NOT NULL,
     module_start INTEGER NOT NULL,
     module_end INTEGER NOT NULL,
     FOREIGN KEY(user_id) REFERENCES users(user_id),

@@ -39,6 +39,16 @@ def login_required(f):
     def decorated_function(*args, **kwargs):
         if session.get("user_id") is None:
             return redirect("/login")
+
+        con = sqlite3.connect(DATABASE)
+        cur = con.cursor()
+        id = cur.execute("SELECT id FROM users WHERE id = ?;", (session.get("user_id"), )).fetchall()
+        cur.close()
+        con.close()
+
+        if not id:
+            return redirect("/login")
+        
         return f(*args, **kwargs)
     return decorated_function
 
@@ -131,10 +141,19 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int):
         ValueError: Module out of bounds
         ValueError: Occupied slot
     """
+    if day < 0 or day >= len(DAYS) or session["user_type"] not in PERMISSIONS[day]:
+        raise ValueError("Invalid day")
+    
     con = sqlite3.connect(DATABASE)
     cur = con.cursor()
 
-    length = cur.execute("SELECT length FROM activities WHERE id = ?;", (activity_id,)).fetchone()[0]
+    query_result = cur.execute("SELECT availability, length FROM activities WHERE id = ?;", (activity_id,)).fetchone()
+    if query_result is None:
+        cur.close()
+        con.close()
+        raise ValueError("Invalid activity id")
+
+    availability, length = query_result
     
     # Check if the user has already booked this activity  
     if activity_already_booked(user_id, activity_id):
@@ -143,7 +162,7 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int):
     module_start = module * length
     module_end = module_start + length - 1
 
-    if module_end >= len(TIMESPANS):
+    if module_start < 0 or module_end >= len(TIMESPANS):
         raise ValueError("Module out of bounds")
 
     # Check if the user has already booked this day-timespan combo
@@ -151,10 +170,10 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int):
         raise ValueError("Occupied slot")
     
     # Update availability
-    availability = json.loads(cur.execute("SELECT availability FROM activities WHERE id = ?;", (activity_id,)).fetchone()[0],)
+    availability = json.loads(availability)
     availability[day][module] -= 1
     availability = json.dumps(availability)
-    cur.execute("UPDATE activities SET availability = ? WHERE id = ?;", (f'{availability}', activity_id))    
+    cur.execute("UPDATE activities SET availability = ? WHERE id = ?;", (availability, activity_id))    
     
     # Update registrations
     cur.execute("INSERT INTO registrations (user_id, activity_id, day, module_start, module_end) VALUES (?, ?, ?, ?, ?);", (user_id, activity_id, day, module_start, module_end))

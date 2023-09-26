@@ -224,9 +224,18 @@ def activity():
             activity_id = request.args["id"]
         except KeyError:
             return apology("Invalid http request")      
-        cur.execute("SELECT title, abstract, type, availability FROM activities WHERE id = ?;", (activity_id,))
-        activity_title, activity_abstract, activity_type, activity_availability = cur.fetchone()
+        cur.execute("SELECT title, abstract, type, length, availability FROM activities WHERE id = ?;", (activity_id,))
+        query_result = cur.fetchone()
         
+        # Close connection to db
+        cur.close()
+        con.close()
+
+        if query_result is None:
+            return apology("Invalid http request")
+
+        activity_title, activity_abstract, activity_type, activity_length, activity_availability = query_result
+
         # Details of the activity
         activity_dict = {"title": activity_title,
                         "abstract": activity_abstract,
@@ -235,11 +244,6 @@ def activity():
         
         # JSON string -> list[list[remaining by time] by day]
         activity_availability = json.loads(activity_availability)
-        length = cur.execute("SELECT length FROM activities WHERE id = ?;", (activity_id,)).fetchone()[0]
-
-        # Close connection to db
-        cur.close()
-        con.close()
 
         activity_availability = [av for i, av in enumerate(activity_availability) if session["user_type"] in PERMISSIONS[i]]
         
@@ -247,8 +251,8 @@ def activity():
         booked = activity_already_booked(session["user_id"], activity_id)
 
         activity_timespans = tuple(
-            (i//length, TIMESPANS[i][0] + "-" + TIMESPANS[i + length - 1][1])
-            for i in range(0, len(TIMESPANS), length)
+            (i//activity_length, TIMESPANS[i][0] + "-" + TIMESPANS[i + activity_length - 1][1])
+            for i in range(0, len(TIMESPANS)-activity_length+1, activity_length)
         )
         activity_days = tuple((i, day) for i, day in enumerate(DAYS) if session["user_type"] in PERMISSIONS[i])
         
@@ -260,11 +264,7 @@ def activity():
     try:
         activity_id = request.args["id"]
         day = int(request.form.get('day-button'))
-        if day < 0 or day >= len(DAYS) or session["user_type"] not in PERMISSIONS[day]:
-            raise ValueError
         module = int(request.form.get("timespan-button"))
-        if module < 0:
-            raise ValueError
     except (KeyError, ValueError):
         return apology("Invalid http request")
 
