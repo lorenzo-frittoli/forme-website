@@ -40,11 +40,11 @@ def login_required(f):
         if session.get("user_id") is None:
             return redirect("/login")
 
-        
-        cur = CONNECTION.cursor()
+        con = sqlite3.connect(DATABASE)
+        cur = con.cursor()
         id = cur.execute("SELECT id FROM users WHERE id = ?;", (session.get("user_id"), )).fetchall()
         cur.close()
-        
+        con.close()
 
         if not id:
             return redirect("/login")
@@ -66,8 +66,8 @@ def activity_already_booked(user_id: Union[int, str], activity_id: Union[int, st
     user_id = int(user_id)
     activity_id = int(activity_id)
     
-    
-    cur = CONNECTION.cursor()
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
     cur.execute("SELECT activity_id FROM registrations WHERE user_id = ? AND activity_id = ?;", (user_id, activity_id))
     
     return bool(cur.fetchall())
@@ -84,8 +84,8 @@ def slot_already_booked(user_id: int, day: str, module_start: int, module_end: i
     Returns:
         bool: True if booked, False if not
     """
-    
-    cur = CONNECTION.cursor()
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
 
     cur.execute(f"SELECT activity_id FROM registrations WHERE user_id = ? AND day = ? AND module_end >= ? AND module_start <= ?;", (user_id, day, module_start, module_end))
     
@@ -109,8 +109,8 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int):
     if day < 0 or day >= len(DAYS) or session["user_type"] not in PERMISSIONS[day]:
         raise ValueError("Invalid day")
     
-    
-    cur = CONNECTION.cursor()
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
 
     length = cur.execute("SELECT length FROM activities WHERE id = ?;", (activity_id,)).fetchone()[0]
     if length is None:
@@ -136,11 +136,11 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int):
     
     # Update registrations
     cur.execute("INSERT INTO registrations (user_id, activity_id, day, module_start, module_end) VALUES (?, ?, ?, ?, ?);", (user_id, activity_id, day, module_start, module_end))
-    CONNECTION.commit()
+    con.commit()
     
     # Close db
     cur.close()
-    
+    con.close()
 
 
 def update_availability(activity_id: int, day: int, module: int, amount: int) -> None:
@@ -153,8 +153,8 @@ def update_availability(activity_id: int, day: int, module: int, amount: int) ->
         amount (int): amount to change the availability by
     """
     # SQL
-    
-    cur = CONNECTION.cursor()
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
     
     # Load availability
     availability = cur.execute("SELECT availability FROM activities WHERE id = ?", (activity_id,)).fetchone()[0]
@@ -166,8 +166,8 @@ def update_availability(activity_id: int, day: int, module: int, amount: int) ->
     
     # Update availability
     cur.execute("UPDATE activities SET availability = ? WHERE id = ?;", (availability, activity_id))  
-    CONNECTION.commit()
+    con.commit()
     
     # SQL close
     cur.close()
-    
+    con.close()
