@@ -21,8 +21,8 @@ def make_db() -> None:
     open(DATABASE, "w")
     
     # Initialize sqlite3
-    con = sqlite3.connect(DATABASE)
-    cur = con.cursor()
+    
+    cur = CONNECTION.cursor()
 
     # Drop all tables
     TABLE_PARAMETER = "{TABLE_PARAMETER}"
@@ -41,22 +41,22 @@ def make_db() -> None:
         sql_script = sql_file.read()
         
     for command in sql_script.split(";"):
-        con.execute(f"{command};")
+        CONNECTION.execute(f"{command};")
     
     # Commit changes
-    con.commit()
+    CONNECTION.commit()
 
     # Close sqlite3 (optional)
     cur.close()
-    con.close()
+    
     
 
 @cli.command()
 @click.option("--user-type", help="Type of user whose schedule is going to be filled")
 def fill_schedules(user_type: str) -> None:
     """Fill the empty schedules of users of the specified type with random activities"""
-    con = sqlite3.connect(DATABASE)
-    cur = con.cursor()
+    
+    cur = CONNECTION.cursor()
     
     slots = [(day, timespan) for day in range(len(DAYS)) for timespan in range(len(TIMESPANS)) if user_type in PERMISSIONS[day]]
     user_ids = cur.execute("SELECT id FROM users WHERE type = ?;", (user_type,)).fetchall()
@@ -137,16 +137,16 @@ def make_filler_activity() -> None:
     AVAILABILITY = json.dumps([[20 for _ in range(0, len(TIMESPANS)-LENGTH+1, LENGTH)] for _ in DAYS])
     
     # Init sqlite3
-    con = sqlite3.connect(DATABASE)
-    cur = con.cursor()
+    
+    cur = CONNECTION.cursor()
 
     # Make new activity
     cur.execute("INSERT INTO activities (title, abstract, type, length, availability) VALUES (?, ?, ?, ?, ?);", (TITLE, ABSTRACT, TYPE, LENGTH, AVAILABILITY))
-    con.commit()
+    CONNECTION.commit()
     
     # Close connection (optional)
     cur.close()
-    con.close()
+    
 
 
 if __name__ == '__main__':
