@@ -1,7 +1,7 @@
 -- Users table. Contains both users and guests
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT NOT NULL UNIQUE,
+    email TEXT KEY NOT NULL UNIQUE,
     hash TEXT NOT NULL,
     name TEXT NOT NULL,
     surname TEXT NOT NULL,
@@ -21,12 +21,10 @@ CREATE TABLE activities (
 
 -- Registrations table. Links users to activities by day and timespan.
 CREATE TABLE registrations (
-    user_id INTEGER NOT NULL,
+    user_id INTEGER KEY NOT NULL,
     activity_id INTEGER NOT NULL,
     day INTEGER NOT NULL,
     module_start INTEGER NOT NULL,
     module_end INTEGER NOT NULL,
-    FOREIGN KEY(user_id) REFERENCES users(user_id),
-    FOREIGN KEY(activity_id) REFERENCES activities(activity_id),
-    PRIMARY KEY (user_id, activity_id, day, module_start, module_end)
+    PRIMARY KEY (user_id, activity_id)
 );

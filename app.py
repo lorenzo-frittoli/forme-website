@@ -1,5 +1,5 @@
 import sqlite3
-from flask import Flask, redirect, render_template, request, session, url_for
+from flask import Flask, redirect, render_template, request, session, url_for, g
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 import json
@@ -17,6 +17,11 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
+@app.before_request
+def before_request():
+    # Open the connection to the database
+    g.con = sqlite3.connect(DATABASE)
+
 
 @app.after_request
 def after_request(response):
@@ -25,6 +30,10 @@ def after_request(response):
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
+
+    # Close the connection to the database
+    g.con.close()
+
     return response
 
 
@@ -42,7 +51,6 @@ def login():
 
     # Forget any user_id
     session.clear()
-    con = sqlite3.connect(DATABASE)
 
     # User reached route via GET (as by getting the link)
     if request.method == "GET":
@@ -58,27 +66,28 @@ def login():
         return apology("password non valida", 400)
 
     # Query db for id and hash from email
-    cur = con.cursor()
+    cur = g.con.cursor()
     # query_result is like [(id, pw_hash)] 
     query_result = cur.execute("SELECT id, hash FROM users WHERE email = ?;", (request.form.get("email").lower(),)).fetchall()
-        
+    
     # If there is no user saved with the provided email
     if not query_result:
+        session.clear()
         return apology("email e/o password invalidi", 400)
     
     id, pw_hash = query_result[0]
 
     # Check password against hash
     if not check_password_hash(pw_hash, request.form.get("password")):
+        session.clear()
         return apology("email e/o password invalidi", 400)
 
     # Fetch user type
     cur.execute("SELECT type FROM users WHERE id = ?;", (id,))
     user_type = cur.fetchone()[0]
     
-    # Closing db connection
+    # Closing cursor
     cur.close()
-    con.close()
 
     # Remember which user has logged in
     session["user_id"] = id
@@ -143,13 +152,12 @@ def register():
     elif not confirmation:
         return apology("Conferma non valida", 400)
 
-    # Cheks if the password and confirmation match
+    # Checks if the password and confirmation match
     elif password != confirmation:
         return apology("password e conferma non coincidono", 400)
 
     # Checks if email is not taken
-    con = sqlite3.connect(DATABASE)
-    cur = con.cursor()
+    cur = g.con.cursor()
     
     # cur.execute returns a list like [(el1,), (el2,)] etc
     emails = cur.execute("SELECT email FROM users WHERE email = ?;", (email,)).fetchall()
@@ -160,12 +168,11 @@ def register():
     # Save the new user & commit
     cur.execute("INSERT INTO users (email, hash, name, surname, type) VALUES (?, ?, ?, ?, ?);",
                 (email, generate_password_hash(password), name, surname, "guest"))
-    con.commit()
+    g.con.commit()
     
     
-    # Closes cursor and connection
+    # Closes cursor
     cur.close()
-    con.close()
 
     # Redirect to the homepage
     return redirect("/")
@@ -185,16 +192,13 @@ def activities():
         return redirect(url_for(".activity", id=activity_id))
     
     # If called with GET (loaded the page/clicked link)
-    # Setup database connection
-    con = sqlite3.connect(DATABASE)
-    cur = con.cursor()
+    cur = g.con.cursor()
     
     # Query DB for id, title, type of every activity in the form list[tuple[id: int, title: str, type: str]]
     query_output = cur.execute("SELECT id, title, type FROM activities;").fetchall()
     
-    # Closing database connection
+    # Close cursor
     cur.close()
-    con.close()
     
     # If no activity is loaded yet, return apology
     if not query_output:
@@ -214,22 +218,22 @@ def activities():
 def activity():
     """Activity page w/ details"""
     # If the page is loaded with GET (eg: clicking a link, getting redirected...)
-    if request.method == "GET":
-        # Setup database connection
-        con = sqlite3.connect(DATABASE)
-        cur = con.cursor()
-        
+    if request.method == "GET":        
         # Fetch data
         try:
             activity_id = request.args["id"]
         except KeyError:
-            return apology("Invalid http request")      
+            return apology("Invalid http request")
+        
+        # Setup
+        cur = g.con.cursor()
+        
+        # Query the database
         cur.execute("SELECT title, abstract, type, length, availability FROM activities WHERE id = ?;", (activity_id,))
         query_result = cur.fetchone()
         
-        # Close connection to db
+        # Close cursor
         cur.close()
-        con.close()
 
         if query_result is None:
             return apology("Invalid http request")
@@ -284,11 +288,10 @@ def activity():
         
     # If unbooking
     elif "unbooking-button" in request.form:
-        con = sqlite3.connect(DATABASE)
-        cur = con.cursor()
-                
-        registration = cur.execute("SELECT day, module_start FROM registrations WHERE user_id = ? AND activity_id = ?", (session["user_id"], activity_id)).fetchone()
-        length = cur.execute("SELECT length FROM activities WHERE id = ?", (activity_id)).fetchone()[0]
+        cur = g.con.cursor()
+        
+        registration = cur.execute("SELECT day, module_start FROM registrations WHERE user_id = ? AND activity_id = ?;", (session["user_id"], activity_id)).fetchone()
+        length = cur.execute("SELECT length FROM activities WHERE id = ?;", (activity_id)).fetchone()[0]
         
         if None in (registration, length):
             return apology("Invalid http request")
@@ -300,8 +303,9 @@ def activity():
         update_availability(activity_id, day, module, 1)
         
         # Remove registration
-        cur.execute("DELETE FROM registrations WHERE user_id = ? AND activity_id = ?", (session["user_id"], activity_id))
-        con.commit()
+        cur.execute("DELETE FROM registrations WHERE user_id = ? AND activity_id = ?;", (session["user_id"], activity_id))
+        g.con.commit()
+        cur.close()
         
     # Wildcard (error)
     else:
@@ -314,8 +318,7 @@ def activity():
 @login_required
 def me():
     """Me page w/ your bookings"""
-    con = sqlite3.connect(DATABASE)
-    cur = con.cursor()
+    cur = g.con.cursor()
     
     # Fetch all user registrations -> list[tuple[title, day, timespan]]
     result = """
@@ -341,10 +344,7 @@ def me():
             link = url_for(".activity", id=activity_id)
             schedule[DAYS[day]][TIMESPANS_TEXT[timespan]] = (title, link)
 
-    # Close connection to db
+    # Close cursor
     cur.close()
-    con.close()
-        
-    print(schedule)
-        
+    
     return render_template("me.html", schedule=schedule)
