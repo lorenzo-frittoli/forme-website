@@ -19,8 +19,9 @@ Session(app)
 
 @app.before_request
 def before_request():
-    # Open the connection to the database
-    g.con = sqlite3.connect(DATABASE)
+    if "/static/" not in request.path:
+        # Open the connection to the database
+        g.con = sqlite3.connect(DATABASE)
 
 
 @app.after_request
@@ -31,8 +32,9 @@ def after_request(response):
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
 
-    # Close the connection to the database
-    g.con.close()
+    if "/static/" not in request.path:
+        # Close the connection to the database
+        g.con.close()
 
     return response
 
