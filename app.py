@@ -223,7 +223,7 @@ def activity():
         cur = g.con.cursor()
         
         # Query the database
-        cur.execute("SELECT title, description, type, length, availability FROM activities WHERE id = ?;", (activity_id,))
+        cur.execute("SELECT title, description, type, length, classroom, availability FROM activities WHERE id = ?;", (activity_id,))
         query_result = cur.fetchone()
         cur.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ?", (session["user_id"], ))
         user_registrations = cur.fetchall()
@@ -234,12 +234,13 @@ def activity():
         if query_result is None:
             return apology("Invalid http request")
 
-        activity_title, activity_description, activity_type, activity_length, activity_availability = query_result
+        activity_title, activity_description, activity_type, activity_length, activity_classroom, activity_availability = query_result
 
         # Details of the activity
         activity_dict = {"title": activity_title,
                         "description": activity_description,
-                        "type": activity_type
+                        "type": activity_type,
+                        "classroom": activity_classroom
                         }
         
         # JSON string -> list[list[remaining by time] by day]
