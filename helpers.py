@@ -6,7 +6,7 @@
 # import urllib
 # import uuid
 
-from flask import redirect, render_template, session, g
+from flask import redirect, render_template, session, g, url_for
 from functools import wraps
 import sqlite3
 import json
@@ -52,7 +52,7 @@ def login_required(f):
     return decorated_function
 
 
-def activity_already_booked(user_id: Union[int, str], activity_id: Union[int, str]) -> bool:
+def activity_already_booked(user_id: int, activity_id: int) -> bool:
     """Checks wether a course has been booked already by that student.
 
     Args:
@@ -62,8 +62,6 @@ def activity_already_booked(user_id: Union[int, str], activity_id: Union[int, st
     Returns:
         bool: True if already booked, False if not
     """
-    user_id = int(user_id)
-    activity_id = int(activity_id)
     
     cur = g.con.cursor()
     cur.execute("SELECT activity_id FROM registrations WHERE user_id = ? AND activity_id = ?;", (user_id, activity_id))

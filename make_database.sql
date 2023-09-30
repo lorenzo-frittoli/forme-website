@@ -21,7 +21,7 @@ CREATE TABLE activities (
 
 -- Registrations table. Links users to activities by day and timespan.
 CREATE TABLE registrations (
-    user_id INTEGER KEY NOT NULL,
+    user_id INTEGER NOT NULL,
     activity_id INTEGER NOT NULL,
     day INTEGER NOT NULL,
     module_start INTEGER NOT NULL,

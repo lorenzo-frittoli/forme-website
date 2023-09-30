@@ -19,8 +19,9 @@ Session(app)
 
 @app.before_request
 def before_request():
-    # Open the connection to the database
-    g.con = sqlite3.connect(DATABASE)
+    if "/static/" not in request.path:
+        # Open the connection to the database
+        g.con = sqlite3.connect(DATABASE)
 
 
 @app.after_request
@@ -31,8 +32,9 @@ def after_request(response):
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
 
-    # Close the connection to the database
-    g.con.close()
+    if "/static/" not in request.path:
+        # Close the connection to the database
+        g.con.close()
 
     return response
 
@@ -68,30 +70,22 @@ def login():
     # Query db for id and hash from email
     cur = g.con.cursor()
     # query_result is like [(id, pw_hash)] 
-    query_result = cur.execute("SELECT id, hash FROM users WHERE email = ?;", (request.form.get("email").lower(),)).fetchall()
-    
+    query_result = cur.execute("SELECT id, hash, type FROM users WHERE email = ?;", (request.form.get("email").lower(),)).fetchall()
+        
+    # Closing cursor
+    cur.close()
+
     # If there is no user saved with the provided email
     if not query_result:
         session.clear()
         return apology("email e/o password invalidi", 400)
     
-    id, pw_hash = query_result[0]
+    session["user_id"], pw_hash, session["user_type"] = query_result[0]
 
     # Check password against hash
     if not check_password_hash(pw_hash, request.form.get("password")):
         session.clear()
         return apology("email e/o password invalidi", 400)
-
-    # Fetch user type
-    cur.execute("SELECT type FROM users WHERE id = ?;", (id,))
-    user_type = cur.fetchone()[0]
-    
-    # Closing cursor
-    cur.close()
-
-    # Remember which user has logged in
-    session["user_id"] = id
-    session["user_type"] = user_type
 
     # Redirect user to home page
     return redirect("/")
@@ -170,49 +164,48 @@ def register():
                 (email, generate_password_hash(password), name, surname, "guest"))
     g.con.commit()
     
-    
     # Closes cursor
     cur.close()
 
     # Redirect to the homepage
-    return redirect("/")
+    return redirect("/login")
 
 
-@app.route("/activities", methods=["GET", "POST"])
+@app.route("/activities", methods=["GET"])
 @login_required
 def activities():
     """List of all activities"""
-    
-    # If called with POST (clicked the "more info" button)
-    if request.method == "POST":
-        # Get activity id from buttonpress
-        activity_id = request.form.get("activity_id")
-
-        # Redirect to /activity with id in the args
-        return redirect(url_for(".activity", id=activity_id))
-    
-    # If called with GET (loaded the page/clicked link)
     cur = g.con.cursor()
     
     # Query DB for id, title, type of every activity in the form list[tuple[id: int, title: str, type: str]]
-    query_output = cur.execute("SELECT id, title, type FROM activities;").fetchall()
-    
-    # Close cursor
-    cur.close()
+    query_output = cur.execute("SELECT id, title, type, length FROM activities;").fetchall()
     
     # If no activity is loaded yet, return apology
     if not query_output:
-        return apology("Nessuna attività disponibile al momento")
+        return apology("Nessuna attività disponibile al momento", 200)
     
-    # Make list of tuples into list of dicts for easy acces with jinja/django (still don't know the difference)
+    def fmt_activity_booking(activity_id: int) -> str:
+        cur.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ? AND activity_id = ?", (session["user_id"], activity_id))
+        span = cur.fetchone()
+        if span is None:
+            return ""
+        else:
+            return TIMESPANS[span[1]][0] + "-" + TIMESPANS[span[2]][1] + " del " + DAYS[span[0]]
+
+    # Make list of tuples into list of dicts for easy acces with jinja
     activities_list = [{"id": activity_id,
                         "title": activity_title,
-                        "type": activity_type}
-                    for activity_id, activity_title, activity_type in query_output]
-    
+                        "type": activity_type,
+                        "length": activity_length,
+                        "booked": fmt_activity_booking(activity_id)
+                        } for activity_id, activity_title, activity_type, activity_length in query_output]
+        
+    # Close cursor
+    cur.close()
+
     return render_template("activities.html", activities=activities_list)
-    
-    
+
+
 @app.route("/activity", methods=["GET", "POST"])
 @login_required
 def activity():
@@ -221,8 +214,9 @@ def activity():
     if request.method == "GET":        
         # Fetch data
         try:
-            activity_id = request.args["id"]
-        except KeyError:
+            activity_id = int(request.args["id"])
+
+        except (KeyError, ValueError):
             return apology("Invalid http request")
         
         # Setup
@@ -231,7 +225,9 @@ def activity():
         # Query the database
         cur.execute("SELECT title, abstract, type, length, availability FROM activities WHERE id = ?;", (activity_id,))
         query_result = cur.fetchone()
-        
+        cur.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ?", (session["user_id"], ))
+        user_registrations = cur.fetchall()
+
         # Close cursor
         cur.close()
 
@@ -260,13 +256,34 @@ def activity():
         )
         activity_days = tuple((i, day) for i, day in enumerate(DAYS) if session["user_type"] in PERMISSIONS[i])
         
-        return render_template("activity.html", id=activity_id, activity=activity_dict, days=activity_days, timespans=activity_timespans, availability=activity_availability, is_booked=booked)
+        user_free = [[True for _ in TIMESPANS] for _ in DAYS]
+
+        # Fill with known data
+        for booking_day, booking_module_start, booking_module_end in user_registrations:
+            for booking_timespan in range(booking_module_start, booking_module_end + 1):
+                assert user_free[booking_day][booking_timespan]
+                user_free[booking_day][booking_timespan] = False
+
+        user_free = [[all(day_free[module_start:module_start+activity_length])
+                     for module_start in range(0, len(TIMESPANS)*activity_length+activity_length-1, activity_length)]
+                     for i, day_free in enumerate(user_free) if session["user_type"] in PERMISSIONS[i]]
+        
+        return render_template(
+            "activity.html",
+            id=activity_id,
+            activity=activity_dict,
+            days=activity_days,
+            timespans=activity_timespans,
+            availability=activity_availability,
+            is_booked=booked,
+            user_free=user_free
+        )
 
     # If method is POST (booking button has been pressed)
     try:
-        activity_id = request.args["id"]
+        activity_id = int(request.args["id"])
         
-    except KeyError:
+    except (KeyError, ValueError):
         return apology("Invalid http request")
     
     # If booking
@@ -285,13 +302,13 @@ def activity():
         
         except ValueError:
             return apology("Prenotazione non valida")
-        
+
     # If unbooking
     elif "unbooking-button" in request.form:
         cur = g.con.cursor()
         
         registration = cur.execute("SELECT day, module_start FROM registrations WHERE user_id = ? AND activity_id = ?;", (session["user_id"], activity_id)).fetchone()
-        length = cur.execute("SELECT length FROM activities WHERE id = ?;", (activity_id)).fetchone()[0]
+        length = cur.execute("SELECT length FROM activities WHERE id = ?;", (activity_id, )).fetchone()[0]
         
         if None in (registration, length):
             return apology("Invalid http request")
@@ -312,7 +329,7 @@ def activity():
         return apology("Invalid http request")
     
     return redirect("/me")
-    
+
 
 @app.route("/me")
 @login_required
@@ -320,7 +337,7 @@ def me():
     """Me page w/ your bookings"""
     cur = g.con.cursor()
     
-    # Fetch all user registrations -> list[tuple[title, day, timespan]]
+    # Fetch all user registrations -> list[tuple[..]]
     result = """
     SELECT activities.id, activities.title, registrations.day, registrations.module_start, registrations.module_end
         FROM registrations JOIN
@@ -328,23 +345,19 @@ def me():
             registrations.activity_id = activities.id
         WHERE user_id = ?;
     """
-    cur.execute(result, (session["user_id"],))
-    query_results = cur.fetchall()
-    
+    cur.execute(result, (session["user_id"], ))
+
+    user_registrations = cur.fetchall()
+
     # Make empty schedule
-    schedule = {day: {timespan: ("", None)
-                      for timespan in TIMESPANS_TEXT}
-                for i, day in enumerate(DAYS)
-                if session["user_type"] in PERMISSIONS[i]}
-        
+    schedule = {day: {timespan: ("", None) for timespan in TIMESPANS_TEXT}
+                for i, day in enumerate(DAYS) if session["user_type"] in PERMISSIONS[i]}
+    
     # Fill with known data
-    for activity_id, title, day, module_start, module_end in query_results:
+    for activity_id, title, day, module_start, module_end in user_registrations:
         for timespan in range(module_start, module_end + 1):
-            assert schedule[DAYS[day]][TIMESPANS_TEXT[timespan]] is ("", None)
+            assert schedule[DAYS[day]][TIMESPANS_TEXT[timespan]] == ("", None)
             link = url_for(".activity", id=activity_id)
             schedule[DAYS[day]][TIMESPANS_TEXT[timespan]] = (title, link)
 
-    # Close cursor
-    cur.close()
-    
     return render_template("me.html", schedule=schedule)

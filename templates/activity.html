@@ -24,6 +24,7 @@
             dayButtonsLabels = document.getElementsByName("day-button-label");
             timespanButtonsLabels = document.getElementsByName("timespan-button-label");
             availability = JSON.parse('{{ availability|tojson }}');
+            user_free = JSON.parse('{{ user_free|tojson }}');
             
             // Add event listeners to day buttons to generate timespan buttons
             for (let i = 0; i < dayButtonsLabels.length; i++) {
@@ -40,9 +41,6 @@
                         document.getElementById("timespans-buttons-div").style.visibility = "visible"
 
                         for (let j = 0; j < timespanButtonsLabels.length; j++) {
-                            // ids are in form: {day}-day-button-label, same goes for the timespans
-                            day = dayButtonsLabels[i].id.replace("-day-button-label", "");
-                            timespan = timespanButtonsLabels[j].id.replace("-timespan-button-label", "");
                             availableSlots = availability[i][j];
                             
                             // Add event listeners to timespan buttons to generate booking button
@@ -52,11 +50,10 @@
                             });
                             
                             // Disable buttons where there are no slots left
-                            if (availableSlots <= 0) {
+                            if (availableSlots <= 0 || !user_free[i][j]) {
                                 timespanButtonsLabels[j].classList.remove("btn-outline-primary");
                                 timespanButtonsLabels[j].classList.add("btn-outline-secondary");
                                 timespanButtonsLabels[j].classList.add("disabled");
-    
                             } else {
                                 timespanButtonsLabels[j].classList.remove("btn-outline-secondary");
                                 timespanButtonsLabels[j].classList.remove("disabled");
