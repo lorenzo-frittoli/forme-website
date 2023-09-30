@@ -11,6 +11,7 @@ from functools import wraps
 import sqlite3
 import json
 from typing import Union
+import random
 
 from constants import *
 
@@ -162,3 +163,43 @@ def update_availability(activity_id: int, day: int, module: int, amount: int) ->
     
     # SQL close
     cur.close()
+    
+    
+def get_students_from_file(filename: str) -> list[dict["name": str, "surname": str, "class": str, "email": str]]:
+    """RETURNS DUMMY OUTPUT. Loads student data from a file.
+
+    Returns:
+        list[dict]: returns a list of students data: [{name, surname, class, email}, ...]
+    """
+    dummy_output = [
+        {"name": "Giovanni",
+         "surname": "Giorgio",
+         "class": "5A",
+         "email": "giovanni.giorgio@liceocassini.eu"},
+        
+        {"name": "Nicola",
+         "surname": "Gay",
+         "class": "5J",
+         "email": "nicola.gay@liceocassini.eu"}
+    ]
+    
+    return dummy_output
+
+
+def generate_password(length: int = GENERATED_PASSWORD_LENGTH) -> str:
+    """Generates a password
+
+    Args:
+        length (int, optional): length of the password. Configurable in `constants.py`. Defaults to GENERATED_PASSWORD_LENGTH.
+
+    Returns:
+        str: password
+    """
+    lowercase = "abcdefghijklmnopqrstuvwxyz"
+    uppercase = lowercase.upper()
+    numbers = "0123456789"
+    letters = lowercase + uppercase + numbers
+    
+    password = "".join(random.choices(letters, k=length))
+    
+    return password

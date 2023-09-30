@@ -4,8 +4,10 @@ from flask.cli import FlaskGroup
 import click
 import sqlite3
 import json
+from werkzeug.security import generate_password_hash
 
-from helpers import make_registration
+
+from helpers import make_registration, get_students_from_file, generate_password
 from constants import *
 from app import app
 
@@ -49,6 +51,18 @@ def make_db() -> None:
     cur.close()
     con.close()
     
+    
+@cli.command()
+def load_students() -> None:
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+    
+    for student in get_students_from_file(""):
+        password = generate_password()
+        student["hash"] = generate_password_hash(password)
+    
+    cur.executemany("INSERT INTO users (type, email, hash, name, surname, class) VALUES ('student', :email, :hash, :name, :surname, :class)", students)
+    con.commit()        
 
 @cli.command()
 @click.option("--user-type", help="Type of user whose schedule is going to be filled")
