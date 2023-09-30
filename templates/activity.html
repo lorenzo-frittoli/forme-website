@@ -5,19 +5,6 @@
 {% endblock %}
 
 {% block main %}
-    <!-- Makes a warning appear if you have already booked this course -->
-    <script>
-        $(document).ready(function() {
-            if ("{{ is_booked }}" === "True") {
-                $(".booking").css("display", "none");
-                $(".unbooking").css("display", "block");
-            } else {
-                $(".booking").css("display", "block");
-                $(".unbooking").css("display", "none");
-            }
-        });
-    </script>
-
     <!-- Handles booking buttons -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -67,19 +54,21 @@
     </script>
     
     <!-- Heading -->
-    <div>
+    <div style="margin: 0 2.5%;">
         <h1>{{ activity.title }}</h1>
-        <small style="color: gray;">{{ activity.type }}</small>
-        <br>
-        <small>Aula {{ activity.classroom }}</small>
-        <hr>
+        <h5>{{ activity.type }}</h5>
+        Aula {{ activity.classroom }}</p>
     </div>
+
+    <hr>
 
     <div class="row">
         <!-- Left column -->
         <div class="col-lg-6" style="text-align: center;">
             <!-- Description -->
-            <h2 style="margin: 0">Descrizione</h2>
+            <!-- <h2 style="margin: 0">{{ activity.title }}</h2>
+            <h4 style="margin: 0">{{ activity.type }}</h4> -->
+            <h2>Descrizione</h2>
             <div style="text-align: left; margin: 5%;">
                 <!-- Makes \n linebreak, while adding a bit of extra spacing -->
                 {% for section in activity.description.split("\n") %}
@@ -93,33 +82,32 @@
         <!-- Right column -->
         <div class="col-lg-6">
             <!-- Availability table -->
-            <div>
-                <h2>Disponibilità</h2>
-                <div style="margin: 5%;">
-                    <table class="table table-striped">
-                        <thead>
-                            <th>Giorni</th>
-                            {% for timespan in timespans %}
-                                <th>{{ timespan[1] }}</th>
-                            {% endfor %}
-                        </thead>
-                        
-                        {% for day in days %}
-                            <tr>
-                                <td>{{ day[1] }}</td>
-                                {% for rem in availability[loop.index0] %}
-                                    <td>{{ rem }}</td>
-                                {% endfor %}
-                            </tr>
+            <h2>Disponibilità</h2>
+            <div style="margin: 5%;">
+                <table class="table table-striped">
+                    <thead>
+                        <th>Giorni</th>
+                        {% for timespan in timespans %}
+                            <th>{{ timespan[1] }}</th>
                         {% endfor %}
-                    </table>
-                </div>
+                    </thead>
+                    
+                    {% for day in days %}
+                        <tr>
+                            <td>{{ day[1] }}</td>
+                            {% for rem in availability[loop.index0] %}
+                                <td>{{ rem }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </table>
             </div>
             
             <!-- Booking / Unbooking -->
             <div>
+                {% if not is_booked %}
                 <h2>Prenota</h2>
-                <div class="booking" style="display: none;">
+                <div class="booking">
                     <form action="/activity?id={{ id }}" method="post">
 
                         <!-- Buttons for the days -->
@@ -148,13 +136,14 @@
                         </div>
                     </form>
                 </div>
-                
-                <div class="unbooking" style="display: none;">
-                    <p>Attività già prenotata</p>
+                {% else %}
+                <div class="unbooking">
+                    <h2>Attività già prenotata</h2>
                     <form action="/activity?id={{ id }}" method="post">
                         <button class="btn btn-primary" name="unbooking-button">Rimuovi Prenotazione</button>
                     </form>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>

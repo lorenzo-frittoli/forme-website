@@ -7,7 +7,8 @@ import json
 from werkzeug.security import generate_password_hash
 
 
-from helpers import make_registration, get_activities_from_file, get_students_from_file, generate_password
+from helpers import make_registration
+from manage_helpers import get_activities_from_file, get_students_from_file, generate_password
 from constants import *
 from app import app
 
@@ -53,7 +54,7 @@ def make_db() -> None:
     
 
 @cli.command()
-@click.option("-f", "--filename", "filename", required=True, help="File where the activity data is stored")
+@click.option("-f", "--filename", "filename", required=False, help="File where the activity data is stored")
 def load_activities(filename: str) -> None:
     """Loads activities from a file
 
@@ -78,10 +79,10 @@ def load_activities(filename: str) -> None:
     # Close sqlite3
     cur.close()
     con.close()
-    
+
 
 @cli.command()
-@click.option("-f", "--filename", "filename", required=True, help="File where the student data is stored")
+@click.option("-f", "--filename", "filename", required=False, help="File where the student data is stored")
 def load_students(filename: str) -> None:
     """Loads students from a file
 
@@ -96,6 +97,7 @@ def load_students(filename: str) -> None:
     students = get_students_from_file(filename)
     for student in students:
         password = generate_password()
+        print(student["email"], password)
         student["hash"] = generate_password_hash(password)
     
     # Write to DB

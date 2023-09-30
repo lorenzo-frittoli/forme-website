@@ -59,18 +59,21 @@ def login():
         return render_template("login.html")
     
     # User reached route via POST (as by submitting a form via POST)
-    # Ensure username was submitted
-    if not request.form.get("email"):
+    email = request.form.get("email")
+
+    if not email:
         return apology("email non valida", 400)
 
+    email = email.lower()
+
     # Ensure password was submitted
-    elif not request.form.get("password"):
+    if not request.form.get("password"):
         return apology("password non valida", 400)
 
     # Query db for id and hash from email
     cur = g.con.cursor()
     # query_result is like [(id, pw_hash)] 
-    query_result = cur.execute("SELECT id, hash, type FROM users WHERE email = ?;", (request.form.get("email").lower(),)).fetchall()
+    query_result = cur.execute("SELECT id, hash, type, name, surname FROM users WHERE email = ?;", (email, )).fetchone()
         
     # Closing cursor
     cur.close()
@@ -80,7 +83,8 @@ def login():
         session.clear()
         return apology("email e/o password invalidi", 400)
     
-    session["user_id"], pw_hash, session["user_type"] = query_result[0]
+    session["user_id"], pw_hash, session["user_type"], session["user_name"], session["user_surname"] = query_result
+    session["user_email"] = email
 
     # Check password against hash
     if not check_password_hash(pw_hash, request.form.get("password")):
@@ -249,7 +253,7 @@ def activity():
         activity_availability = [av for i, av in enumerate(activity_availability) if session["user_type"] in PERMISSIONS[i]]
         
         # Check if the activity has already been booked by the user (to display warning)
-        booked = activity_already_booked(session["user_id"], activity_id)
+        is_booked = activity_already_booked(session["user_id"], activity_id)
 
         activity_timespans = tuple(
             (i//activity_length, TIMESPANS[i][0] + "-" + TIMESPANS[i + activity_length - 1][1])
@@ -276,7 +280,7 @@ def activity():
             days=activity_days,
             timespans=activity_timespans,
             availability=activity_availability,
-            is_booked=booked,
+            is_booked=is_booked,
             user_free=user_free
         )
 
