@@ -70,30 +70,22 @@ def login():
     # Query db for id and hash from email
     cur = g.con.cursor()
     # query_result is like [(id, pw_hash)] 
-    query_result = cur.execute("SELECT id, hash FROM users WHERE email = ?;", (request.form.get("email").lower(),)).fetchall()
-    
+    query_result = cur.execute("SELECT id, hash, type FROM users WHERE email = ?;", (request.form.get("email").lower(),)).fetchall()
+        
+    # Closing cursor
+    cur.close()
+
     # If there is no user saved with the provided email
     if not query_result:
         session.clear()
         return apology("email e/o password invalidi", 400)
     
-    id, pw_hash = query_result[0]
+    session["user_id"], pw_hash, session["user_type"] = query_result[0]
 
     # Check password against hash
     if not check_password_hash(pw_hash, request.form.get("password")):
         session.clear()
         return apology("email e/o password invalidi", 400)
-
-    # Fetch user type
-    cur.execute("SELECT type FROM users WHERE id = ?;", (id,))
-    user_type = cur.fetchone()[0]
-    
-    # Closing cursor
-    cur.close()
-
-    # Remember which user has logged in
-    session["user_id"] = id
-    session["user_type"] = user_type
 
     # Redirect user to home page
     return redirect("/")
@@ -176,7 +168,7 @@ def register():
     cur.close()
 
     # Redirect to the homepage
-    return redirect("/")
+    return redirect("/login")
 
 
 @app.route("/activities", methods=["GET"])
@@ -186,24 +178,34 @@ def activities():
     cur = g.con.cursor()
     
     # Query DB for id, title, type of every activity in the form list[tuple[id: int, title: str, type: str]]
-    query_output = cur.execute("SELECT id, title, type FROM activities;").fetchall()
-    
-    # Close cursor
-    cur.close()
+    query_output = cur.execute("SELECT id, title, type, length FROM activities;").fetchall()
     
     # If no activity is loaded yet, return apology
     if not query_output:
         return apology("Nessuna attività disponibile al momento", 200)
     
-    # Make list of tuples into list of dicts for easy acces with jinja/django (still don't know the difference)
+    def fmt_activity_booking(activity_id: int) -> str:
+        cur.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ? AND activity_id = ?", (session["user_id"], activity_id))
+        span = cur.fetchone()
+        if span is None:
+            return ""
+        else:
+            return TIMESPANS[span[1]][0] + "-" + TIMESPANS[span[2]][1] + " del " + DAYS[span[0]]
+
+    # Make list of tuples into list of dicts for easy acces with jinja
     activities_list = [{"id": activity_id,
                         "title": activity_title,
-                        "type": activity_type}
-                    for activity_id, activity_title, activity_type in query_output]
-    
+                        "type": activity_type,
+                        "length": activity_length,
+                        "booked": fmt_activity_booking(activity_id)
+                        } for activity_id, activity_title, activity_type, activity_length in query_output]
+        
+    # Close cursor
+    cur.close()
+
     return render_template("activities.html", activities=activities_list)
 
-    
+
 @app.route("/activity", methods=["GET", "POST"])
 @login_required
 def activity():
@@ -212,9 +214,9 @@ def activity():
     if request.method == "GET":        
         # Fetch data
         try:
-            activity_id = request.args["id"]
-            
-        except KeyError:
+            activity_id = int(request.args["id"])
+
+        except (KeyError, ValueError):
             return apology("Invalid http request")
         
         # Setup
@@ -279,9 +281,9 @@ def activity():
 
     # If method is POST (booking button has been pressed)
     try:
-        activity_id = request.args["id"]
+        activity_id = int(request.args["id"])
         
-    except KeyError:
+    except (KeyError, ValueError):
         return apology("Invalid http request")
     
     # If booking
@@ -306,7 +308,7 @@ def activity():
         cur = g.con.cursor()
         
         registration = cur.execute("SELECT day, module_start FROM registrations WHERE user_id = ? AND activity_id = ?;", (session["user_id"], activity_id)).fetchone()
-        length = cur.execute("SELECT length FROM activities WHERE id = ?;", (activity_id)).fetchone()[0]
+        length = cur.execute("SELECT length FROM activities WHERE id = ?;", (activity_id, )).fetchone()[0]
         
         if None in (registration, length):
             return apology("Invalid http request")
