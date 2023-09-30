@@ -179,20 +179,10 @@ def register():
     return redirect("/")
 
 
-@app.route("/activities", methods=["GET", "POST"])
+@app.route("/activities", methods=["GET"])
 @login_required
 def activities():
     """List of all activities"""
-    
-    # If called with POST (clicked the "more info" button)
-    if request.method == "POST":
-        # Get activity id from buttonpress
-        activity_id = request.form.get("activity_id")
-
-        # Redirect to /activity with id in the args
-        return redirect(url_for(".activity", id=activity_id))
-    
-    # If called with GET (loaded the page/clicked link)
     cur = g.con.cursor()
     
     # Query DB for id, title, type of every activity in the form list[tuple[id: int, title: str, type: str]]
