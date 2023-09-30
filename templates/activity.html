@@ -5,19 +5,6 @@
 {% endblock %}
 
 {% block main %}
-    <!-- Makes a warning appear if you have already booked this course -->
-    <script>
-        $(document).ready(function() {
-            if ("{{ is_booked }}" === "True") {
-                $(".booking").css("display", "none");
-                $(".unbooking").css("display", "block");
-            } else {
-                $(".booking").css("display", "block");
-                $(".unbooking").css("display", "none");
-            }
-        });
-    </script>
-
     <!-- Handles booking buttons -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -70,7 +57,8 @@
         <!-- Left column -->
         <div class="col-lg-6" style="text-align: center;">
             <!-- Description -->
-            <h2 style="margin: 0">Descrizione</h2>
+            <h2 style="margin: 0">{{ activity.title }}</h2>
+            <h4 style="margin: 0">{{ activity.type }}</h4>
             <div style="text-align: left; margin: 5%;">
                 <!-- Makes \n linebreak, while adding a bit of extra spacing -->
                 {% for section in activity.abstract.split("\n") %}
@@ -109,8 +97,9 @@
             
             <!-- Booking / Unbooking -->
             <div>
+                {% if not is_booked %}
                 <h2>Prenota</h2>
-                <div class="booking" style="display: none;">
+                <div class="booking">
                     <form action="/activity?id={{ id }}" method="post">
 
                         <!-- Buttons for the days -->
@@ -139,13 +128,14 @@
                         </div>
                     </form>
                 </div>
-                
-                <div class="unbooking" style="display: none;">
-                    <p>Attività già prenotata</p>
+                {% else %}
+                <div class="unbooking">
+                    <h2>Attività già prenotata</h2>
                     <form action="/activity?id={{ id }}" method="post">
                         <button class="btn btn-primary" name="unbooking-button">Rimuovi Prenotazione</button>
                     </form>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>
