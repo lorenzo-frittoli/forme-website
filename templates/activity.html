@@ -73,7 +73,7 @@
             <h2 style="margin: 0">Descrizione</h2>
             <div style="text-align: left; margin: 5%;">
                 <!-- Makes \n linebreak, while adding a bit of extra spacing -->
-                {% for section in activity.abstract.split("\n") %}
+                {% for section in activity.description.split("\n") %}
                     <div style="margin-bottom: 20px;">
                         <p>{{ section }}</p>
                     </div>

@@ -13,7 +13,7 @@ CREATE TABLE users (
 CREATE TABLE activities (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
-    abstract TEXT NOT NULL,
+    description TEXT NOT NULL,
     type TEXT NOT NULL,
     length INTEGER NOT NULL,
     availability TEXT NOT NULL
