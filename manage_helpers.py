@@ -1,8 +1,11 @@
 import random
 import json
 import string
+from datetime import datetime
+from shutil import copyfile
 
 from constants import *
+
 
 def get_students_from_file(filename: str) -> list[dict]:
     """RETURNS DUMMY OUTPUT. Returns student data from a file.
@@ -27,7 +30,6 @@ def get_students_from_file(filename: str) -> list[dict]:
     ]
     
     return dummy_output
-
     
     
 def get_activities_from_file(filename: str) -> list[dict]:
@@ -75,3 +77,25 @@ def generate_password(length: int = GENERATED_PASSWORD_LENGTH) -> str:
     password = "".join(random.choices(letters, k=length))
     
     return password
+
+
+def make_backup(dir: str) -> None:
+    """Add backup to the rolling backup folder (setup in constants)
+
+    Args:
+        dir (str): backup directory
+    """
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+    
+    FILENAME_FRMT = DATABASE.split(".")[0] + "_%Y-%m-%d_%H-%M-%S.db"
+    
+    # Delete the old backups
+    backups = [(datetime.strptime(backup, FILENAME_FRMT), backup) for backup in os.listdir(dir)]
+    backups.sort()
+    for backup in backups[:1-MAX_BACKUPS]:
+        os.remove(dir + DIR_SEP + backup[1])
+
+    # Save the new backup
+    copyfile(DATABASE, dir + DIR_SEP + datetime.strftime(datetime.now(), FILENAME_FRMT))
+    

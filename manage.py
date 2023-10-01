@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from flask.cli import FlaskGroup
 import click
 import sqlite3
@@ -8,8 +6,8 @@ from werkzeug.security import generate_password_hash
 
 
 from helpers import make_registration
-from manage_helpers import get_activities_from_file, get_students_from_file, generate_password
-from constants import *
+from manage_helpers import make_backup, get_activities_from_file, get_students_from_file, generate_password
+from constants import DATABASE, MAKE_DATABASE_COMMAND_FILE, MANUAL_BACKUPS_DIR, DAYS, TIMESPANS, PERMISSIONS
 from app import app
 
 
@@ -52,6 +50,11 @@ def make_db() -> None:
     cur.close()
     con.close()
     
+    
+@cli.command()
+def backup_db() -> None:
+    make_backup(MANUAL_BACKUPS_DIR)
+
 
 @cli.command()
 @click.option("-f", "--filename", "filename", required=False, help="File where the activity data is stored")

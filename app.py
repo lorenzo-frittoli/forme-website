@@ -366,3 +366,19 @@ def me():
             schedule[DAYS[day]][TIMESPANS_TEXT[timespan]] = (title, link)
 
     return render_template("me.html", schedule=schedule)
+
+
+@app.route("/admin", methods=["GET", "POST"])
+def admin():
+    # On get
+    if request.method == "GET":
+        return render_template("admin_login.html")
+    
+    # On post
+    password = request.form.get("password")
+    
+    if not password:
+        return apology("Wrong password\n(smettila di provare ad hackerare il sito, l'area admin non serve ad una sega)", 403)
+        
+    return render_template("admin_login.html")
+    
