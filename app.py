@@ -5,7 +5,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import json
 import re
 
-from helpers import apology, login_required, activity_already_booked, make_registration, update_availability
+from helpers import apology, login_required, admin_required, activity_already_booked, make_registration, update_availability
 from constants import *
 
 # Configure application
@@ -369,10 +369,11 @@ def me():
 
 
 @app.route("/admin", methods=["GET", "POST"])
+@admin_required
 def admin():
     # On get
     if request.method == "GET":
-        return render_template("admin_login.html")
+        return render_template("admin_auth.html")
     
     # On post
     password = request.form.get("password")
@@ -380,5 +381,5 @@ def admin():
     if not password:
         return apology("Wrong password\n(smettila di provare ad hackerare il sito, l'area admin non serve ad una sega)", 403)
         
-    return render_template("admin_login.html")
+    return render_template("admin_auth.html")
     

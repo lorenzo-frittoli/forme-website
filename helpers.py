@@ -41,6 +41,26 @@ def login_required(f):
     return decorated_function
 
 
+def admin_required(f):
+    """Decorate to require admin login. Requires login with `@login_required`.
+
+    Args:
+        f (_type_): function to decorate
+
+    Returns:
+        _type_: decorated function
+    """
+    @wraps(f)
+    @login_required
+    def decorated_function(*args, **kwargs):
+        if session.get("user_id") not in ADMIN_IDS:
+            return apology("sei un frocio", 403)
+        
+        return f(*args, **kwargs)
+    
+    return decorated_function
+        
+
 def activity_already_booked(user_id: int, activity_id: int) -> bool:
     """Checks wether a course has been booked already by that student.
 
