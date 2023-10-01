@@ -371,6 +371,7 @@ def me():
 @app.route("/admin", methods=["GET", "POST"])
 @admin_required
 def admin():
+    """Admin page"""
     # On get
     if request.method == "GET":
         return render_template("admin_auth.html")
