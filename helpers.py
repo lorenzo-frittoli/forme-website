@@ -3,6 +3,8 @@ from functools import wraps
 import json
 
 from constants import *
+from admin_commands import ADMIN_COMMANDS
+
 
 def apology(message, code=400):
     """Render message as an apology to user."""
@@ -52,7 +54,7 @@ def admin_required(f):
     @login_required
     def decorated_function(*args, **kwargs):
         if session.get("user_id") not in ADMIN_IDS:
-            return apology("sei un frocio", 403)
+            return apology("access denied", 403)
         
         return f(*args, **kwargs)
     
@@ -169,3 +171,18 @@ def update_availability(activity_id: int, day: int, module: int, amount: int) ->
     # SQL close
     cur.close()
     cur.close()
+
+
+def execute_admin_command(command: str):
+    """Executes a `command` from the `ADMIN_COMMANDS` list (check `admin_commands.py`)
+
+    Args:
+        command (str): command to be run
+
+    Raises:
+        ValueError: command is not in `ADMIN_COMMANDS`
+    """
+    if command not in ADMIN_COMMANDS:
+        raise ValueError(f"Invalid command {command}")
+
+    ADMIN_COMMANDS[command]

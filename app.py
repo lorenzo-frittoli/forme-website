@@ -5,7 +5,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import json
 import re
 
-from helpers import apology, login_required, admin_required, activity_already_booked, make_registration, update_availability
+from helpers import apology, login_required, admin_required, activity_already_booked, make_registration, update_availability, execute_admin_command
 from constants import *
 
 # Configure application
@@ -374,13 +374,33 @@ def admin():
     """Admin page"""
     # On get
     if request.method == "GET":
+        return render_template("admin_area.html")
+        
+    return redirect(url_for("admin_auth", command="save-db"))
+
+
+@app.route("/admin-auth", methods=["GET", "POST"])
+@admin_required
+def admin_auth():
+    """Admin authentication page"""
+    # On GET (redirected from /admin)
+    if request.method == "GET":
+        command = request.args["command"]
+        print(command)
         return render_template("admin_auth.html")
-    
+        
     # On post
+    # TODO: pw checking (j for now)
     password = request.form.get("password")
     
-    if not password:
+    if not password or password != "j":
         return apology("Wrong password\n(smettila di provare ad hackerare il sito, l'area admin non serve ad una sega)", 403)
-        
-    return render_template("admin_auth.html")
-    
+
+    # Run the command
+    try:
+        execute_admin_command(command)
+
+    except ValueError:
+        return apology("Invalid http request argument")
+
+    return redirect("/admin")
