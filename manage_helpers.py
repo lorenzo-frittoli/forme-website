@@ -2,7 +2,7 @@ import random
 import json
 import string
 from datetime import datetime
-from shutil import copyfile
+import sqlite3
 
 from constants import *
 
@@ -80,7 +80,7 @@ def generate_password(length: int = GENERATED_PASSWORD_LENGTH) -> str:
 
 
 def make_backup(dir: str) -> None:
-    """Add backup to the rolling backup folder (setup in constants)
+    """Add backup to the a backup folder
 
     Args:
         dir (str): backup directory
@@ -96,6 +96,13 @@ def make_backup(dir: str) -> None:
     for backup in backups[:1-MAX_BACKUPS]:
         os.remove(dir + DIR_SEP + backup[1])
 
-    # Save the new backup
-    copyfile(DATABASE, dir + DIR_SEP + datetime.strftime(datetime.now(), FILENAME_FRMT))
-    
+    # Lock the database and save the new backup
+    filename = datetime.strftime(datetime.now(), FILENAME_FRMT)
+    con_backup = sqlite3.connect(dir + DIR_SEP + filename)
+    con_live = sqlite3.connect(DATABASE)
+    con_live.backup(con_backup)
+    con_live.close()
+    con_backup.commit()
+    con_backup.close()
+
+    return filename
