@@ -363,7 +363,7 @@ def me_page():
     for activity_id, title, day, module_start, module_end in user_registrations:
         for timespan in range(module_start, module_end + 1):
             assert schedule[DAYS[day]][TIMESPANS_TEXT[timespan]] == ("", None)
-            link = url_for(".activity", id=activity_id)
+            link = url_for(".activity_page", id=activity_id)
             schedule[DAYS[day]][TIMESPANS_TEXT[timespan]] = (title, link)
 
     return render_template("me.html", schedule=schedule)
