@@ -2,6 +2,7 @@ from flask import Response, request, send_file
 import os
 from inspect import signature
 from typing import Union
+from werkzeug.security import generate_password_hash
 
 from manage_helpers import make_backup
 from constants import *
@@ -14,9 +15,13 @@ def command(f):
     arguments = list(signature(f).parameters)
     command_annotations[f.__name__] = arguments
 
-    # All parameters are automatically estracted from the request and passed to the function as strings.
+    # All parameters are automatically extracted from the request and passed to the function as strings.
     def wrapper():
         args = {argument: request.form.get(argument) for argument in arguments}
+        
+        if any(map(lambda x: x is None, args)):
+            return "", 400
+
         return f(**args)
 
     wrapper.__name__ = f.__name__
@@ -33,6 +38,35 @@ def all_backups() -> list[str]:
         backups += [dir + DIR_SEP + filename for filename in os.listdir(dir)]
     return backups
 
+
+def change_user_password(email: str, new_password: str) -> None:
+    """Changes a users pw
+
+    Args:
+        email (str): email of the user
+        new_password (str): new password (plain text)
+        
+    Raises:
+        ValueError: email is not registered
+    """
+
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+    
+    cur.execute("SELECT 1 FROM users WHERE email = ?", (email,))
+    if not cur.fetchone():
+        raise ValueError("Email not registered")
+    
+    elif email in ADMIN_EMAILS:
+        raise ValueError("Cannot change an admin's password")
+    
+    password_hash = generate_password_hash(new_password)
+    cur.execute("UPDATE users SET hash = ? WHERE email = ?", (password_hash, email))
+    con.commit()
+    
+    cur.close()
+    con.close()
+    
 
 @command
 def backup_db() -> tuple[str, int]:
@@ -51,8 +85,6 @@ def list_backups() -> tuple[str, int]:
 def download_db(backup) -> Response:
     """Downloads a backup.
     If a backup name is specified the selected backup us downloaded, otherwise a new one is created and sent."""
-    if backup is None:
-        return "", 400
     if not backup:
         backup = MANUAL_BACKUPS_DIR + DIR_SEP + make_backup(MANUAL_BACKUPS_DIR)
     elif backup not in all_backups():
@@ -66,8 +98,15 @@ def download_logs() -> tuple[str, int]:
 
 
 @command
-def change_password(user, new_password) -> tuple[str, int]:
-    raise NotImplementedError
+def change_password_command(user_email, new_password) -> tuple[str, int]:
+    """Admin page command to change a user's password"""
+    try:
+        change_user_password(user_email, new_password)
+
+    except ValueError:
+        return "Invalid email", 400
+    
+    return "Password changed!", 200
 
 
 def execute(command: str) -> Union[Response, tuple[str, int]]:

@@ -3,6 +3,7 @@ import json
 import string
 from datetime import datetime
 import sqlite3
+from werkzeug.security import generate_password_hash
 
 from constants import *
 
@@ -80,7 +81,7 @@ def generate_password(length: int = GENERATED_PASSWORD_LENGTH) -> str:
 
 
 def make_backup(dir: str) -> None:
-    """Add backup to the backup folder
+    """Add backup to the rolling storage
 
     Args:
         dir (str): backup directory
@@ -106,3 +107,4 @@ def make_backup(dir: str) -> None:
     con_backup.close()
 
     return filename
+
