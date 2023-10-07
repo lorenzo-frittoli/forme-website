@@ -88,7 +88,7 @@ def make_backup(dir: str) -> None:
     if not os.path.exists(dir):
         os.makedirs(dir)
     
-    FILENAME_FRMT = DATABASE.split(".")[0] + "_%Y-%m-%d_%H-%M-%S.db"
+    FILENAME_FRMT = DATABASE.replace(".", "_%Y-%m-%d_%H-%M-%S.")
     
     # Delete the old backups
     backups = [(datetime.strptime(backup, FILENAME_FRMT), backup) for backup in os.listdir(dir)]
@@ -97,5 +97,6 @@ def make_backup(dir: str) -> None:
         os.remove(dir + DIR_SEP + backup[1])
 
     # Save the new backup
-    copyfile(DATABASE, dir + DIR_SEP + datetime.strftime(datetime.now(), FILENAME_FRMT))
-    
+    filename = datetime.strftime(datetime.now(), FILENAME_FRMT)
+    copyfile(DATABASE, dir + DIR_SEP + filename)
+    return filename

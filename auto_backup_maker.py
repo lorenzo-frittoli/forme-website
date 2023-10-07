@@ -1,12 +1,11 @@
 import time
-import os
 
 from constants import AUTO_BACKUPS_DIR, BACKUP_FREQ
 from manage_helpers import make_backup
 
 
 def main():
-    """Auto backs up the db
+    """Automatically creates backups of the db
     """        
     while True:
         make_backup(AUTO_BACKUPS_DIR)

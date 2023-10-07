@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "admin_layout.html" %}
 
 {% block title %}
     Admin Area
@@ -7,9 +7,18 @@
 {% block main %}
     <div class="mb-3">
         <h1 style="margin-bottom: 1rem;">Admin Area</h1>
-        <!-- Download DB -->
         <form action="/admin" method="post">
-            <button class="btn btn-primary" type="submit">Download Database</button>
+            {% for command, arguments in commands.items() %}
+            <button type="submit" name="command" value="{{ command }}">{{ command }}</button>
+            {% for argument in arguments%}
+            <input name="{{ argument }}" placeholder="{{ argument}}">
+            {% endfor %}
+            <br>
+            <br>
+            {% endfor %}
         </form>
+        <p>
+            {% for line in response %}{{ line }}<br>{% endfor %}
+        </p>
     </div>
 {% endblock %}

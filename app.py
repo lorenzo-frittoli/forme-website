@@ -1,11 +1,12 @@
 import sqlite3
-from flask import Flask, redirect, render_template, request, session, url_for, g
+from flask import Flask, redirect, render_template, request, session, url_for, g, Response
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 import json
 import re
 
-from helpers import apology, login_required, admin_required, activity_already_booked, make_registration, update_availability, execute_admin_command
+from helpers import apology, login_required, admin_required, activity_already_booked, make_registration, update_availability
+import admin
 from constants import *
 
 # Configure application
@@ -41,14 +42,14 @@ def after_request(response):
 
 @app.route("/")
 @login_required
-def homepage():
+def index_page():
     """Homepage"""
     # TODO
     return render_template("homepage.html")
 
 
 @app.route("/login", methods=["GET", "POST"])
-def login():
+def login_page():
     """Log user in"""
 
     # Forget any user_id
@@ -96,7 +97,7 @@ def login():
 
 
 @app.route("/logout")
-def logout():
+def logout_page():
     """Log user out"""
 
     # Forget any user_id
@@ -107,7 +108,7 @@ def logout():
 
 
 @app.route("/register", methods=["GET", "POST"])
-def register():
+def register_page():
     """Register user"""
 
     # If called with GET (loaded the page/clicked link)
@@ -177,7 +178,7 @@ def register():
 
 @app.route("/activities", methods=["GET"])
 @login_required
-def activities():
+def activities_page():
     """List of all activities"""
     cur = g.con.cursor()
     
@@ -212,7 +213,7 @@ def activities():
 
 @app.route("/activity", methods=["GET", "POST"])
 @login_required
-def activity():
+def activity_page():
     """Activity page w/ details"""
     # If the page is loaded with GET (eg: clicking a link, getting redirected...)
     if request.method == "GET":        
@@ -338,7 +339,7 @@ def activity():
 
 @app.route("/me")
 @login_required
-def me():
+def me_page():
     """Me page w/ your bookings"""
     cur = g.con.cursor()
     
@@ -370,37 +371,33 @@ def me():
 
 @app.route("/admin", methods=["GET", "POST"])
 @admin_required
-def admin():
+def admin_page():
     """Admin page"""
     # On get
     if request.method == "GET":
-        return render_template("admin_area.html")
-        
-    return redirect(url_for("admin_auth", command="save-db"))
-
-
-@app.route("/admin-auth", methods=["GET", "POST"])
-@admin_required
-def admin_auth():
-    """Admin authentication page"""
-    # On GET (redirected from /admin)
-    if request.method == "GET":
-        command = request.args["command"]
-        print(command)
-        return render_template("admin_auth.html")
-        
-    # On post
-    # TODO: pw checking (j for now)
-    password = request.form.get("password")
+        return render_template("admin_area.html", commands=admin.command_annotations)
     
-    if not password or password != "j":
-        return apology("Wrong password\n(smettila di provare ad hackerare il sito, l'area admin non serve ad una sega)", 403)
+    # On post
+    command = request.form.get("command")
+    password = request.form.get("password")
+    if command is None:
+        return apology("", 400)
 
-    # Run the command
-    try:
-        execute_admin_command(command)
+    # Authentication page
+    if password is None:
+        return render_template("admin_auth.html", command=dict(request.form))
 
-    except ValueError:
-        return apology("Invalid http request argument")
+    # Execute the command
+    if not check_password_hash(ADMIN_PASSWORD, password):
+        return apology("Auth failed", 403)
+    
+    result = admin.execute(command)
+    
+    # Different commands return different types of data
+    if isinstance(result, Response):
+        return result
 
-    return redirect("/admin")
+    assert len(result) == 2
+    assert isinstance(result[0], str)
+    assert isinstance(result[1], int)
+    return render_template("admin_area.html", commands=admin.command_annotations, response=result[0].split("\n")), result[1]

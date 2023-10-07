@@ -50,7 +50,7 @@ def make_db() -> None:
     cur.close()
     con.close()
     
-    
+
 @cli.command()
 def backup_db() -> None:
     make_backup(MANUAL_BACKUPS_DIR)
