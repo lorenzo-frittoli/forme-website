@@ -41,7 +41,6 @@ def after_request(response):
 
 
 @app.route("/")
-@login_required
 def index_page():
     """Homepage"""
     # TODO
@@ -166,7 +165,7 @@ def register_page():
 
     # Save the new user & commit
     cur.execute("INSERT INTO users (email, hash, name, surname, type) VALUES (?, ?, ?, ?, ?);",
-                (email, generate_password_hash(password), name, surname, "guest"))
+                (email, generate_password_hash(password, method=GENERATE_PASSWORD_METHOD), name, surname, "guest"))
     g.con.commit()
     
     # Closes cursor

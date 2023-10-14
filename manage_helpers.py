@@ -3,7 +3,6 @@ import json
 import string
 from datetime import datetime
 import sqlite3
-from werkzeug.security import generate_password_hash
 
 from constants import *
 
@@ -31,8 +30,8 @@ def get_students_from_file(filename: str) -> list[dict]:
     ]
     
     return dummy_output
-    
-    
+
+
 def get_activities_from_file(filename: str) -> list[dict]:
     """RETURNS DUMMY OUTPUT. Returns student data from a file
 

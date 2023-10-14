@@ -26,7 +26,7 @@ def command(f):
 
     wrapper.__name__ = f.__name__
     commands[f.__name__] = wrapper
-    return wrapper
+    return f
 
 
 def all_backups() -> list[str]:
@@ -53,14 +53,14 @@ def change_user_password(email: str, new_password: str) -> None:
     con = sqlite3.connect(DATABASE)
     cur = con.cursor()
     
-    cur.execute("SELECT 1 FROM users WHERE email = ?", (email,))
+    cur.execute("SELECT 1 FROM users WHERE email = ?", (email, ))
     if not cur.fetchone():
-        raise ValueError("Email not registered")
+        raise ValueError("Email not found")
     
     elif email in ADMIN_EMAILS:
         raise ValueError("Cannot change an admin's password")
     
-    password_hash = generate_password_hash(new_password)
+    password_hash = generate_password_hash(new_password, method=GENERATE_PASSWORD_METHOD)
     cur.execute("UPDATE users SET hash = ? WHERE email = ?", (password_hash, email))
     con.commit()
     
@@ -93,20 +93,15 @@ def download_db(backup) -> Response:
 
 
 @command
-def download_logs() -> tuple[str, int]:
-    raise NotImplementedError
-
-
-@command
-def change_password_command(user_email, new_password) -> tuple[str, int]:
+def change_password(user_email, new_password) -> tuple[str, int]:
     """Admin page command to change a user's password"""
     try:
         change_user_password(user_email, new_password)
 
-    except ValueError:
-        return "Invalid email", 400
+    except ValueError as val_error:
+        return val_error.args[0], 200
     
-    return "Password changed!", 200
+    return f"Password changed for {user_email}!", 200
 
 
 def execute(command: str) -> Union[Response, tuple[str, int]]:

@@ -7,7 +7,7 @@ from werkzeug.security import generate_password_hash
 
 from helpers import make_registration
 from manage_helpers import make_backup, get_activities_from_file, get_students_from_file, generate_password
-from constants import DATABASE, MAKE_DATABASE_COMMAND_FILE, MANUAL_BACKUPS_DIR, DAYS, TIMESPANS, PERMISSIONS
+from constants import *
 from app import app
 
 
@@ -101,7 +101,7 @@ def load_students(filename: str) -> None:
     for student in students:
         password = generate_password()
         print(student["email"], password)
-        student["hash"] = generate_password_hash(password)
+        student["hash"] = generate_password_hash(password, method=GENERATE_PASSWORD_METHOD)
     
     # Write to DB
     cur.executemany("INSERT INTO users (type, email, hash, name, surname, class) VALUES ('student', :email, :hash, :name, :surname, :class)", students)
