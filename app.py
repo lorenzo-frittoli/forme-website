@@ -182,7 +182,7 @@ def activities_page():
     cur = g.con.cursor()
     
     # Query DB for id, title, type of every activity in the form list[tuple[id: int, title: str, type: str]]
-    query_output = cur.execute("SELECT id, title, type, length FROM activities;").fetchall()
+    query_output = cur.execute("SELECT id, title, type, description, length, image FROM activities;").fetchall()
     
     # If no activity is loaded yet, return apology
     if not query_output:
@@ -200,9 +200,11 @@ def activities_page():
     activities_list = [{"id": activity_id,
                         "title": activity_title,
                         "type": activity_type,
+                        "description": activity_description,
                         "length": activity_length,
-                        "booked": fmt_activity_booking(activity_id)
-                        } for activity_id, activity_title, activity_type, activity_length in query_output]
+                        "booked": fmt_activity_booking(activity_id),
+                        "image": f"{ACTIVITY_IMAGES_DIRECTORY}/{image_name}" if image_name else f"{ACTIVITY_IMAGES_DIRECTORY}/{ACTIVITY_IMAGE_PLACEHOLDER}"
+                        } for activity_id, activity_title, activity_type, activity_description, activity_length, image_name in query_output]
         
     # Close cursor
     cur.close()
