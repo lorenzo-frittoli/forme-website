@@ -10,32 +10,35 @@
     <h1 style="margin-bottom: 3rem;">Attività</h1>
     <div class="container">
         <div class="row gy-5 row-cols-1 row-cols-md-2 row-cols-lg-3">
-            {% for a in activities %}
+            {% for activity in activities %}
                 <div class="col">
-                    <div class="card mx-auto mb-4" style="width: 18rem;">
-                        <p class="card-header">
-                            {% if a.length > 1 %}
-                                {{ a.length }} Moduli
-                            
-                            {% else %}
-                                1 Modulo                                
-                            
-                            {% endif %}
-                        </p>
-                        <img class="card-img-top" src="{{ a.image }}" alt="Card image cap">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ a.title }}</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">{{ a.type }}</h6>
-        
-                            {% if a.description|length <= max_description_length %}
-                                <p class="card-text">{{ a.description }}</p>
-
-                            {% else %}
-                                <p class="card-text">{{ a.description[:max_description_length-4] }}...</p>                                
-                            {% endif %}
-
-                            <a href="#" class="btn btn-primary">Prenotati Ora</a>
-                        </div>
+                    <a href="/activity?id={{ activity.id }}" style="color: black; text-decoration: none;">
+                        <div class="card mx-auto mb-4" style="width: 18rem;">
+                            <p class="card-header">
+                                {% if activity.length > 1 %}
+                                    {{ activity.length }} Moduli
+                                {% else %}
+                                    1 Modulo                                
+                                {% endif %}
+                            </p>
+                            <img class="card-img-top" style="height: 10rem; object-fit: contain;" src="{{ activity.image }}">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ activity.title }}</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">{{ activity.type }}</h6>
+            
+                                {% if activity.description|length <= max_description_length %}
+                                    <p class="card-text" style="overflow: hidden; max-height: 2rem;">{{ activity.description }}</p>
+                                {% else %}
+                                    <p class="card-text">{{ activity.description[:max_description_length-4] }}...</p>                                
+                                {% endif %}
+                                
+                                {% if activity.booked|length%}
+                                    <div class="card-text" style="background: rgb(184, 242, 255); border: 2px solid #0d6efd; border-radius: 5px; margin-bottom: 10px">
+                                        Prenotazione: <br> {{ activity.booked }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </a>
                     </div>
                 </div>
             {% endfor %}
