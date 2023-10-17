@@ -42,3 +42,29 @@ nav .navbar-brand .green
     padding: 1rem 0 1rem;
     display: none;
 }
+
+/* Container for the activity cards (wrapped in #activity-card-wrappers) */
+#activity-cards-container {
+    display: inline-flex;
+    /* align-items items in column */
+    flex-direction: row;
+    /* center items horizontally */
+    align-items: center;
+    /* center items vertically */
+    justify-content: center;
+    flex-wrap: wrap;
+    overflow: hidden;
+}
+
+/* Wraps a single activity card */
+.activity-card-wrapper {
+    margin: 1rem;
+    float:left;
+    width: 18rem;
+    color: black;
+    text-decoration: none;
+}
+
+.activity-card-wrapper:hover {
+    color: black;
+}
