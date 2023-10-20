@@ -5,7 +5,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import json
 import re
 
-from helpers import apology, login_required, admin_required, activity_already_booked, make_registration, update_availability
+from helpers import apology, login_required, admin_required, activity_already_booked, make_registration, update_availability, get_image_path
 import admin
 from constants import *
 
@@ -203,7 +203,7 @@ def activities_page():
                         "description": activity_description,
                         "length": activity_length,
                         "booked": fmt_activity_booking(activity_id),
-                        "image": f"{ACTIVITY_IMAGES_DIRECTORY}/{image_name}" if image_name else f"{ACTIVITY_IMAGES_DIRECTORY}/{ACTIVITY_IMAGE_PLACEHOLDER}"
+                        "image": get_image_path(image_name)
                         } for activity_id, activity_title, activity_type, activity_description, activity_length, image_name in query_output]
         
     # Close cursor
@@ -229,7 +229,7 @@ def activity_page():
         cur = g.con.cursor()
         
         # Query the database
-        cur.execute("SELECT title, description, type, length, classroom, availability FROM activities WHERE id = ?;", (activity_id,))
+        cur.execute("SELECT title, description, type, length, classroom, image, availability FROM activities WHERE id = ?;", (activity_id,))
         query_result = cur.fetchone()
         cur.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ?", (session["user_id"], ))
         user_registrations = cur.fetchall()
@@ -240,13 +240,14 @@ def activity_page():
         if query_result is None:
             return apology("Invalid http request")
 
-        activity_title, activity_description, activity_type, activity_length, activity_classroom, activity_availability = query_result
+        activity_title, activity_description, activity_type, activity_length, activity_classroom, activity_image, activity_availability = query_result
 
         # Details of the activity
         activity_dict = {"title": activity_title,
                         "description": activity_description,
                         "type": activity_type,
-                        "classroom": activity_classroom
+                        "classroom": activity_classroom,
+                        "image": get_image_path(activity_image)
                         }
         
         # JSON string -> list[list[remaining by time] by day]
