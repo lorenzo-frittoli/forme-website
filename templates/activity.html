@@ -32,6 +32,7 @@
 
     <!-- Handles booking buttons -->
     <script>
+        // Function that enlarges buttons for mobile
         function enlarge () {
             if (window.screen.width <= 600) {
                 $(".btn-lg-on-mobile").addClass("btn-lg");
@@ -39,8 +40,11 @@
             }
         }
 
+        // Enlarges buttons for mobile
         $(document).ready(enlarge);
 
+
+        // Handles booking
         document.addEventListener("DOMContentLoaded", function() {
             dayButtonsLabels = document.getElementsByName("day-button-label");
             timespanButtonsLabels = document.getElementsByName("timespan-button-label");
@@ -58,6 +62,7 @@
                         var content = $(data).find("#timespans-buttons-div").html();
                         $("#timespans-buttons-div").html(content);
                         
+                        // Re-applies enlargement after reloading the content of the div
                         enlarge();
 
                         // Make the buttons visible
