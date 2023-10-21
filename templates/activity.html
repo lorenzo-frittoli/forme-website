@@ -4,9 +4,43 @@
     Attività
 {% endblock %}
 
-{% block main %}
+{% block main %}    
+    <!-- Handles mobile -->
+    <!-- Collapses content if on mobile -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            collapseOnMobile = $(".collapsed-by-mobile-button");
+            if(window.screen.width <= 600) {
+                collapseOnMobile.addClass("hide");
+                collapseOnMobile.removeClass("show");
+            } else {
+                collapseOnMobile.addClass("show");
+                collapseOnMobile.removeClass("hide");
+            }
+        });
+    </script>    
+    
+    <!-- Make it so that only 1 collapsed-by-mobile-button can be shown at a time -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            $(".mobile-collapse-button").click(function() {
+                // this.dataset.bsTarget
+                $(".collapsed-by-mobile-button").removeClass("show");
+            });
+        });
+    </script>
+
     <!-- Handles booking buttons -->
     <script>
+        function enlarge () {
+            if (window.screen.width <= 600) {
+                $(".btn-lg-on-mobile").addClass("btn-lg");
+                $(".btn-group-lg-on-mobile").addClass("btn-group-lg");
+            }
+        }
+
+        $(document).ready(enlarge);
+
         document.addEventListener("DOMContentLoaded", function() {
             dayButtonsLabels = document.getElementsByName("day-button-label");
             timespanButtonsLabels = document.getElementsByName("timespan-button-label");
@@ -24,13 +58,14 @@
                         var content = $(data).find("#timespans-buttons-div").html();
                         $("#timespans-buttons-div").html(content);
                         
+                        enlarge();
+
                         // Make the buttons visible
                         document.getElementById("timespans-buttons-div").style.visibility = "visible"
 
                         for (let j = 0; j < timespanButtonsLabels.length; j++) {
                             availableSlots = availability[i][j];
-                            console.log(timespanButtonsLabels);
-                            
+
                             // Add event listeners to timespan buttons to generate booking button
                             timespanButtonsLabels[j].addEventListener("click", function() {
                                 $("#available-slots").text(`${availableSlots} posti disponibili`);
@@ -53,34 +88,8 @@
             }
         });
     </script>
-    
-    <!-- Handles mobile -->
-    <!-- Collapses content if on mobile -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            collapseOnMobile = $(".collapsed-by-mobile-button");
-            if(window.screen.width <= 600) {
-                console.log("phone");
-                collapseOnMobile.addClass("hide");
-                collapseOnMobile.removeClass("show");
-            } else {
-                collapseOnMobile.addClass("show");
-                collapseOnMobile.removeClass("hide");
-            }
-        });
-    </script>    
-    
-    <!-- Make it so that only 1 collapsed-by-mobile-button can be shown at a time -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            $(".mobile-collapse-button").click(function() {
-                // this.dataset.bsTarget
-                $(".collapsed-by-mobile-button").removeClass("show");
-            });
-        });
-    </script>
 
-
+    <!-- Page Contents -->
     <!-- Heading -->
     <div style="margin: 0 2.5%;">
         <h1>{{ activity.title }}</h1>
@@ -88,7 +97,6 @@
         <p>Aula {{ activity.classroom }}</p>
     </div>
     <hr>
-
 
     <!-- Mobile collapse buttons -->
     <div class="display-on-mobile">
@@ -105,14 +113,14 @@
             </button>
 
             <!-- Availability & Booking -->
-            <button class="btn btn-lg btn-primary mobile-collapse-button" type="button" data-bs-toggle="collapse" data-bs-target="#booking-div" aria-expanded="false" aria-controls="booking-div">
+            <button class="btn btn-lg btn-primary mobile-collapse-button" type="button" data-bs-toggle="collapse" data-bs-target="#booking-availability-div" aria-expanded="false" aria-controls="booking-availability-div">
                 Prenota
             </button>
         </div>
         <hr>
     </div>
 
-    <!-- Content -->
+    <!-- Body -->
     <div>
         <!-- Info -->
         <div class="row">
@@ -142,7 +150,7 @@
         </div>
 
         <!-- Booking / Availability -->
-        <div class="row collapsed-by-mobile-button collapse" id="booking-div">
+        <div class="row collapsed-by-mobile-button collapse" id="booking-availability-div">
             <!-- Availability table -->
             <div class="col-lg-6">
                 <h2>Disponibilità</h2>
@@ -175,28 +183,34 @@
                     <form action="/activity?id={{ id }}" method="post">
                         
                         <!-- Buttons for the days -->
-                        <div class="btn-group container-fluid" role="group" style="margin-top: 5%">
-                            {% for day in days %}
-                            <input type="radio" value="{{ day[0] }}" class="btn-check" name="day-button" id="{{ day[0] }}-day-button" autocomplete="off">
-                            <label class="btn btn-outline-primary" name="day-button-label" id="{{ day[0] }}-day-button-label" for="{{ day[0] }}-day-button">{{ day[1] }}</label>
-                            {% endfor %}
+                        <div style="margin-top: 5%;">
+                            <h5>Giorno</h5>
+                            <div class="btn-group btn-group-lg-on-mobile container-fluid" role="group" style="flex-wrap: wrap;">
+                                {% for day in days %}
+                                <input type="radio" value="{{ day[0] }}" class="btn-check" name="day-button" id="{{ day[0] }}-day-button" autocomplete="off">
+                                <label class="btn btn-outline-primary" name="day-button-label" id="{{ day[0] }}-day-button-label" for="{{ day[0] }}-day-button">{{ day[1] }}</label>
+                                {% endfor %}
+                            </div>
                         </div>
                         
                         <!-- Buttons for the timespans -->
-                        <div class="btn-group container-fluid" id="timespans-buttons-div" role="group" style="margin-top: 5%; visibility: hidden;">
-                            {% for timespan in timespans %}
-                            <input type="radio" value="{{ timespan[0] }}" class="btn-check" name="timespan-button" id="{{ timespan[0] }}-timespan-button" autocomplete="off">
-                            <label class="btn btn-outline-primary" name="timespan-button-label" id="{{ timespan[0] }}-timespan-button-label" for="{{ timespan[0] }}-timespan-button">{{ timespan[1] }}</label>
-                            {% endfor %}
+                        <div id="timespans-buttons-div" style="margin-top: 5%; visibility: hidden;">
+                            <h5>Ora</h5>
+                            <div id="timespans-button-group" class="btn-group btn-group-lg-on-mobile container-fluid" role="group" style="flex-wrap: wrap;">
+                                {% for timespan in timespans %}
+                                <input type="radio" value="{{ timespan[0] }}" class="btn-check" name="timespan-button" id="{{ timespan[0] }}-timespan-button" autocomplete="off">
+                                <label class="btn btn-outline-primary" name="timespan-button-label" id="{{ timespan[0] }}-timespan-button-label" for="{{ timespan[0] }}-timespan-button">{{ timespan[1] }}</label>
+                                {% endfor %}
+                            </div>
                         </div>
-                        
+
                         <!-- Booking button and number of available slots -->
                         <div class="container-fluid" id="booking-button-div" style="margin-top: 5%; visibility: hidden;">
                             <!-- Number of available slots -->
                             <p id="available-slots">placeholder</p>
                             
                             <!-- Booking button -->
-                            <button class="btn btn-primary" name="booking-button">Prenota</button>
+                            <button class="btn btn-primary btn-lg-on-mobile" name="booking-button">Prenota</button>
                         </div>
                     </form>
                 </div>
@@ -204,7 +218,7 @@
                 <div class="unbooking">
                     <h2>Attività già prenotata</h2>
                     <form action="/activity?id={{ id }}" method="post" style="margin: 5%;">
-                        <button class="btn btn-primary" name="unbooking-button">Rimuovi Prenotazione</button>
+                        <button class="btn btn-primary btn-lg-on-mobile" name="unbooking-button">Rimuovi Prenotazione</button>
                     </form>
                 </div>
                 {% endif %}

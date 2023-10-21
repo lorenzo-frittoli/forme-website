@@ -253,8 +253,9 @@ def activity_page():
         # JSON string -> list[list[remaining by time] by day]
         activity_availability = json.loads(activity_availability)
 
-        activity_availability = [av for i, av in enumerate(activity_availability) if session["user_type"] in PERMISSIONS[i]]
         
+        activity_availability = [av for i, av in enumerate(activity_availability) if session["user_type"] in PERMISSIONS[i]]
+                
         # Check if the activity has already been booked by the user (to display warning)
         is_booked = activity_already_booked(session["user_id"], activity_id)
 
