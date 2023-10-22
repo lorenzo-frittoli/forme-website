@@ -9,23 +9,16 @@
     <script>
         $(document).ready(function() {
             schedule = JSON.parse('{{ schedule|tojson }}');
-            fully_booked = 1;
-            
+
             // Check every title to spot empty spots
-            outerLoop: for (const day of Object.values(schedule)) {
+            for (const day of Object.values(schedule)) {
                 for (const data of Object.values(day)) {
-                    if (data[0] == "") {
-                        console.log("found empty field")
-                        fully_booked = 0;
-                        break outerLoop;
+                    if (data[0] === "") {
+                        // If there are empty spots, display a warning
+                        $(".warning").css("display", "block");
+                        return;
                     }
                 }
-            }
-
-            // If there are empty spots, display a warning
-            if (fully_booked == 0) {
-                console.log("displaying warning")
-                $(".warning").css("display", "block");
             }
         });
     </script>
@@ -36,31 +29,48 @@
         <h5>{{ session["user_name"] }} {{ session["user_surname"] }}</h5>
         <p>{{ session["user_email"] }}</p>
         <div class="mb-3" style="margin: 2rem 5%;">
-            <table class="table table-striped">
+            <table class="table table-striped" id="table-desktop">
                 <thead>
                     <th> </th>
                     {% for timespan in schedule.values()|first %}
                     <th>{{ timespan }}</th>
                     {% endfor %}
                 </thead>
-                <tbody>
-                    {% for day, bookings in schedule.items() %}
-                    <tr>
-                        <th>{{ day }}</th>
-                        {% for title, link in bookings.values() %}
-                            {% if title == "" %}
-                                <td style="color: rgb(117, 117, 117);">Vuoto</td>
-                            {% else %}
-                                <td><a href="{{ link }}"">{{ title }}</a></td>
-                            {% endif %}
-                        {% endfor %}
-                        <td>{{ booking }}</td>
-                    </tr>
+                {% for day, bookings in schedule.items() %}
+                <tr>
+                    <th>{{ day }}</th>
+                    {% for title, link in bookings.values() %}
+                        {% if title == "" %}
+                            <td style="color: rgb(117, 117, 117);">Vuoto</td>
+                        {% else %}
+                            <td><a href="{{ link }}">{{ title }}</a></td>
+                        {% endif %}
                     {% endfor %}
-                </tbody>
+                </tr>
+                {% endfor %}
+            </table>
+            <table class="table table-striped" id="table-mobile">
+                <thead>
+                    <th> </th>
+                    {% for day, bookings in schedule.items() %}
+                    <th>{{ day }}</th>
+                    {% endfor %}
+                </thead>
+                {% for timespan in schedule.values()|first %}
+                <tr>
+                    <th>{{ timespan }}</th>
+                    {% for day, bookings in schedule.items() %}
+                        {% if schedule[day][timespan][0] == "" %}
+                            <td style="color: rgb(117, 117, 117);">Vuoto</td>
+                        {% else %}
+                            <td><a href="{{ schedule[day][timespan][1] }}">{{ schedule[day][timespan][0] }}</a></td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+                {% endfor %}
             </table>
         </div>
     {% else %}
-        Gli account di tipo staff non hanno un orario        
+        Gli account di tipo staff non hanno un orario
     {% endif %}
 {% endblock %}

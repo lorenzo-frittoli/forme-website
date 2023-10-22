@@ -1,50 +1,45 @@
 /* Size for brand */
-nav .navbar-brand
-{
+nav .navbar-brand {
     font-size: xx-large;
 }
 
 /* Colors for brand */
-nav .navbar-brand .blue
-{
+nav .navbar-brand .blue {
     color: #537fbe;
 }
-nav .navbar-brand .red
-{
+
+nav .navbar-brand .red {
     color: #ea433b;
 }
-nav .navbar-brand .yellow
-{
+
+nav .navbar-brand .yellow {
     color: #f5b82e;
 }
-nav .navbar-brand .green
-{
+
+nav .navbar-brand .green {
     color: #2e944b;
 }
 
 /* Style for the "you have already booked this" bar in activity.html */
-.booked
-{
+.booked {
     background-color: rgba(255, 0, 0, 0.5);
-    padding: 2rem 2rem;
+    padding: 2rem;
 }
 
 /* Style for the "type" field in activity.html */
-.type
-{
+.type {
     color: rgb(117, 117, 117);
 }
 
 /* Style for the warning bar*/
-.warning
-{
+.warning {
     background-color: red;
     padding: 1rem 0 1rem;
     display: none;
 }
 
-/* Container for the activity cards (wrapped in #activity-card-wrappers) */
-#activity-cards-container {
+/* Activities.html */
+#cards-container {
     display: inline-flex;
     /* align-items items in column */
     flex-direction: row;
@@ -56,28 +51,90 @@ nav .navbar-brand .green
     overflow: hidden;
 }
 
-/* Wraps a single activity card */
-.activity-card-wrapper {
-    margin: 1rem;
+.card-wrapper {
+    margin: auto;
     float:left;
     width: 18rem;
     color: black;
     text-decoration: none;
 }
 
-.activity-card-wrapper:hover {
+.card-wrapper:hover {
     color: black;
 }
 
-/* Differentiates between mobile and desktop version in the activity page */
+.desktop-card .card-booked {
+    background: rgb(184, 242, 255);
+    border: 2px solid #0d6efd;
+    border-radius: 3px;
+}
+
+.desktop-card .card-img {
+    height: 10rem;
+    object-fit: contain;
+}
+
+.mobile-card.booked-card {
+    border-color: #0d6efd;
+    border-width: 2px;
+}
+
+.mobile-card .card-body {
+    display: flex;
+}
+
+.mobile-card .card-img {
+    height: auto;
+    max-width: 50%;
+    object-fit: contain;
+    flex: 50%;
+}
+
+.mobile-card .card-body-right {
+    flex: 50%;
+}
+
+/* me.html, activities.html, activity.html */
 @media (max-width: 600px) {
+    .card-wrapper {
+        margin-bottom: 1rem;
+        width: 95%;
+    }
+    .card-body {
+        padding: 0rem;
+    }
+    .desktop-card, #table-desktop {
+        display: none;
+    }
+    .mobile-card {
+        display: flex;
+    }
     .display-on-mobile {
         display: block;
+    }
+    #table-mobile {
+        display: initial;
     }
 }
 
 @media (min-width: 601px) {
-    .display-on-mobile {
+    .card-wrapper {
+        margin-top: 0;
+        width: 18rem;
+    }
+    .card-body {
+        padding: 1rem;
+    }
+    .desktop-card {
+        display: flex;
+    }
+    #table-desktop {
+        display: initial;
+    }
+    .mobile-card, .display-on-mobile, #table-mobile {
         display: none;
+    }
+    #activity-image {
+        
     }
 }

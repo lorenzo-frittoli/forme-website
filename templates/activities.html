@@ -7,40 +7,60 @@
 {% set max_description_length = 96 %}
 
 {% block main %}
-    <h1 style="margin-bottom: 3rem;">Attività</h1>
-    <div id="activity-cards-container">
+    <h1 class="mb-3">Attività</h1>
+    <div id="cards-container">
         {% for activity in activities %}
-            <a class="activity-card-wrapper" href="/activity?id={{ activity.id }}">
-                <div class="card mx-auto mb-4">
+            <a class="card-wrapper" href="/activity?id={{ activity.id }}">
+                <!-- desktop layout -->
+                <div class="card mx-auto mb-4 desktop-card">
                     <p class="card-header">
                         {% if activity.length > 1 %}
                             {{ activity.length }} Moduli
                         {% else %}
-                            1 Modulo                                
+                            1 Modulo
                         {% endif %}
                     </p>
-                    <img class="card-img-top" style="height: 10rem; object-fit: contain;" src="{{ activity.image }}">
+                    <img class="card-img" src="{{ activity.image }}">
                     <div class="card-body">
                         <h5 class="card-title">{{ activity.title }}</h5>
                         <h6 class="card-subtitle mb-2 text-muted">{{ activity.type }}</h6>
-
+                        <p class="card-text">
                         {% if activity.description|length <= max_description_length %}
-                            <p class="card-text" style="overflow: hidden; max-height: 2rem;">{{ activity.description }}</p>
+                            {{ activity.description }}
                         {% else %}
-                            <p class="card-text">{{ activity.description[:max_description_length-4] }}...</p>                                
+                            {{ activity.description[:max_description_length-4] }}...
                         {% endif %}
-                        
+                        </p>
                         {% if activity.booked|length%}
-                            <div class="card-text" style="background: rgb(184, 242, 255); border: 2px solid #0d6efd; border-radius: 5px; margin-bottom: 10px">
+                            <div class="card-text card-booked">
                                 Prenotazione: <br> {{ activity.booked }}
                             </div>
                         {% endif %}
                     </div>
                 </div>
+                <!-- mobile layout -->
+                <div class="card mx-auto mobile-card {% if activity.booked|length%}booked-card{% endif %}">
+                    <div class="card-body">
+                        <img class="card-img" src="{{ activity.image }}">
+                        <div class="card-body-right">
+                            <h5 class="card-title">{{ activity.title }}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">{{ activity.type }}</h6>
+                            <p class="card-subtitle text-muted">
+                                {% if activity.length > 1 %}
+                                    {{ activity.length }} Moduli
+                                {% else %}
+                                    1 Modulo
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    {% if activity.booked|length%}
+                    <div class="card-text card-booked">
+                        Prenotazione: <br> {{ activity.booked }}
+                    </div>
+                    {% endif %}
+                </div>
             </a>
         {% endfor %}
     </div>
 {% endblock %}
-
-
-
