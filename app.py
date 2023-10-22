@@ -285,7 +285,8 @@ def activity_page():
             timespans=activity_timespans,
             availability=activity_availability,
             is_booked=is_booked,
-            user_free=user_free
+            user_free=user_free,
+            user_type=session["user_type"]
         )
 
     # If method is POST (booking button has been pressed)
@@ -369,7 +370,7 @@ def me_page():
             link = url_for(".activity_page", id=activity_id)
             schedule[DAYS[day]][TIMESPANS_TEXT[timespan]] = (title, link)
 
-    return render_template("me.html", schedule=schedule)
+    return render_template("me.html", schedule=schedule, user_type=session["user_type"])
 
 
 @app.route("/admin", methods=["GET", "POST"])

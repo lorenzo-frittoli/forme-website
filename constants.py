@@ -6,7 +6,8 @@ import os
 DAYS = ("09/10", "10/10", "11/10")
 TIMESPANS = (("08:00", "09:00"), ("09:00", "10:00"), ("10:00", "11:00"), ("11:00", "12:00"))
 TIMESPANS_TEXT = tuple("-".join(timespan) for timespan in TIMESPANS)
-PERMISSIONS = (("student", ), ("student", "guest"), ("guest", ))
+PERMISSIONS = (("student",), ("student", "guest"), ("guest", ))
+PERMISSIONS = tuple(((*day, "staff") for day in PERMISSIONS)) # Adds "staff" to every day's permissions
 
 assert len(PERMISSIONS) == len(DAYS)
 
@@ -29,12 +30,13 @@ AUTO_BACKUPS_DIR = BACKUPS_DIR + DIR_SEP + "auto"
 
 # Admins (list of emails)
 ADMIN_EMAILS = [
-    "giovanni.giorgio@liceocassini.eu",
     "j@j.j"
 ]
+
 # The admin password is "abcd"
 ADMIN_PASSWORD = "pbkdf2:sha256:600000$XMc76EeQ2aZvB1gB$b56d9e43481a1baf0f18ff04cca361cb9755b69a27d2dee12e5e002315fddf13"
 
+# System
 __con = sqlite3.connect(DATABASE)
 __cur = __con.cursor()
 

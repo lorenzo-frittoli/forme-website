@@ -32,31 +32,35 @@
 
     <h3 class="warning">CI SONO POSTI NON PRENOTATI</h3>
     <h1>Il Mio Orario</h1>
-    <h5>{{ session["user_name"] }} {{ session["user_surname"] }}</h5>
-    <p>{{ session["user_email"] }}</p>
-    <div class="mb-3" style="margin: 2rem 5%;">
-        <table class="table table-striped">
-            <thead>
-                <th> </th>
-                {% for timespan in schedule.values()|first %}
-                <th>{{ timespan }}</th>
-                {% endfor %}
-            </thead>
-            <tbody>
-                {% for day, bookings in schedule.items() %}
-                <tr>
-                    <th>{{ day }}</th>
-                    {% for title, link in bookings.values() %}
-                        {% if title == "" %}
-                            <td style="color: rgb(117, 117, 117);">Vuoto</td>
-                        {% else %}
-                            <td><a href="{{ link }}"">{{ title }}</a></td>
-                        {% endif %}
+    {% if user_type != "staff" %}
+        <h5>{{ session["user_name"] }} {{ session["user_surname"] }}</h5>
+        <p>{{ session["user_email"] }}</p>
+        <div class="mb-3" style="margin: 2rem 5%;">
+            <table class="table table-striped">
+                <thead>
+                    <th> </th>
+                    {% for timespan in schedule.values()|first %}
+                    <th>{{ timespan }}</th>
                     {% endfor %}
-                    <td>{{ booking }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endblock %}
+                </thead>
+                <tbody>
+                    {% for day, bookings in schedule.items() %}
+                    <tr>
+                        <th>{{ day }}</th>
+                        {% for title, link in bookings.values() %}
+                            {% if title == "" %}
+                                <td style="color: rgb(117, 117, 117);">Vuoto</td>
+                            {% else %}
+                                <td><a href="{{ link }}"">{{ title }}</a></td>
+                            {% endif %}
+                        {% endfor %}
+                        <td>{{ booking }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        Gli account di tipo staff non hanno un orario        
+    {% endif %}
+{% endblock %}
