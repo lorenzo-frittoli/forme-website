@@ -5,6 +5,7 @@ from typing import Union
 from werkzeug.security import generate_password_hash
 
 from manage_helpers import make_backup
+from manage import make_staff
 from constants import *
 
 commands = {}

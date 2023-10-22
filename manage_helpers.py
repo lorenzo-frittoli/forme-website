@@ -108,4 +108,3 @@ def make_backup(dir: str) -> None:
     con_backup.close()
 
     return filename
-
