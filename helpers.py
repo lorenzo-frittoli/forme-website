@@ -170,3 +170,19 @@ def update_availability(activity_id: int, day: int, module: int, amount: int) ->
     # SQL close
     cur.close()
     cur.close()
+
+
+def get_image_path(image: str) -> str:
+    """Gets the path of an image from the name
+
+    Args:
+        image (str): name of the image
+
+    Returns:
+        str: path of the image. If the image is not found, returns placeholder image path
+    """
+    if image in os.listdir(ACTIVITY_IMAGES_DIRECTORY):
+        return f"{ACTIVITY_IMAGES_DIRECTORY}/{image}"
+    
+    else:
+        return f"{ACTIVITY_IMAGES_DIRECTORY}/{ACTIVITY_IMAGE_PLACEHOLDER}"

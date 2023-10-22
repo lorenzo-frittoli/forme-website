@@ -68,3 +68,16 @@ nav .navbar-brand .green
 .activity-card-wrapper:hover {
     color: black;
 }
+
+/* Differentiates between mobile and desktop version in the activity page */
+@media (max-width: 600px) {
+    .display-on-mobile {
+        display: block;
+    }
+}
+
+@media (min-width: 601px) {
+    .display-on-mobile {
+        display: none;
+    }
+}
