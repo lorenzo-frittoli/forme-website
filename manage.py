@@ -57,7 +57,7 @@ def backup_db() -> None:
 
 
 @cli.command()
-@click.option("-f", "--filename", "filename", required=False, help="File where the activity data is stored")
+@click.option("-f", "--filename", "filename", required=True, help="File where the activity data is stored")
 def load_activities(filename: str) -> None:
     """Loads activities from a file
 
@@ -85,7 +85,7 @@ def load_activities(filename: str) -> None:
 
 
 @cli.command()
-@click.option("-f", "--filename", "filename", required=False, help="File where the student data is stored")
+@click.option("-f", "--filename", "filename", required=True, help="File where the student data is stored")
 def load_students(filename: str) -> None:
     """Loads students from a file
 
