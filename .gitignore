@@ -1,4 +1,6 @@
 /__pycache__
 /backups
 /flask_session
+/data
+/static/activity_images
 database.db
