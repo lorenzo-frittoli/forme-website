@@ -38,13 +38,18 @@ nav .navbar-brand .green {
     display: none;
 }
 
-/* Activities.html */
+/* activites.html */
+#headers {
+    position: relative;
+}
+
 #cards-container {
+    width: 100%;
     display: inline-flex;
     /* align-items items in column */
     flex-direction: row;
     /* center items horizontally */
-    align-items: center;
+    align-items: left;
     /* center items vertically */
     justify-content: center;
     flex-wrap: wrap;
@@ -53,7 +58,7 @@ nav .navbar-brand .green {
 
 .card-wrapper {
     margin: auto;
-    float:left;
+    margin-top: 0;
     width: 18rem;
     color: black;
     text-decoration: none;
@@ -81,6 +86,7 @@ nav .navbar-brand .green {
 
 .mobile-card .card-body {
     display: flex;
+    padding: 0;
 }
 
 .mobile-card .card-img {
@@ -92,16 +98,20 @@ nav .navbar-brand .green {
 
 .mobile-card .card-body-right {
     flex: 50%;
+    padding: 1%;
 }
 
 /* me.html, activities.html, activity.html */
-@media (max-width: 600px) {
+@media (max-width: 767px) {
+    #activities-filter {
+        position: relative;
+        margin-bottom: 1rem;
+        width: 60%;
+        margin-left: 20%;
+    }
     .card-wrapper {
         margin-bottom: 1rem;
-        width: 95%;
-    }
-    .card-body {
-        padding: 0rem;
+        width: 100%;
     }
     .desktop-card, #table-desktop {
         display: none;
@@ -117,13 +127,17 @@ nav .navbar-brand .green {
     }
 }
 
-@media (min-width: 601px) {
-    .card-wrapper {
-        margin-top: 0;
-        width: 18rem;
+@media (min-width: 768px) {
+    #activities-filter {
+        position: absolute;
+        left: calc(1% + 10px);
+        top: calc(50% - 0.9rem);
+        height: 2rem;
+        width: 15rem;
     }
-    .card-body {
-        padding: 1rem;
+    .card-wrapper {
+        margin-bottom: 0;
+        width: 18rem;
     }
     .desktop-card {
         display: flex;
@@ -133,8 +147,5 @@ nav .navbar-brand .green {
     }
     .mobile-card, .display-on-mobile, #table-mobile {
         display: none;
-    }
-    #activity-image {
-        
     }
 }

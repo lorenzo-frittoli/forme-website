@@ -18,6 +18,7 @@ CREATE TABLE activities (
     length INTEGER NOT NULL,
     classroom TEXT NOT NULL,
     image TEXT,
+    speakers TEXT,
     availability TEXT NOT NULL
 );
 

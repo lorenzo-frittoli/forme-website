@@ -1,18 +1,38 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Le Nostre Attività
+    Le Nostre Attivit├á
 {% endblock %}
 
 {% set max_description_length = 96 %}
 
 {% block main %}
-    <h1 class="mb-3">Attività</h1>
+    <script>
+        function filter_activities(search) {
+            search = search.toLowerCase();
+            $(".card-wrapper").each(function(i, obj) {
+                let title = $(".card-title", $(this))[0].textContent.toLowerCase();
+                obj.style.display = title.includes(search) ? "flex" : "none";
+            });
+        }
+        $(document).ready(function() {
+            // select the input field
+            let filter = $("#activities-filter");
+            filter.on("keyup", function() {
+                filter_activities(filter[0].value);
+            });
+        });
+    </script>
+
+    <div id="headers">
+        <h1 class="mb-3">Attività</h1>
+        <input type="text" class="form-control" id="activities-filter" placeholder="Filtra">
+    </div>
     <div id="cards-container">
         {% for activity in activities %}
             <a class="card-wrapper" href="/activity?id={{ activity.id }}">
                 <!-- desktop layout -->
-                <div class="card mx-auto mb-4 desktop-card">
+                <div class="card mx-1 mb-4 desktop-card">
                     <p class="card-header">
                         {% if activity.length > 1 %}
                             {{ activity.length }} Moduli
@@ -32,9 +52,9 @@
                         {% endif %}
                         </p>
                         {% if activity.booked|length%}
-                            <div class="card-text card-booked">
-                                Prenotazione: <br> {{ activity.booked }}
-                            </div>
+                        <div class="card-text card-booked">
+                            Prenotazione: <br> {{ activity.booked }}
+                        </div>
                         {% endif %}
                     </div>
                 </div>
@@ -52,13 +72,14 @@
                                     1 Modulo
                                 {% endif %}
                             </p>
+                            {% if activity.booked|length%}
+                            <br>
+                            <div class="card-text card-booked">
+                                Prenotazione: <br> {{ activity.booked }}
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
-                    {% if activity.booked|length%}
-                    <div class="card-text card-booked">
-                        Prenotazione: <br> {{ activity.booked }}
-                    </div>
-                    {% endif %}
                 </div>
             </a>
         {% endfor %}

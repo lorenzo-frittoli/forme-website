@@ -28,8 +28,15 @@
     {% if user_type != "staff" %}
         <h5>{{ session["user_name"] }} {{ session["user_surname"] }}</h5>
         <p>{{ session["user_email"] }}</p>
-        <div class="mb-3" style="margin: 2rem 5%;">
+        <div class="mb-3" style="margin: 2rem 0;">
             <table class="table table-striped" id="table-desktop">
+                <!-- set the first column to 10% and the others all equal so they sum up to 90% -->
+                <colgroup>
+                    <col style="width: 10%;">
+                    {% for timespan in schedule.values()|first %}
+                    <col style="width: {{ 90/schedule.values()|first|length }}%;">
+                    {% endfor %}
+                </colgroup>
                 <thead>
                     <th> </th>
                     {% for timespan in schedule.values()|first %}
@@ -50,6 +57,13 @@
                 {% endfor %}
             </table>
             <table class="table table-striped" id="table-mobile">
+                <!-- set the first column to 10% and the others all equal so they sum up to 90% -->
+                <colgroup>
+                    <col style="width: 10%;">
+                    {% for day, bookings in schedule.items() %}
+                    <col style="width: {{ 90/schedule.items()|length }}%;">
+                    {% endfor %}
+                </colgroup>
                 <thead>
                     <th> </th>
                     {% for day, bookings in schedule.items() %}

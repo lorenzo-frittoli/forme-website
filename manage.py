@@ -70,9 +70,10 @@ def load_activities(filename: str) -> None:
     cur = con.cursor()
     
     activities = get_activities_from_file(filename)
+
     qry = """
-        INSERT INTO activities (title, description, type, length, classroom, image, availability)
-            VALUES (:title, :description, :type, :length, :classroom, :image, :availability);
+        INSERT INTO activities (title, description, type, length, classroom, image, speakers, availability)
+            VALUES (:title, :description, :type, :length, :classroom, :image, :speakers, :availability);
         """
 
     # Load activities in db
