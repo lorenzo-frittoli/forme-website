@@ -119,11 +119,17 @@ nav .navbar-brand .green {
     .mobile-card {
         display: flex;
     }
-    .display-on-mobile {
-        display: block;
-    }
     #table-mobile {
         display: initial;
+    }
+    #table-desktop {
+        display: none;
+    }
+    #flyer-div-mobile {
+        display: block;
+    }
+    #flyer-div-desktop {
+        display: none;
     }
 }
 
@@ -142,10 +148,16 @@ nav .navbar-brand .green {
     .desktop-card {
         display: flex;
     }
+    #table-mobile {
+        display: none;
+    }
     #table-desktop {
         display: initial;
     }
-    .mobile-card, .display-on-mobile, #table-mobile {
+    #flyer-div-mobile {
         display: none;
+    }
+    #flyer-div-desktop {
+        display: block;
     }
 }

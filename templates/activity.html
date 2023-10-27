@@ -5,31 +5,6 @@
 {% endblock %}
 
 {% block main %}
-    <!-- Handles mobile -->
-    <!-- Collapses content if on mobile -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            collapseOnMobile = $(".collapsed-by-mobile-button");
-            if(window.screen.width <= 600) {
-                collapseOnMobile.addClass("hide");
-                collapseOnMobile.removeClass("show");
-            } else {
-                collapseOnMobile.addClass("show");
-                collapseOnMobile.removeClass("hide");
-            }
-        });
-    </script>
-    
-    <!-- Make it so that only 1 collapsed-by-mobile-button can be shown at a time -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            $(".mobile-collapse-button").click(function() {
-                // this.dataset.bsTarget
-                $(".collapsed-by-mobile-button").removeClass("show");
-            });
-        });
-    </script>
-
     <!-- Handles booking buttons -->
     <script>
         // Function that enlarges buttons for mobile
@@ -103,100 +78,76 @@
     </div>
     <hr>
 
-    <!-- Mobile collapse buttons -->
-    <div class="display-on-mobile">
-        <!-- Buttons -->
-        <div class="d-grid gap-3" style="margin: 5%;">
-            <!-- Description -->
-            <button class="btn btn-lg btn-primary mobile-collapse-button" type="button" data-bs-toggle="collapse" data-bs-target="#description-div" aria-expanded="false" aria-controls="description-div">
-                Descrizione
-            </button>
-
-            <!-- Flyer -->
-            <button class="btn btn-lg btn-primary mobile-collapse-button" type="button" data-bs-toggle="collapse" data-bs-target="#flyer-div" aria-expanded="false" aria-controls="flyer-div">
-                Locandina
-            </button>
-
-            <!-- Availability & Booking -->
-            <button class="btn btn-lg btn-primary mobile-collapse-button" type="button" data-bs-toggle="collapse" data-bs-target="#booking-availability-div" aria-expanded="false" aria-controls="booking-availability-div">
-                Prenota
-            </button>
-        </div>
-        <hr>
-    </div>
-
     <!-- Body -->
     <!-- Info -->
     <div class="row">
         <!-- Left column -->
-        <div class="col-lg-6 collapsed-by-mobile-button collapse" id="description-div" style="text-align: center;">
+        <div class="col-lg-6" id="description-div" style="text-align: center;">
             <!-- Description -->
             <!-- <h2 style="margin: 0">{{ activity.title }}</h2>
             <h4 style="margin: 0">{{ activity.type }}</h4> -->
-            <h2>Descrizione</h2>
-            <div style="text-align: left; margin: 5%;">
-                <!-- Makes \n linebreak, while adding a bit of extra spacing -->
-                {% for section in activity.description.split("\n") %}
-                    <div style="margin-bottom: 20px;">
-                        <p>{{ section }}</p>
-                    </div>
-                {% endfor %}
+            <div>
+                <h2>Descrizione</h2>
+                <div style="text-align: left; margin: 5%;">
+                    <!-- Makes \n linebreak, while adding a bit of extra spacing -->
+                    {% for section in activity.description.split("\n") %}
+                        <div style="margin-bottom: 20px;">
+                            <p>{{ section }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
             </div>
-        </div>
-        
-        <!-- Right column -->
-        <div class="col-lg-6 collapsed-by-mobile-button collapse" id="flyer-div">
-            <h2>Locandina</h2>
-            <div style="margin: 5%;">
-                <img class="img-fluid" id="activity-image" src="{{ activity.image }}">
-            </div>
-        </div>
-    </div>
 
-    <!-- Booking / Availability -->
-    <div class="row collapsed-by-mobile-button collapse" id="booking-availability-div">
-        <!-- Availability table -->
-        <div class="col-lg-6">
-            <h2>Disponibilità</h2>
-            <div style="margin: 5%;">
-                <table class="table table-striped" id="table-mobile">
-                    <thead>
-                        <th> </th>
-                        {% for day in days %}
-                        <th>{{ day[1] }}</th>
-                        {% endfor %}
-                    </thead>
-                    {% for timespan in timespans %}
-                    <tr>
-                        <th>{{ timespan[1] }}</th>
-                        {% for rem in availability %}
-                        <td>{{ rem[timespan[0]] }}</td>
-                        {% endfor %}
-                    </tr>
-                    {% endfor %}
-                </table>
-                <table class="table table-striped" id="table-desktop">
-                    <thead>
-                        <th>Giorni</th>
-                        {% for timespan in timespans %}
-                        <th>{{ timespan[1] }}</th>
-                        {% endfor %}
-                    </thead>
-                    
-                    {% for day in days %}
-                    <tr>
-                        <td>{{ day[1] }}</td>
-                        {% for rem in availability[loop.index0] %}
-                        <td>{{ rem }}</td>
-                        {% endfor %}
-                    </tr>
-                    {% endfor %}
-                </table>
+            <!-- Flyer (mobile) -->
+            <div class="col-lg-6" id="flyer-div-mobile">
+                <h2>Locandina</h2>
+                <div style="margin: 5%;">
+                    <img class="img-fluid" id="activity-image" src="{{ activity.image }}">
+                </div>
             </div>
-        </div>
-        
-        <!-- Booking / Unbooking -->
-        <div class="col-lg-6">
+
+            <!-- Availability table -->
+            <div>
+                <h2>Disponibilità</h2>
+                <div style="margin: 5%;">
+                    <table class="table table-striped" id="table-mobile">
+                        <thead>
+                            <th> </th>
+                            {% for day in days %}
+                            <th>{{ day[1] }}</th>
+                            {% endfor %}
+                        </thead>
+                        {% for timespan in timespans %}
+                        <tr>
+                            <th>{{ timespan[1] }}</th>
+                            {% for rem in availability %}
+                            <td>{{ rem[timespan[0]] }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </table>
+                    <table class="table table-striped" id="table-desktop">
+                        <thead>
+                            <th>Giorni</th>
+                            {% for timespan in timespans %}
+                            <th>{{ timespan[1] }}</th>
+                            {% endfor %}
+                        </thead>
+                        
+                        {% for day in days %}
+                        <tr>
+                            <td>{{ day[1] }}</td>
+                            {% for rem in availability[loop.index0] %}
+                            <td>{{ rem }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Booking / Unbooking -->
+            <div>
             {% if user_type == "staff" %}
                 <h2>Prenota</h2>
                 Gli account di tipo staff non hanno accesso alle prenotazioni
@@ -245,7 +196,17 @@
                     </form>
                 </div>
             {% endif %}
+            </div>
+        </div>
+        
+        <!-- Right column (desktop flyer) -->
+        <div class="col-lg-6">
+            <div id="flyer-div-desktop">
+                <h2>Locandina</h2>
+                <div style="margin: 5%;">
+                    <img class="img-fluid" id="activity-image" src="{{ activity.image }}">
+                </div>
+            </div>
         </div>
     </div>
-
 {% endblock %}

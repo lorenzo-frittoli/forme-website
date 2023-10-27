@@ -70,7 +70,7 @@ def login_page():
     if not request.form.get("password"):
         return apology("password non valida", 400)
 
-    # Query db for id and hash from email
+    # Query db for id and hash from emailf
     cur = g.con.cursor()
     # query_result is like [(id, pw_hash)] 
     query_result = cur.execute("SELECT id, hash, type, name, surname FROM users WHERE email = ?;", (email, )).fetchone()
