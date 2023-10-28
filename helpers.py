@@ -7,17 +7,7 @@ from constants import *
 
 def apology(message, code=400):
     """Render message as an apology to user."""
-    def escape(s):
-        """
-        Escape special characters.
-
-        https://github.com/jacebrowning/memegen#special-characters
-        """
-        for old, new in [("-", "--"), (" ", "-"), ("_", "__"), ("?", "~q"),
-                         ("%", "~p"), ("#", "~h"), ("/", "~s"), ("\"", "''")]:
-            s = s.replace(old, new)
-        return s
-    return render_template("apology.html", top=code, bottom=escape(message)), code
+    return render_template("apology.html", message=message), code
 
 
 def login_required(f):
@@ -58,7 +48,7 @@ def admin_required(f):
         return f(*args, **kwargs)
     
     return decorated_function
-        
+
 
 def activity_already_booked(user_id: int, activity_id: int) -> bool:
     """Checks wether a course has been booked already by that student.
@@ -161,6 +151,8 @@ def update_availability(activity_id: int, day: int, module: int, amount: int) ->
     
     # Modify availability
     availability[day][module] += amount
+    if availability[day][module] < 0:
+        raise ValueError
     availability = json.dumps(availability)
     
     # Update availability
@@ -179,10 +171,6 @@ def get_image_path(image: str) -> str:
         image (str): name of the image
 
     Returns:
-        str: path of the image. If the image is not found, returns placeholder image path
+        str: path of the image.
     """
-    if image in os.listdir(ACTIVITY_IMAGES_DIRECTORY):
-        return f"{ACTIVITY_IMAGES_DIRECTORY}/{image}"
-    
-    else:
-        return f"{ACTIVITY_IMAGES_DIRECTORY}/{ACTIVITY_IMAGE_PLACEHOLDER}"
+    return f"{ACTIVITY_IMAGES_DIRECTORY}/{image}"

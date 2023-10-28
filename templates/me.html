@@ -6,6 +6,7 @@
 
 {% block main %}
     <!-- Makes a warning appear if you have already booked this course -->
+    {% if user_type == "student" %}
     <script>
         $(document).ready(function() {
             schedule = JSON.parse('{{ schedule|tojson }}');
@@ -23,7 +24,9 @@
         });
     </script>
 
-    <h3 class="warning">CI SONO POSTI NON PRENOTATI</h3>
+    <h3 class="warning">Tutti i moduli vuoti verranno riempiti casualmente</h3>
+    {% endif %}
+
     <h1>Il Mio Orario</h1>
     {% if user_type != "staff" %}
         <h5>{{ session["user_name"] }} {{ session["user_surname"] }}</h5>

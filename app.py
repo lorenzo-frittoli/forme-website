@@ -29,22 +29,26 @@ def before_request():
 def after_request(response):
     """Ensure responses aren't cached"""
     # I have no idea what this code is even for, don't ask, it just works ok?
-    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    response.headers["Expires"] = 0
-    response.headers["Pragma"] = "no-cache"
 
-    if "/static/" not in request.path:
+    if "/static/" in request.path:
+        # static file
+        response.headers["Cache-Control"] = "public, max-age: 2592000"
+
+    else:
         # Close the connection to the database
         g.con.close()
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Expires"] = 0
+        response.headers["Pragma"] = "no-cache"
 
     return response
 
 
 @app.route("/")
+@app.route("/index.html")
 def index_page():
     """Homepage"""
-    # TODO
-    return render_template("homepage.html")
+    return render_template("index.html")
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -119,49 +123,39 @@ def register_page():
     # Get form data
     name = request.form.get("name")
     surname = request.form.get("surname")
-    email = request.form.get("email")
+    email = request.form.get("email").lower()
     password = request.form.get("password")
     confirmation = request.form.get("confirmation")
 
-    # Check that the form was completed
-    # Checks if name filed was filled
-    if not name:
+    # Check that the form was filled correctly
+    # Checks the name filed
+    if not name or len(name) > MAX_FIELD_LENGTH:
         return apology("Nome non valido", 400)
 
-    # Checks if surname field was filled
-    elif not surname:
+    # Checks the surname field
+    elif not surname or len(surname) > MAX_FIELD_LENGTH:
         return apology("Cognome non valido", 400)
     
-    # Checks if email field was filled
-    elif not email:
+    # Checks the email field
+    elif not email or len(email) > MAX_FIELD_LENGTH or not re.match(EMAIL_REGEX, email):
         return apology("Email non valida", 400)
     
-    email = email.lower()
+    # Checks the password field
+    elif not password or len(password) > MAX_FIELD_LENGTH:
+        return apology("Psassword non valida", 400)
     
-    # Checks if email looks valid w/ regex
-    if not re.match(EMAIL_REGEX, email):
-        return apology("Email non valida", 400)
-    
-    # Checks if password field was filled
-    elif not password:
-        return apology("Password non valida", 400)
-
-    # Checks if the confirmation field wass filled
-    elif not confirmation:
-        return apology("Conferma non valida", 400)
-
-    # Checks if the password and confirmation match
+    # Checks that password and confirmation match
     elif password != confirmation:
-        return apology("password e conferma non coincidono", 400)
+        return apology("Password e conferma non coincidono", 400)
 
-    # Checks if email is not taken
     cur = g.con.cursor()
     
-    # cur.execute returns a list like [(el1,), (el2,)] etc
-    emails = cur.execute("SELECT email FROM users WHERE email = ?;", (email,)).fetchall()
+    # Check if the email is already taken
+    # cur.execute returns a tuple with the result or None etc
+    found = cur.execute("SELECT 1 FROM users WHERE email = ?;", (email, )).fetchone()
 
-    if emails:
-        return apology("email registrata", 400)
+    if found:
+        return apology("Email già registrata", 400)
 
     # Save the new user & commit
     cur.execute("INSERT INTO users (email, hash, name, surname, type) VALUES (?, ?, ?, ?, ?);",

@@ -20,12 +20,6 @@ nav .navbar-brand .green {
     color: #2e944b;
 }
 
-/* Style for the "you have already booked this" bar in activity.html */
-.booked {
-    background-color: rgba(255, 0, 0, 0.5);
-    padding: 2rem;
-}
-
 /* Style for the "type" field in activity.html */
 .type {
     color: rgb(117, 117, 117);
@@ -113,7 +107,7 @@ nav .navbar-brand .green {
         margin-bottom: 1rem;
         width: 100%;
     }
-    .desktop-card, #table-desktop {
+    .desktop-card, #table-desktop, #table-desktop, #flyer-div-desktop {
         display: none;
     }
     .mobile-card {
@@ -122,14 +116,8 @@ nav .navbar-brand .green {
     #table-mobile {
         display: initial;
     }
-    #table-desktop {
-        display: none;
-    }
     #flyer-div-mobile {
         display: block;
-    }
-    #flyer-div-desktop {
-        display: none;
     }
 }
 
@@ -148,14 +136,11 @@ nav .navbar-brand .green {
     .desktop-card {
         display: flex;
     }
-    #table-mobile {
+    .mobile-card, #table-mobile, #flyer-div-mobile {
         display: none;
     }
     #table-desktop {
         display: initial;
-    }
-    #flyer-div-mobile {
-        display: none;
     }
     #flyer-div-desktop {
         display: block;
