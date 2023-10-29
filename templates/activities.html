@@ -32,7 +32,11 @@
         {% for activity in activities %}
             <a class="card-wrapper" href="/activity?id={{ activity.id }}">
                 <!-- desktop layout -->
+                {% if activity.booked|length%}
+                <div class="card mx-1 mb-4 desktop-card border-danger">
+                {% else %}
                 <div class="card mx-1 mb-4 desktop-card">
+                {% endif %}
                     <p class="card-header">
                         {% if activity.length > 1 %}
                             {{ activity.length }} Moduli
@@ -51,11 +55,6 @@
                             {{ activity.description[:max_description_length-4] }}...
                         {% endif %}
                         </p>
-                        {% if activity.booked|length%}
-                        <div class="card-text card-booked">
-                            Prenotazione: <br> {{ activity.booked }}
-                        </div>
-                        {% endif %}
                     </div>
                 </div>
                 <!-- mobile layout -->

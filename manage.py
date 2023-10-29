@@ -214,5 +214,33 @@ def make_staff(name: str, surname: str, email: str, password: str) -> None:
     con.close()
 
 
+@cli.command()
+def block_booking():
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+    # HARDCODED BC LAST MINUTE FIX
+    cur.execute("UPDATE users SET type = '#student#' WHERE type = 'student';")
+    cur.execute("UPDATE users SET type = '#guest#' WHERE type = 'guest';")
+    
+    con.commit()
+    
+    cur.close()
+    con.close()
+
+    
+@cli.command()
+def allow_booking():
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+    # HARDCODED BC LAST MINUTE FIX
+    cur.execute("UPDATE users SET type = 'student' WHERE type = '#student#';")
+    cur.execute("UPDATE users SET type = 'guest' WHERE type = '#guest#';")
+
+    con.commit()
+    
+    cur.close()
+    con.close()
+
+
 if __name__ == '__main__':
     cli()

@@ -23,6 +23,19 @@ def before_request():
     if "/static/" not in request.path:
         # Open the connection to the database
         g.con = sqlite3.connect(DATABASE)
+            # Query db for id and hash from emailf
+        cur = g.con.cursor()
+        # query_result is like [(id, pw_hash)]
+        try:
+            query_result = cur.execute("SELECT id, type, name, surname FROM users WHERE email = ?;", (session["user_email"], )).fetchone()
+        
+        except KeyError:
+            return
+        
+        # Closing cursor
+        cur.close()
+                
+        session["user_id"], session["user_type"], session["user_name"], session["user_surname"] = query_result
 
 
 @app.after_request
