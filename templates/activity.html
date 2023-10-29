@@ -78,6 +78,19 @@
     </div>
     <hr>
 
+    {% if activity.booked %}
+        <div class="card text-danger border-danger" style="height: 6.5rem; width: 15rem; margin: auto;">
+            <div class="card-body">
+                <div class="card-title">
+                    <h3>Prenotazione:</h>
+                </div>
+                <div class="card-text">
+                    <p>{{ activity.booked }}</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
     <!-- Body -->
     <!-- Info -->
     <div class="row">

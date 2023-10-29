@@ -174,3 +174,17 @@ def get_image_path(image: str) -> str:
         str: path of the image.
     """
     return f"{ACTIVITY_IMAGES_DIRECTORY}/{image}"
+
+
+def fmt_activity_booking(activity_id: int) -> str:
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+    cur.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ? AND activity_id = ?", (session["user_id"], activity_id))
+    span = cur.fetchone()
+    cur.close()
+    con.close()
+    if span is None:
+        return ""
+    else:
+        return TIMESPANS[span[1]][0] + "-" + TIMESPANS[span[2]][1] + " del " + DAYS[span[0]]
+
