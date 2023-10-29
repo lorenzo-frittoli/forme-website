@@ -24,43 +24,6 @@
         });
     </script>
 
-    <script>
-        let lineHeight = parseFloat($('body').css('line-height'));
-
-        $(document).ready(function() {
-            $(".card").each(function() {
-                // Detects if it's a mobile or desktop card
-                isMobile = $(this).hasClass("mobile-card");
-
-                // Gets the height of the div without the description
-                image = $(this).find(".card-img");
-
-                // If on mobile, remove the image
-                if (isMobile) {
-                    image.css("display", "none");
-                    emptyHeight = parseFloat($(this).height());
-                    image.css("display", "block");
-                } else {
-                    emptyHeight = parseFloat($(this).height());
-                }
-
-                // Calculate how many lines the description must be long
-                maxHeight = parseFloat($(this).css("max-height"));
-                lines = Math.floor((maxHeight - emptyHeight) / lineHeight);
-
-                // If on mobile remove 1 line (idk why, it works, dont question it)
-                if (isMobile) {
-                    lines -= 1;
-                }
-
-                // Apply settings to description
-                text = $(this).find(".card-text");
-                text.css("-webkit-line-clamp", lines.toString());
-                text.css("display", "-webkit-box");
-            });
-        });
-    </script>
-
     <div id="headers">
         <h1 class="mb-3">Attività</h1>
         <input type="text" class="form-control" id="activities-filter" placeholder="Filtra">
@@ -82,7 +45,11 @@
                         <h5 class="card-title">{{ activity.title }}</h5>
                         <h6 class="card-subtitle mb-2 text-muted">{{ activity.type }}</h6>
                         <p class="card-text">
+                        {% if activity.description|length <= max_description_length %}
                             {{ activity.description }}
+                        {% else %}
+                            {{ activity.description[:max_description_length-4] }}...
+                        {% endif %}
                         </p>
                         {% if activity.booked|length%}
                         <div class="card-text card-booked">
@@ -104,9 +71,6 @@
                                 {% else %}
                                     1 Modulo
                                 {% endif %}
-                            </p>
-                            <p class="card-text">
-                                {{ activity.description }}
                             </p>
                             {% if activity.booked|length%}
                             <br>

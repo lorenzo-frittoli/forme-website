@@ -62,18 +62,6 @@ nav .navbar-brand .green {
     color: black;
 }
 
-.card-text {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: none;
-    -webkit-box-orient: vertical;
-}
-
-.desktop-card {
-    width: 16rem; /* Set the width of your container */
-    max-height: 25rem; /* Set the height of your container */
-}
-
 .desktop-card .card-booked {
     background: rgb(184, 242, 255);
     border: 2px solid #0d6efd;
@@ -85,11 +73,7 @@ nav .navbar-brand .green {
     object-fit: contain;
 }
 
-.mobile-card {
-    max-height: 18rem;
-}
-
-.mobile-card .booked-card {
+.mobile-card.booked-card {
     border-color: #0d6efd;
     border-width: 2px;
 }
