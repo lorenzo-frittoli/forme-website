@@ -1,5 +1,4 @@
 flask
 flask-Session
 click
-sqlite3
 werkzeug
