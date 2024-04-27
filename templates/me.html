@@ -27,10 +27,10 @@
     <h3 class="warning">Tutti i moduli vuoti verranno riempiti casualmente</h3>
     {% endif %}
 
-    <h1>Il Mio Orario</h1>
+    <h1>{{ title }}</h1>
     {% if user_type != "staff" %}
-        <h5>{{ session["user_name"] }} {{ session["user_surname"] }}</h5>
-        <p>{{ session["user_email"] }}</p>
+        <h5>{{ user_name }} {{ user_surname }}</h5>
+        <p>{{ user_email }}</p>
         <div class="mb-3" style="margin: 2rem 0;">
             <table class="table table-striped" id="table-desktop">
                 <!-- set the first column to 10% and the others all equal so they sum up to 90% -->

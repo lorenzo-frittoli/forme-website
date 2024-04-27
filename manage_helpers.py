@@ -54,14 +54,14 @@ def get_activities_from_file(filename: str) -> list[dict]:
     with open(filename, "r", encoding="UTF-8") as file:
         data = [
             {
-                "title": data[2],
-                "description": data[4],
-                "type": data[5],
-                "length": int(data[1]),
-                "classroom": "",
                 "image": data[0],
-                "speakers": data[3],
-                "availability": json.dumps([[20 for _ in range(0, len(TIMESPANS) - int(data[1]) + 1, int(data[1]))] for _ in DAYS])
+                "length": int(data[2]),
+                "classroom": data[3],
+                "availability": json.dumps([[int(data[1]) for _ in range(0, len(TIMESPANS) - int(data[2]) + 1, int(data[2]))] for _ in DAYS]),
+                "title": data[4],
+                "speakers": data[5],
+                "description": data[6],
+                "type": data[7]
             }
         for data in map(parse_row, file.readlines())]
     

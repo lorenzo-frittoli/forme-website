@@ -6,7 +6,8 @@ CREATE TABLE users (
     name TEXT NOT NULL,
     surname TEXT NOT NULL,
     type TEXT NOT NULL,
-    class TEXT
+    class TEXT,
+    verification_code TEXT KEY NOT NULL UNIQUE
 );
 
 -- Activities table

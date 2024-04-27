@@ -1,0 +1,67 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Verifica orario
+{% endblock %}
+
+{% block main %}
+    <h1>Verifica orario</h1>
+    <h5>{{ user_name }} {{ user_surname }}</h5>
+    <p>{{ user_email }}</p>
+    <div class="mb-3" style="margin: 2rem 0;">
+        <table class="table table-striped" id="table-desktop">
+            <!-- set the first column to 10% and the others all equal so they sum up to 90% -->
+            <colgroup>
+                <col style="width: 10%;">
+                {% for timespan in schedule.values()|first %}
+                <col style="width: {{ 90/schedule.values()|first|length }}%;">
+                {% endfor %}
+            </colgroup>
+            <thead>
+                <th> </th>
+                {% for timespan in schedule.values()|first %}
+                <th>{{ timespan }}</th>
+                {% endfor %}
+            </thead>
+            {% for day, bookings in schedule.items() %}
+            <tr>
+                <th>{{ day }}</th>
+                {% for title, link in bookings.values() %}
+                    {% if title == "" %}
+                        <td style="color: rgb(117, 117, 117);">Vuoto</td>
+                    {% else %}
+                        <td><a href="{{ link }}">{{ title }}</a></td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+        <table class="table table-striped" id="table-mobile">
+            <!-- set the first column to 10% and the others all equal so they sum up to 90% -->
+            <colgroup>
+                <col style="width: 10%;">
+                {% for day, bookings in schedule.items() %}
+                <col style="width: {{ 90/schedule.items()|length }}%;">
+                {% endfor %}
+            </colgroup>
+            <thead>
+                <th> </th>
+                {% for day, bookings in schedule.items() %}
+                <th>{{ day }}</th>
+                {% endfor %}
+            </thead>
+            {% for timespan in schedule.values()|first %}
+            <tr>
+                <th>{{ timespan }}</th>
+                {% for day, bookings in schedule.items() %}
+                    {% if schedule[day][timespan][0] == "" %}
+                        <td style="color: rgb(117, 117, 117);">Vuoto</td>
+                    {% else %}
+                        <td><a href="{{ schedule[day][timespan][1] }}">{{ schedule[day][timespan][0] }}</a></td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endblock %}

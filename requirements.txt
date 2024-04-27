@@ -2,3 +2,4 @@ flask
 flask-Session
 click
 werkzeug
+qrcode

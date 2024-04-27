@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Registrati
+{% endblock %}
+
+{% block main %}
+    <h1>QR Code di Verifica</h1>
+    <p>
+    Durante la tua visita del Festival ForMe, ti potrebbe essere chiesto di mostrare questo QR code.<br>
+    Questo serve a garantire che tu sia registrato e permette allo staff di visionare le tue prenotazioni.<br>
+    Se sei un <b>esterno</b>, il QR code ti sara' chiesto all'<b>entrata</b>: tienilo pronto!
+    </p>
+    <img src="/qr_code.png" style="max-width: 100%; max-height: 80vh;">
+{% endblock %}

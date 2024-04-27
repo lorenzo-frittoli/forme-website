@@ -74,7 +74,7 @@
     <div style="margin: 0 2.5%;">
         <h1>{{ activity.title }}</h1>
         <h5>{{ activity.type }}</h5>
-        <p>Aula {{ activity.classroom }}</p>
+        <p>{{ activity.classroom }}</p>
     </div>
     <hr>
 
@@ -163,10 +163,7 @@
                 
                 <!-- Booking / Unbooking -->
                 <div>
-                {% if user_type == "staff" %}
-                    <h2>Prenota</h2>
-                    Gli account di tipo staff non hanno accesso alle prenotazioni
-                {% elif not is_booked %}
+                {% if not is_booked %}
                     <h2>Prenota</h2>
                     <div class="booking" style="margin: 5%;">
                         <form action="/activity?id={{ id }}" method="post">
@@ -217,7 +214,7 @@
         </div>
         
         <!-- Right column (desktop flyer) -->
-        <div class="col-lg-6">
+        <div class="col-lg-6" id="img-div">
             <div id="flyer-div-desktop">
                 <div style="margin: 5%;">
                     <img class="img-fluid" id="activity-image" src="{{ activity.image }}">

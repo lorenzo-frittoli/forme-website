@@ -26,7 +26,7 @@
 
     <div id="headers">
         <h1 class="mb-3">Attività</h1>
-        <input type="text" class="form-control" id="activities-filter" placeholder="Filtra">
+        <input type="text" class="form-control" id="activities-filter" placeholder="Cerca">
     </div>
     <div id="cards-container">
         {% for activity in activities %}
@@ -58,7 +58,11 @@
                     </div>
                 </div>
                 <!-- mobile layout -->
-                <div class="card mx-auto mobile-card {% if activity.booked|length%}booked-card{% endif %}">
+                {% if activity.booked|length%}
+                <div class="card mx-auto mobile-card border-danger">
+                {% else %}
+                <div class="card mx-auto mobile-card">
+                {% endif %}
                     <div class="card-body">
                         <img class="card-img" src="{{ activity.image }}">
                         <div class="card-body-right">

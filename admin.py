@@ -1,10 +1,11 @@
 from flask import Response, request, send_file
+import sqlite3
 import os
 from inspect import signature
 from typing import Union
 from werkzeug.security import generate_password_hash
 
-from manage_helpers import make_backup
+from manage_helpers import make_backup, generate_password
 from constants import *
 
 commands = {}
@@ -12,12 +13,13 @@ command_annotations = {}
 
 def command(f):
     """Decorator to add a command in the admin area."""
-    arguments = list(signature(f).parameters)
+    # Add prefix to avoid conflicts
+    arguments = [f.__name__ + "_" + arg for arg in signature(f).parameters]
     command_annotations[f.__name__] = arguments
 
     # All parameters are automatically extracted from the request and passed to the function as strings.
     def wrapper():
-        args = {argument: request.form.get(argument) for argument in arguments}
+        args = {argument.removeprefix(f.__name__ + "_"): request.form.get(argument) for argument in arguments}
         
         if any(map(lambda x: x is None, args)):
             return "", 400
@@ -102,6 +104,90 @@ def change_password(user_email, new_password) -> tuple[str, int]:
         return val_error.args[0], 200
     
     return f"Password changed for {user_email}!", 200
+
+
+@command
+def block_students_booking():
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+
+    cur.execute("UPDATE users SET type = '#student#' WHERE type = 'student';")
+    
+    con.commit()
+    cur.close()
+    con.close()
+    
+    return "Bookings blocked", 200
+
+
+@command
+def block_guests_booking():
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+
+    cur.execute("UPDATE users SET type = '#guest#' WHERE type = 'guest';")
+    
+    con.commit()
+    cur.close()
+    con.close()
+    
+    return "Bookings blocked", 200
+
+
+@command
+def allow_booking():
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+
+    cur.execute("UPDATE users SET type = 'student' WHERE type = '#student#';")
+    cur.execute("UPDATE users SET type = 'guest' WHERE type = '#guest#';")
+
+    con.commit()
+    cur.close()
+    con.close()
+
+    return "Bookings allowed", 200
+
+
+@command
+def make_user(name: str, surname: str, email: str, _type: str, _class: str) -> None:
+    """Make a new staff account
+
+    Args:
+        name (str): name of the user
+        surname (str): surname of the user
+        email (str): email of the user
+        password (str): password of the user
+        _type (str): type of the account
+        _class (str): class of the user
+    """
+    # Open DB connection
+    if _type not in ("staff", "guest", "student"):
+        return "Invalid user type: " + _type, 400
+
+    if _type == "student":
+        if len(_class) != 2 or _class[0] not in ALLOWED_CLASSES[0] or _class[1] not in ALLOWED_CLASSES[1]:
+            return "Invalid class: " + _class, 400
+    elif _class != "":
+        return "Class would be empty for " + _type, 400
+
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+
+    pwd = generate_password()
+    # Save user
+    pw_hash = generate_password_hash(pwd, GENERATE_PASSWORD_METHOD)
+    verification_code = generate_password(VERIFICATION_CODE_LENGTH)
+    try:
+        cur.execute("INSERT INTO users (type, email, hash, name, surname, verification_code) VALUES (?, ?, ?, ?, ?, ?)", (_type, email, pw_hash, name, surname, verification_code))
+    except sqlite3.DatabaseError as e:
+        return f"{e.__class__.__name__}: {' '.join(e.args)}", 400
+    con.commit()
+    
+    # Close DB connection
+    cur.close()
+    con.close()
+    return f"User created: {email}\nPassword: {pwd}", 200
 
 
 def execute(command: str) -> Union[Response, tuple[str, int]]:

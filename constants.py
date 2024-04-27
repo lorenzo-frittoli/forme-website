@@ -1,5 +1,8 @@
 import os
 
+# Hosting
+LINK = "https://formecassini.eu.pythonanywhere.com"
+
 
 # Event details
 DAYS = ("09/10", "10/10", "11/10")
@@ -18,6 +21,8 @@ MAKE_DATABASE_COMMAND_FILE = "make_database.sql"
 
 # Accounts
 MAX_FIELD_LENGTH = 50
+VERIFICATION_CODE_LENGTH = 20
+ALLOWED_CLASSES = ("345", "ABCDEIFGHIL") # Classes are strings like '3A', '4F'
 
 
 # Backups

@@ -1,6 +1,10 @@
-from flask import redirect, render_template, session, g
+from flask import redirect, render_template, session, g, url_for, send_file, request
 from functools import wraps
+import qrcode
+from io import BytesIO
 import json
+import sqlite3
+from sys import stderr
 
 from constants import *
 
@@ -20,7 +24,7 @@ def login_required(f):
             return redirect("/login")
 
         cur = g.con.cursor()
-        id = cur.execute("SELECT id FROM users WHERE id = ?;", (session.get("user_id"), )).fetchall()
+        id = cur.execute("SELECT id FROM users WHERE id = ?;", (session.get("user_id"), )).fetchone()
         cur.close()
 
         if not id:
@@ -103,9 +107,11 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int):
     
     cur = g.con.cursor()
 
-    length = cur.execute("SELECT length FROM activities WHERE id = ?;", (activity_id,)).fetchone()[0]
+    length = cur.execute("SELECT length FROM activities WHERE id = ?;", (activity_id,)).fetchone()
     if length is None:
         raise ValueError("Invalid activity id")
+    
+    length = length[0]
     
     # Check if the user has already booked this activity  
     if activity_already_booked(user_id, activity_id):
@@ -188,3 +194,45 @@ def fmt_activity_booking(activity_id: int) -> str:
     else:
         return TIMESPANS[span[1]][0] + "-" + TIMESPANS[span[2]][1] + " del " + DAYS[span[0]]
 
+
+def qr_code_for(url: str) -> bytes:
+    """
+    Args:
+        url (str): link to create a qr code for.
+    Returns:
+        BytesIO: an object to be passed to send_file().
+    """
+    img_io = BytesIO()
+    qrcode.make(url).save(img_io, "PNG")
+    img_io.seek(0)
+    return send_file(img_io, mimetype="image/png")
+
+
+def generate_schedule(user_id: int, user_type: str):
+    """Generate the schedule for the me page."""
+    cur = g.con.cursor()
+    
+    # Fetch all user registrations -> list[tuple[..]]
+    result = """
+    SELECT activities.id, activities.title, registrations.day, registrations.module_start, registrations.module_end
+        FROM registrations JOIN
+        activities ON
+            registrations.activity_id = activities.id
+        WHERE user_id = ?;
+    """
+    cur.execute(result, (user_id, ))
+
+    user_registrations = cur.fetchall()
+
+    # Make empty schedule
+    schedule = {day: {timespan: ("", None) for timespan in TIMESPANS_TEXT}
+                for i, day in enumerate(DAYS) if user_type.replace("#", "") in PERMISSIONS[i]}
+    
+    # Fill with known data
+    for activity_id, title, day, module_start, module_end in user_registrations:
+        for timespan in range(module_start, module_end + 1):
+            assert schedule[DAYS[day]][TIMESPANS_TEXT[timespan]] == ("", None)
+            link = url_for(".activity_page", id=activity_id)
+            schedule[DAYS[day]][TIMESPANS_TEXT[timespan]] = (title, link)
+
+    return schedule

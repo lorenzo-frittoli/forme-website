@@ -1,11 +1,14 @@
 import sqlite3
-from flask import Flask, redirect, render_template, request, session, url_for, g, Response
+from flask import Flask, redirect, render_template, request, session, g, Response, abort
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 import json
 import re
+from datetime import datetime
+from itertools import groupby
 
-from helpers import apology, login_required, admin_required, activity_already_booked, make_registration, update_availability, get_image_path, fmt_activity_booking
+from helpers import apology, login_required, admin_required, activity_already_booked, make_registration, update_availability, get_image_path, fmt_activity_booking, qr_code_for, generate_schedule
+from manage_helpers import generate_password
 import admin
 from constants import *
 
@@ -23,19 +26,19 @@ def before_request():
     if "/static/" not in request.path:
         # Open the connection to the database
         g.con = sqlite3.connect(DATABASE)
-            # Query db for id and hash from emailf
-        cur = g.con.cursor()
-        # query_result is like [(id, pw_hash)]
-        try:
+        if "user_email" in session:
+            # Query db for id and hash from email
+            cur = g.con.cursor()
             query_result = cur.execute("SELECT id, type, name, surname FROM users WHERE email = ?;", (session["user_email"], )).fetchone()
-        
-        except KeyError:
-            return
-        
-        # Closing cursor
-        cur.close()
-                
-        session["user_id"], session["user_type"], session["user_name"], session["user_surname"] = query_result
+            # If the user has been deleted
+            if not query_result:
+                session.clear()
+                abort(403)
+
+            # Closing cursor
+            cur.close()
+
+            session["user_id"], session["user_type"], session["user_name"], session["user_surname"] = query_result
 
 
 @app.after_request
@@ -136,7 +139,7 @@ def register_page():
     # Get form data
     name = request.form.get("name")
     surname = request.form.get("surname")
-    email = request.form.get("email").lower()
+    email = request.form.get("email").lower().strip() # Some mobile browsers insert spaces for no reason
     password = request.form.get("password")
     confirmation = request.form.get("confirmation")
 
@@ -171,8 +174,8 @@ def register_page():
         return apology("Email già registrata", 400)
 
     # Save the new user & commit
-    cur.execute("INSERT INTO users (email, hash, name, surname, type) VALUES (?, ?, ?, ?, ?);",
-                (email, generate_password_hash(password, method=GENERATE_PASSWORD_METHOD), name, surname, "guest"))
+    cur.execute("INSERT INTO users (email, hash, name, surname, type, verification_code) VALUES (?, ?, ?, ?, ?, ?);",
+                (email, generate_password_hash(password, method=GENERATE_PASSWORD_METHOD), name, surname, "guest", generate_password(20)))
     g.con.commit()
     
     # Closes cursor
@@ -230,39 +233,93 @@ def activity_page():
         # Query the database
         cur.execute("SELECT title, description, type, length, classroom, image, availability FROM activities WHERE id = ?;", (activity_id,))
         query_result = cur.fetchone()
-        cur.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ?", (session["user_id"], ))
-        user_registrations = cur.fetchall()
-
-        # Close cursor
-        cur.close()
 
         if query_result is None:
             return apology("Invalid http request")
 
         activity_title, activity_description, activity_type, activity_length, activity_classroom, activity_image, activity_availability = query_result
 
+        activity_timespans = tuple(
+            (i//activity_length, TIMESPANS[i][0] + "-" + TIMESPANS[i + activity_length - 1][1])
+            for i in range(0, len(TIMESPANS)-activity_length+1, activity_length)
+        )
+
+        activity_dict = {
+            "title": activity_title,
+            "description": activity_description,
+            "type": activity_type,
+            "classroom": activity_classroom,
+            "image": get_image_path(activity_image),
+        }
+
+        if session["user_type"] == "staff":
+            # Details of the activity
+        
+            # JSON string -> list[list[remaining by time] by day]
+            activity_availability = json.loads(activity_availability)
+        
+            today = datetime.today().strftime("%d/%m")
+            try:
+                day_index = DAYS.index(today)
+            except ValueError:
+                # No registrations to be shown for today
+                cur.close()
+                return render_template(
+                    "activity_staff.html",        
+                    id=activity_id,
+                    activity=activity_dict,
+                    days=DAYS,
+                    timespans=activity_timespans,
+                    availability=activity_availability,
+                    has_registrations=False
+                )
+
+            cur.execute("SELECT name, surname, class, module_start, module_end FROM users JOIN registrations ON users.id = registrations.user_id WHERE activity_id = ? AND day = ?;", (activity_id, day_index))
+            
+            def parse_registration(booking: tuple[str]) -> tuple:
+                if booking[2]:
+                    return booking[0], booking[2], int(booking[3]), int(booking[4])
+                else:
+                    return booking[1] + " " + booking[0], "Esterno", int(booking[3]), int(booking[4])
+            
+            bookings = list(map(parse_registration, cur.fetchall()))
+
+            # group the registrations by time
+            bookings = sorted(bookings, key=lambda reg: reg[2:4]) # required by groupby
+            bookings_by_time = {TIMESPANS[key[0]][0] + "-" + TIMESPANS[key[1]][1]: tuple(map(lambda reg: reg[0:2], group)) for key, group in groupby(bookings, lambda reg: reg[2:4])}
+
+            cur.close()
+
+            return render_template(
+                "activity_staff.html",        
+                id=activity_id,
+                activity=activity_dict,
+                days=DAYS,
+                timespans=activity_timespans,
+                availability=activity_availability,
+                has_bookings=True,
+                bookings=bookings_by_time
+            )
+            
+        
+        # session["user_type"] != "staff"
+        cur.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ?", (session["user_id"], ))
+        user_registrations = cur.fetchall()
+
+        # Close cursor
+        cur.close()
+
         # Details of the activity
-        activity_dict = {"title": activity_title,
-                        "description": activity_description,
-                        "type": activity_type,
-                        "classroom": activity_classroom,
-                        "image": get_image_path(activity_image),
-                        "booked": fmt_activity_booking(activity_id)
-                        }
+        activity_dict["booked"] = fmt_activity_booking(activity_id)
         
         # JSON string -> list[list[remaining by time] by day]
         activity_availability = json.loads(activity_availability)
 
-        
         activity_availability = [av for i, av in enumerate(activity_availability) if session["user_type"] in PERMISSIONS[i]]
                 
         # Check if the activity has already been booked by the user (to display warning)
         is_booked = activity_already_booked(session["user_id"], activity_id)
 
-        activity_timespans = tuple(
-            (i//activity_length, TIMESPANS[i][0] + "-" + TIMESPANS[i + activity_length - 1][1])
-            for i in range(0, len(TIMESPANS)-activity_length+1, activity_length)
-        )
         activity_days = tuple((i, day) for i, day in enumerate(DAYS) if session["user_type"] in PERMISSIONS[i])
         
         user_free = [[True for _ in TIMESPANS] for _ in DAYS]
@@ -274,7 +331,7 @@ def activity_page():
                 user_free[booking_day][booking_timespan] = False
 
         user_free = [[all(day_free[module_start:module_start+activity_length])
-                     for module_start in range(0, len(TIMESPANS)*activity_length+activity_length-1, activity_length)]
+                     for module_start in range(0, len(TIMESPANS)-activity_length+1, activity_length)]
                      for i, day_free in enumerate(user_free) if session["user_type"] in PERMISSIONS[i]]
         
         return render_template(
@@ -318,11 +375,12 @@ def activity_page():
         cur = g.con.cursor()
         
         registration = cur.execute("SELECT day, module_start FROM registrations WHERE user_id = ? AND activity_id = ?;", (session["user_id"], activity_id)).fetchone()
-        length = cur.execute("SELECT length FROM activities WHERE id = ?;", (activity_id, )).fetchone()[0]
+        length = cur.execute("SELECT length FROM activities WHERE id = ?;", (activity_id, )).fetchone()
         
         if None in (registration, length):
             return apology("Invalid http request")
         
+        length = length[0]
         day, module_start = registration
         module = module_start // length
 
@@ -345,38 +403,64 @@ def activity_page():
 @login_required
 def me_page():
     """Me page w/ your bookings"""
-    cur = g.con.cursor()
-    
-    # Fetch all user registrations -> list[tuple[..]]
-    result = """
-    SELECT activities.id, activities.title, registrations.day, registrations.module_start, registrations.module_end
-        FROM registrations JOIN
-        activities ON
-            registrations.activity_id = activities.id
-        WHERE user_id = ?;
+
+    return render_template(
+        "me.html",
+        title="Il mio orario",
+        schedule=generate_schedule(session["user_id"], session["user_type"]),
+        user_name = session["user_name"],
+        user_surname = session["user_surname"],
+        user_email = session["user_email"],
+        user_type=session["user_type"]
+    )
+
+
+@app.route("/codice_verifica")
+@login_required
+def qr_code_page():
+    return render_template("verification.html")
+
+
+@app.route("/qr_code.png")
+@login_required
+def qr_code():
+    """Generate the qr code for verification
     """
-    cur.execute(result, (session["user_id"], ))
-
-    user_registrations = cur.fetchall()
-
-    # Make empty schedule
-    schedule = {day: {timespan: ("", None) for timespan in TIMESPANS_TEXT}
-                for i, day in enumerate(DAYS) if session["user_type"] in PERMISSIONS[i]}
+    cur = g.con.cursor()
+    result = cur.execute("SELECT verification_code FROM users WHERE id = ?", (session["user_id"], )).fetchone()
+    if not result:
+        raise RuntimeError(f"User not found in qr_code: user_id {session['user_id']}, email {session['user_email']}")
     
-    # Fill with known data
-    for activity_id, title, day, module_start, module_end in user_registrations:
-        for timespan in range(module_start, module_end + 1):
-            assert schedule[DAYS[day]][TIMESPANS_TEXT[timespan]] == ("", None)
-            link = url_for(".activity_page", id=activity_id)
-            schedule[DAYS[day]][TIMESPANS_TEXT[timespan]] = (title, link)
+    cur.close()
 
-    return render_template("me.html", schedule=schedule, user_type=session["user_type"])
+    return qr_code_for(LINK + "/redirect_verifica?verification_code=" + result[0])
 
 
-@app.route("/privacy")
-def privacy_page():
-    """Cookie policy and privacy policy"""
-    return render_template("privacy.html")
+@app.route("/redirect_verifica")
+def verification_page():
+    try:
+        verification_code = request.args["verification_code"]
+
+    except (KeyError, ValueError):
+        return apology("Invalid http request")
+
+    cur = g.con.cursor()
+    result = cur.execute("SELECT id, type, name, surname, email FROM users WHERE verification_code = ?", (verification_code, )).fetchone()
+    if not result:
+        return apology("Utente non trovato.")
+
+    cur.close()
+
+    return render_template(
+        "me.html",
+        title="Verifica orario",
+        schedule=generate_schedule(int(result[0]), result[1]),
+        user_type="none",
+        user_name = result[2],
+        user_surname = result[3],
+        user_email = result[4]
+    )
+
 
 @app.route("/admin", methods=["GET", "POST"])
 @admin_required

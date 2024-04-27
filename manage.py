@@ -103,9 +103,10 @@ def load_students(filename: str) -> None:
         password = generate_password()
         print(student["email"], password)
         student["hash"] = generate_password_hash(password, method=GENERATE_PASSWORD_METHOD)
+        student["verification_code"] = generate_password(VERIFICATION_CODE_LENGTH)
     
     # Write to DB
-    cur.executemany("INSERT INTO users (type, email, hash, name, surname, class) VALUES ('student', :email, :hash, :name, :surname, :class)", students)
+    cur.executemany("INSERT INTO users (type, email, hash, name, surname, class, verification_code) VALUES ('student', :email, :hash, :name, :surname, :class, :verification_code)", students)
     con.commit()
 
     # Close sqlite3
@@ -186,60 +187,32 @@ def fill_schedules(user_type: str) -> None:
                 raise ValueError("Not enough activities to cover the whole schedule")
 
 
-@cli.command()
-@click.option("-n", "--name", required=True, help="Name of the staff member")
-@click.option("-s", "--surname", required=True, help="Surname of the staff member")
-@click.option("-e", "--email", required=True, help="Email of the staff member")
-@click.option("-p", "--pw", "--password", "password", required=True, help="Password of the account")
-def make_staff(name: str, surname: str, email: str, password: str) -> None:
-    """Make a new staff account
+# @cli.command()
+# @click.option("-n", "--name", required=True, help="Name of the staff member")
+# @click.option("-s", "--surname", required=True, help="Surname of the staff member")
+# @click.option("-e", "--email", required=True, help="Email of the staff member")
+# @click.option("-p", "--pw", "--password", "password", required=True, help="Password of the account")
+# # REMOVE? alaready admin command
+# def make_staff(name: str, surname: str, email: str, password: str) -> None:
+#     """Make a new staff account
+#     Args:
+#         name (str): name of the staff member
+#         surname (str): surname of the staff member
+#         email (str): email of the staff member
+#         password (str): password of the account
+#     """
+#     # Open DB connection
+#     con = sqlite3.connect(DATABASE)
+#     cur = con.cursor()
 
-    Args:
-        name (str): name of the staff member
-        surname (str): surname of the staff member
-        email (str): email of the staff member
-        password (str): password of the account
-    """
-    # Open DB connection
-    con = sqlite3.connect(DATABASE)
-    cur = con.cursor()
-
-    # Save user
-    pw_hash = generate_password_hash(password, GENERATE_PASSWORD_METHOD)
-    cur.execute("INSERT INTO users (type, email, hash, name, surname) VALUES ('staff', ?, ?, ?, ?)", (email, pw_hash, name, surname))
-    con.commit()
+#     # Save user
+#     pw_hash = generate_password_hash(password, GENERATE_PASSWORD_METHOD)
+#     cur.execute("INSERT INTO users (type, email, hash, name, surname, verification_code) VALUES ('staff', ?, ?, ?, ?, ?)", (email, pw_hash, name, surname))
+#     con.commit()
     
-    # Close DB connection
-    cur.close()
-    con.close()
-
-
-@cli.command()
-def block_booking():
-    con = sqlite3.connect(DATABASE)
-    cur = con.cursor()
-    # HARDCODED BC LAST MINUTE FIX
-    cur.execute("UPDATE users SET type = '#student#' WHERE type = 'student';")
-    cur.execute("UPDATE users SET type = '#guest#' WHERE type = 'guest';")
-    
-    con.commit()
-    
-    cur.close()
-    con.close()
-
-    
-@cli.command()
-def allow_booking():
-    con = sqlite3.connect(DATABASE)
-    cur = con.cursor()
-    # HARDCODED BC LAST MINUTE FIX
-    cur.execute("UPDATE users SET type = 'student' WHERE type = '#student#';")
-    cur.execute("UPDATE users SET type = 'guest' WHERE type = '#guest#';")
-
-    con.commit()
-    
-    cur.close()
-    con.close()
+#     # Close DB connection
+#     cur.close()
+#     con.close()
 
 
 if __name__ == '__main__':
