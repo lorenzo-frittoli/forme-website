@@ -5,6 +5,19 @@
 {% endblock %}
 
 {% block main %}
+    <!-- Enable the submit button when cookies are accepted-->
+    <script>
+        $(document).ready(function() {
+            $("#cookieConsent")[0].addEventListener("click", function() {
+                if ($("#cookieConsent")[0].checked) {
+                    $("#loginButton").removeAttr("disabled");
+                } else {
+                    $("#loginButton").attr("disabled", true);
+                }
+            });
+        });
+    </script>
+
     <form action="/login" method="post">
         <div class="mb-3">
             <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="email" name="email" placeholder="Email" type="text">
@@ -12,6 +25,12 @@
         <div class="mb-3">
             <input class="form-control mx-auto w-auto" id="password" name="password" placeholder="Password" type="password">
         </div>
-        <button class="btn btn-primary" type="submit">Log In</button>
+        <div class="user-select-none mb-3">
+            <input class="form-check-input mx-auto" type="checkbox" value="" id="cookieConsent">
+            <label class="form-check-label mx-auto" for="cookieConsent">
+                Accetto l'utilizzo dei cookie
+            </label>
+        </div>
+        <button class="btn btn-primary" type="submit" id="loginButton" disabled>Log In</button>
     </form>
 {% endblock %}
