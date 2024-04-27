@@ -373,6 +373,11 @@ def me_page():
     return render_template("me.html", schedule=schedule, user_type=session["user_type"])
 
 
+@app.route("/privacy")
+def privacy_page():
+    """Cookie policy and privacy policy"""
+    return render_template("privacy.html")
+
 @app.route("/admin", methods=["GET", "POST"])
 @admin_required
 def admin_page():
