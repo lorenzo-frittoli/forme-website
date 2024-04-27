@@ -1,4 +1,3 @@
-import sqlite3
 import os
 
 
@@ -39,19 +38,6 @@ ADMIN_EMAILS = [
 
 # The admin password is "abcd"
 ADMIN_PASSWORD = "pbkdf2:sha256:600000$XMc76EeQ2aZvB1gB$b56d9e43481a1baf0f18ff04cca361cb9755b69a27d2dee12e5e002315fddf13"
-
-# System
-__con = sqlite3.connect(DATABASE)
-__cur = __con.cursor()
-
-__cur.execute(f"SELECT email, id FROM users WHERE email IN ({','.join('?' * len(ADMIN_EMAILS))})", ADMIN_EMAILS)
-__admins = {__admin_email: __admin_id for __admin_email, __admin_id in __cur.fetchall()}
-for __admin_email in ADMIN_EMAILS:
-    if __admin_email not in __admins:
-        print(f"Admin {__admin_email} doesn't have an account in {DATABASE}.")
-
-ADMIN_IDS = list(__admins.values())
-
 
 # Activity images
 ACTIVITY_IMAGES_DIRECTORY = "static/activity_images"

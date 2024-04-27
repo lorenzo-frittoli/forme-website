@@ -42,7 +42,7 @@ def admin_required(f):
     @wraps(f)
     @login_required
     def decorated_function(*args, **kwargs):
-        if session.get("user_id") not in ADMIN_IDS:
+        if session.get("user_email") not in ADMIN_EMAILS:
             return apology("Auth failed", 403)
         
         return f(*args, **kwargs)
