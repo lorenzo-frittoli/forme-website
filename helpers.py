@@ -1,9 +1,8 @@
-from flask import redirect, render_template, session, g, url_for, send_file, request
+from flask import redirect, render_template, session, g, url_for, send_file, Response
 from functools import wraps
 import qrcode
 from io import BytesIO
 import json
-from sys import stderr
 
 from constants import *
 
@@ -100,6 +99,7 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int):
         ValueError: Activity already booked by the user
         ValueError: Module out of bounds
         ValueError: Occupied slot
+        ValueError: Activity not available
     """
     if day < 0 or day >= len(DAYS) or session["user_type"] not in PERMISSIONS[day]:
         raise ValueError("Invalid day")
@@ -112,7 +112,7 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int):
     
     length = length[0]
     
-    # Check if the user has already booked this activity  
+    # Check if the user has already booked this activity
     if activity_already_booked(user_id, activity_id):
         raise ValueError("Activity already booked")
 
@@ -127,7 +127,7 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int):
     if slot_already_booked(user_id, day, module_start, module_end):
         raise ValueError("Occupied slot")
     
-    # Update availability
+    # Update availability (raises ValueError if the availability is already 0)
     update_availability(activity_id, day, module, -1)
     
     # Update registrations
@@ -146,6 +146,9 @@ def update_availability(activity_id: int, day: int, module: int, amount: int) ->
         day (int): day to update
         module (int): if length = 2, module 0 = timespans 0, 1. Compute with: timespan // lenght
         amount (int): amount to change the availability by
+    
+    Raises:
+        ValueError if the availability is already 0.
     """
     # SQL setup
     cur = g.con.cursor()
@@ -157,11 +160,11 @@ def update_availability(activity_id: int, day: int, module: int, amount: int) ->
     # Modify availability
     availability[day][module] += amount
     if availability[day][module] < 0:
-        raise ValueError
+        raise ValueError()
     availability = json.dumps(availability)
     
     # Update availability
-    cur.execute("UPDATE activities SET availability = ? WHERE id = ?;", (availability, activity_id))  
+    cur.execute("UPDATE activities SET availability = ? WHERE id = ?;", (availability, activity_id))
     g.con.commit()
     
     # SQL close
@@ -194,7 +197,7 @@ def fmt_activity_booking(activity_id: int) -> str:
         return TIMESPANS[span[1]][0] + "-" + TIMESPANS[span[2]][1] + " del " + DAYS[span[0]]
 
 
-def qr_code_for(url: str) -> bytes:
+def qr_code_for(url: str) -> Response:
     """
     Args:
         url (str): link to create a qr code for.

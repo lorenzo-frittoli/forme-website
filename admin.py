@@ -39,33 +39,6 @@ def all_backups() -> list[str]:
             os.makedirs(dir)
         backups += [dir + DIR_SEP + filename for filename in os.listdir(dir)]
     return backups
-
-
-def change_user_password(email: str, new_password: str) -> None:
-    """Changes a users pw
-
-    Args:
-        email (str): email of the user
-        new_password (str): new password (plain text)
-        
-    Raises:
-        ValueError: email is not registered
-    """
-
-    cur = g.con.cursor()
-    
-    cur.execute("SELECT 1 FROM users WHERE email = ?", (email, ))
-    if not cur.fetchone():
-        raise ValueError("Email not found")
-    
-    elif email in ADMIN_EMAILS:
-        raise ValueError("Cannot change an admin's password")
-    
-    password_hash = generate_password_hash(new_password, method=GENERATE_PASSWORD_METHOD)
-    cur.execute("UPDATE users SET hash = ? WHERE email = ?", (password_hash, email))
-    g.con.commit()
-    
-    cur.close()
     
 
 @command
@@ -94,12 +67,26 @@ def download_db(backup) -> Response:
 
 @command
 def change_password(user_email, new_password) -> tuple[str, int]:
-    """Admin page command to change a user's password"""
-    try:
-        change_user_password(user_email, new_password)
+    if user_email in ADMIN_EMAILS:
+        return "Cannot change an admin's password", 200
 
-    except ValueError as val_error:
-        return val_error.args[0], 200
+    cur = g.con.cursor()
+
+    # Check that the user exists
+    cur.execute("SELECT 1 FROM users WHERE email = ?", (user_email, ))
+    if not cur.fetchone():
+        return "Email not found", 200
+    
+    # Create a random password in none is provided
+    if not password:
+        password = generate_password()
+
+    password_hash = generate_password_hash(new_password, method=GENERATE_PASSWORD_METHOD)
+
+    cur.execute("UPDATE users SET hash = ? WHERE email = ?", (password_hash, user_email))
+    g.con.commit()
+
+    cur.close()
     
     return f"Password changed for {user_email}!", 200
 
@@ -165,9 +152,9 @@ def make_user(name: str, surname: str, email: str, _type: str, _class: str) -> N
     cur = g.con.cursor()
 
     pwd = generate_password()
-    # Save user
     pw_hash = generate_password_hash(pwd, GENERATE_PASSWORD_METHOD)
     verification_code = generate_password(VERIFICATION_CODE_LENGTH)
+    # Save user
     try:
         cur.execute("INSERT INTO users (type, email, hash, name, surname, verification_code) VALUES (?, ?, ?, ?, ?, ?)", (_type, email, pw_hash, name, surname, verification_code))
     except sqlite3.DatabaseError as e:

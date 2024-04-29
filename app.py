@@ -30,7 +30,7 @@ def before_request():
             # Query db for id and hash from email
             cur = g.con.cursor()
             query_result = cur.execute("SELECT id, type, name, surname FROM users WHERE email = ?;", (session["user_email"], )).fetchone()
-            # If the user has been deleted
+            # If the user has been deleted (this functionality is not implemented, this should not happen)
             if not query_result:
                 session.clear()
                 abort(403)
@@ -90,7 +90,7 @@ def login_page():
 
     # Query db for id and hash from emailf
     cur = g.con.cursor()
-    # query_result is like [(id, pw_hash)] 
+    # query_result is like [(id, pw_hash)]
     query_result = cur.execute("SELECT id, hash, type, name, surname FROM users WHERE email = ?;", (email, )).fetchone()
         
     # Closing cursor
@@ -217,7 +217,7 @@ def activities_page():
 def activity_page():
     """Activity page w/ details"""
     # If the page is loaded with GET (eg: clicking a link, getting redirected...)
-    if request.method == "GET":        
+    if request.method == "GET":
         # Fetch data
         try:
             activity_id = int(request.args["id"])
@@ -263,7 +263,7 @@ def activity_page():
                 # No registrations to be shown for today
                 cur.close()
                 return render_template(
-                    "activity_staff.html",        
+                    "activity_staff.html",
                     id=activity_id,
                     activity=activity_dict,
                     days=DAYS,
@@ -289,7 +289,7 @@ def activity_page():
             cur.close()
 
             return render_template(
-                "activity_staff.html",        
+                "activity_staff.html",
                 id=activity_id,
                 activity=activity_dict,
                 days=DAYS,
@@ -352,7 +352,7 @@ def activity_page():
         return apology("Invalid http request")
     
     # If booking
-    if "booking-button" in request.form:    
+    if "booking-button" in request.form:
         # Fetch data
         try:
             day = int(request.form.get('day-button'))

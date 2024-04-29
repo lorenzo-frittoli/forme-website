@@ -111,7 +111,7 @@ def load_students(filename: str) -> None:
 
     # Close sqlite3
     cur.close()
-    con.close()           
+    con.close()
 
 
 @cli.command()
@@ -178,7 +178,7 @@ def fill_schedules(user_type: str) -> None:
                     booked_slots.append((day, partial_timespan))
                 
                 # Add registration
-                make_registration(user_id, activity_id, day, timespan // length) # Module 
+                make_registration(user_id, activity_id, day, timespan // length) # Module
 
                 break
             
