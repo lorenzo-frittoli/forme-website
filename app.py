@@ -38,8 +38,6 @@ def before_request():
             # Closing cursor
             cur.close()
 
-            session["user_id"], session["user_type"], session["user_name"], session["user_surname"] = query_result
-
 
 @app.after_request
 def after_request(response):

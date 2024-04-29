@@ -1,4 +1,4 @@
-from flask import Response, request, send_file
+from flask import Response, request, send_file, g
 import sqlite3
 import os
 from inspect import signature
@@ -52,8 +52,7 @@ def change_user_password(email: str, new_password: str) -> None:
         ValueError: email is not registered
     """
 
-    con = sqlite3.connect(DATABASE)
-    cur = con.cursor()
+    cur = g.con.cursor()
     
     cur.execute("SELECT 1 FROM users WHERE email = ?", (email, ))
     if not cur.fetchone():
@@ -64,10 +63,9 @@ def change_user_password(email: str, new_password: str) -> None:
     
     password_hash = generate_password_hash(new_password, method=GENERATE_PASSWORD_METHOD)
     cur.execute("UPDATE users SET hash = ? WHERE email = ?", (password_hash, email))
-    con.commit()
+    g.con.commit()
     
     cur.close()
-    con.close()
     
 
 @command
@@ -108,43 +106,37 @@ def change_password(user_email, new_password) -> tuple[str, int]:
 
 @command
 def block_students_booking():
-    con = sqlite3.connect(DATABASE)
-    cur = con.cursor()
+    cur = g.con.cursor()
 
     cur.execute("UPDATE users SET type = '#student#' WHERE type = 'student';")
     
-    con.commit()
+    g.con.commit()
     cur.close()
-    con.close()
-    
+
     return "Bookings blocked", 200
 
 
 @command
 def block_guests_booking():
-    con = sqlite3.connect(DATABASE)
-    cur = con.cursor()
+    cur = g.con.cursor()
 
     cur.execute("UPDATE users SET type = '#guest#' WHERE type = 'guest';")
     
-    con.commit()
+    g.con.commit()
     cur.close()
-    con.close()
     
     return "Bookings blocked", 200
 
 
 @command
 def allow_booking():
-    con = sqlite3.connect(DATABASE)
-    cur = con.cursor()
+    cur = g.con.cursor()
 
     cur.execute("UPDATE users SET type = 'student' WHERE type = '#student#';")
     cur.execute("UPDATE users SET type = 'guest' WHERE type = '#guest#';")
 
-    con.commit()
+    g.con.commit()
     cur.close()
-    con.close()
 
     return "Bookings allowed", 200
 
@@ -161,7 +153,6 @@ def make_user(name: str, surname: str, email: str, _type: str, _class: str) -> N
         _type (str): type of the account
         _class (str): class of the user
     """
-    # Open DB connection
     if _type not in ("staff", "guest", "student"):
         return "Invalid user type: " + _type, 400
 
@@ -171,8 +162,7 @@ def make_user(name: str, surname: str, email: str, _type: str, _class: str) -> N
     elif _class != "":
         return "Class would be empty for " + _type, 400
 
-    con = sqlite3.connect(DATABASE)
-    cur = con.cursor()
+    cur = g.con.cursor()
 
     pwd = generate_password()
     # Save user
@@ -182,11 +172,10 @@ def make_user(name: str, surname: str, email: str, _type: str, _class: str) -> N
         cur.execute("INSERT INTO users (type, email, hash, name, surname, verification_code) VALUES (?, ?, ?, ?, ?, ?)", (_type, email, pw_hash, name, surname, verification_code))
     except sqlite3.DatabaseError as e:
         return f"{e.__class__.__name__}: {' '.join(e.args)}", 400
-    con.commit()
-    
-    # Close DB connection
+
+    g.con.commit()
     cur.close()
-    con.close()
+
     return f"User created: {email}\nPassword: {pwd}", 200
 
 

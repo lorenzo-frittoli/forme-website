@@ -3,7 +3,6 @@ from functools import wraps
 import qrcode
 from io import BytesIO
 import json
-import sqlite3
 from sys import stderr
 
 from constants import *
@@ -24,7 +23,7 @@ def login_required(f):
             return redirect("/login")
 
         cur = g.con.cursor()
-        id = cur.execute("SELECT id FROM users WHERE id = ?;", (session.get("user_id"), )).fetchone()
+        id = cur.execute("SELECT id FROM users WHERE id = ?;", (session["user_id"], )).fetchone()
         cur.close()
 
         if not id:
@@ -183,12 +182,12 @@ def get_image_path(image: str) -> str:
 
 
 def fmt_activity_booking(activity_id: int) -> str:
-    con = sqlite3.connect(DATABASE)
-    cur = con.cursor()
+    cur = g.con.cursor()
+
     cur.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ? AND activity_id = ?", (session["user_id"], activity_id))
     span = cur.fetchone()
     cur.close()
-    con.close()
+
     if span is None:
         return ""
     else:
