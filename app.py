@@ -415,6 +415,12 @@ def me_page():
     )
 
 
+@app.route("/privacy")
+def privacy_page():
+    """Cookie policy and privacy policy"""
+    return render_template("privacy.html")
+
+
 @app.route("/codice_verifica")
 @login_required
 def qr_code_page():
