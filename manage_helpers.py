@@ -84,7 +84,7 @@ def generate_password(length: int = GENERATED_PASSWORD_LENGTH) -> str:
     return password
 
 
-def make_backup(dir: str) -> None:
+def make_backup(dir: str) -> str:
     """Add backup to the rolling storage
 
     Args:

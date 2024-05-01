@@ -39,7 +39,7 @@ def all_backups() -> list[str]:
             os.makedirs(dir)
         backups += [dir + DIR_SEP + filename for filename in os.listdir(dir)]
     return backups
-    
+
 
 @command
 def backup_db() -> tuple[str, int]:
@@ -55,7 +55,7 @@ def list_backups() -> tuple[str, int]:
 
 
 @command
-def download_db(backup) -> Response:
+def download_db(backup) -> Response | tuple[str, int]:
     """Downloads a backup.
     If a backup name is specified the selected backup us downloaded, otherwise a new one is created and sent."""
     if not backup:
@@ -78,8 +78,8 @@ def change_password(user_email, new_password) -> tuple[str, int]:
         return "Email not found", 200
     
     # Create a random password in none is provided
-    if not password:
-        password = generate_password()
+    if not new_password:
+        new_password = generate_password()
 
     password_hash = generate_password_hash(new_password, method=GENERATE_PASSWORD_METHOD)
 
@@ -92,7 +92,7 @@ def change_password(user_email, new_password) -> tuple[str, int]:
 
 
 @command
-def block_students_booking():
+def block_students_booking() -> tuple[str, int]:
     cur = g.con.cursor()
 
     cur.execute("UPDATE users SET type = '#student#' WHERE type = 'student';")
@@ -104,7 +104,7 @@ def block_students_booking():
 
 
 @command
-def block_guests_booking():
+def block_guests_booking() -> tuple[str, int]:
     cur = g.con.cursor()
 
     cur.execute("UPDATE users SET type = '#guest#' WHERE type = 'guest';")
@@ -116,7 +116,7 @@ def block_guests_booking():
 
 
 @command
-def allow_booking():
+def allow_booking() -> tuple[str, int]:
     cur = g.con.cursor()
 
     cur.execute("UPDATE users SET type = 'student' WHERE type = '#student#';")
@@ -129,7 +129,7 @@ def allow_booking():
 
 
 @command
-def make_user(name: str, surname: str, email: str, _type: str, _class: str) -> None:
+def make_user(name: str, surname: str, email: str, _type: str, _class: str) -> tuple[str, int]:
     """Make a new staff account
 
     Args:

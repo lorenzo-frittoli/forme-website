@@ -137,7 +137,7 @@ def register_page():
     # Get form data
     name = request.form.get("name")
     surname = request.form.get("surname")
-    email = request.form.get("email").lower().strip() # Some mobile browsers insert spaces for no reason
+    email = request.form.get("email")
     password = request.form.get("password")
     confirmation = request.form.get("confirmation")
 
@@ -147,19 +147,23 @@ def register_page():
         return apology("Nome non valido", 400)
 
     # Checks the surname field
-    elif not surname or len(surname) > MAX_FIELD_LENGTH:
+    if not surname or len(surname) > MAX_FIELD_LENGTH:
         return apology("Cognome non valido", 400)
     
     # Checks the email field
-    elif not email or len(email) > MAX_FIELD_LENGTH or not re.match(EMAIL_REGEX, email):
+    if not email:
+        return apology("Email non valida", 400)
+
+    email = email.lower().strip() # Some mobile browsers insert spaces for no reason
+    if len(email) > MAX_FIELD_LENGTH or not re.match(EMAIL_REGEX, email):
         return apology("Email non valida", 400)
     
     # Checks the password field
-    elif not password or len(password) > MAX_FIELD_LENGTH:
+    if not password or len(password) > MAX_FIELD_LENGTH:
         return apology("Psassword non valida", 400)
     
     # Checks that password and confirmation match
-    elif password != confirmation:
+    if password != confirmation:
         return apology("Password e conferma non coincidono", 400)
 
     cur = g.con.cursor()
@@ -202,7 +206,7 @@ def activities_page():
                         "type": activity_type,
                         "description": activity_description,
                         "length": activity_length,
-                        "booked": fmt_activity_booking(activity_id),
+                        "booked": fmt_activity_booking(activity_id, g.con),
                         "image": get_image_path(image_name)
                         } for activity_id, activity_title, activity_type, activity_description, activity_length, image_name in query_output]
         
@@ -274,7 +278,7 @@ def activity_page():
 
             cur.execute("SELECT name, surname, class, module_start, module_end FROM users JOIN registrations ON users.id = registrations.user_id WHERE activity_id = ? AND day = ?;", (activity_id, day_index))
             
-            def parse_registration(booking: tuple[str]) -> tuple:
+            def parse_registration(booking: tuple) -> tuple:
                 if booking[2]:
                     return booking[0], booking[2], int(booking[3]), int(booking[4])
                 else:
@@ -308,7 +312,7 @@ def activity_page():
         cur.close()
 
         # Details of the activity
-        activity_dict["booked"] = fmt_activity_booking(activity_id)
+        activity_dict["booked"] = fmt_activity_booking(activity_id, g.con)
         
         # JSON string -> list[list[remaining by time] by day]
         activity_availability = json.loads(activity_availability)
@@ -316,7 +320,7 @@ def activity_page():
         activity_availability = [av for i, av in enumerate(activity_availability) if session["user_type"] in PERMISSIONS[i]]
                 
         # Check if the activity has already been booked by the user (to display warning)
-        is_booked = activity_already_booked(session["user_id"], activity_id)
+        is_booked = activity_already_booked(session["user_id"], activity_id, g.con)
 
         activity_days = tuple((i, day) for i, day in enumerate(DAYS) if session["user_type"] in PERMISSIONS[i])
         
@@ -363,7 +367,7 @@ def activity_page():
 
         # Make registration
         try:
-            make_registration(session["user_id"], activity_id, day, module)
+            make_registration(session["user_id"], activity_id, day, module, g.con)
         
         except ValueError:
             return apology("Prenotazione non valida")
@@ -383,7 +387,7 @@ def activity_page():
         module = module_start // length
 
         # Update availability
-        update_availability(activity_id, day, module, 1)
+        update_availability(activity_id, day, module, 1, g.con)
         
         # Remove registration
         cur.execute("DELETE FROM registrations WHERE user_id = ? AND activity_id = ?;", (session["user_id"], activity_id))
@@ -405,7 +409,7 @@ def me_page():
     return render_template(
         "me.html",
         title="Il mio orario",
-        schedule=generate_schedule(session["user_id"], session["user_type"]),
+        schedule=generate_schedule(session["user_id"], session["user_type"], g.con),
         user_name = session["user_name"],
         user_surname = session["user_surname"],
         user_email = session["user_email"],
@@ -458,7 +462,7 @@ def verification_page():
     return render_template(
         "me.html",
         title="Verifica orario",
-        schedule=generate_schedule(int(result[0]), result[1]),
+        schedule=generate_schedule(int(result[0]), result[1], g.con),
         user_type="none",
         user_name = result[2],
         user_surname = result[3],

@@ -3,6 +3,7 @@ from functools import wraps
 import qrcode
 from io import BytesIO
 import json
+from sqlite3 import Connection
 
 from constants import *
 
@@ -52,7 +53,7 @@ def admin_required(f):
     return decorated_function
 
 
-def activity_already_booked(user_id: int, activity_id: int) -> bool:
+def activity_already_booked(user_id: int, activity_id: int, con: Connection) -> bool:
     """Checks wether a course has been booked already by that student.
 
     Args:
@@ -63,13 +64,13 @@ def activity_already_booked(user_id: int, activity_id: int) -> bool:
         bool: True if already booked, False if not
     """
     
-    cur = g.con.cursor()
+    cur = con.cursor()
     cur.execute("SELECT activity_id FROM registrations WHERE user_id = ? AND activity_id = ?;", (user_id, activity_id))
     
     return bool(cur.fetchall())
 
 
-def slot_already_booked(user_id: int, day: str, module_start: int, module_end: int) -> bool:
+def slot_already_booked(user_id: int, day: int, module_start: int, module_end: int, con: Connection) -> bool:
     """Checks if a slot (a day/timespan couple) is already occupied by the user
 
     Args:
@@ -80,13 +81,13 @@ def slot_already_booked(user_id: int, day: str, module_start: int, module_end: i
     Returns:
         bool: True if booked, False if not
     """
-    cur = g.con.cursor()
+    cur = con.cursor()
     cur.execute(f"SELECT activity_id FROM registrations WHERE user_id = ? AND day = ? AND module_end >= ? AND module_start <= ?;", (user_id, day, module_start, module_end))
     
     return bool(cur.fetchall())
 
 
-def make_registration(user_id: int, activity_id: int, day: int, module: int):
+def make_registration(user_id: int, activity_id: int, day: int, module: int, con: Connection):
     """Add a registration to the database
 
     Args:
@@ -104,7 +105,7 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int):
     if day < 0 or day >= len(DAYS) or session["user_type"] not in PERMISSIONS[day]:
         raise ValueError("Invalid day")
     
-    cur = g.con.cursor()
+    cur = con.cursor()
 
     length = cur.execute("SELECT length FROM activities WHERE id = ?;", (activity_id,)).fetchone()
     if length is None:
@@ -113,7 +114,7 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int):
     length = length[0]
     
     # Check if the user has already booked this activity
-    if activity_already_booked(user_id, activity_id):
+    if activity_already_booked(user_id, activity_id, con):
         raise ValueError("Activity already booked")
 
     # Check if the module is valid
@@ -124,21 +125,21 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int):
         raise ValueError("Module out of bounds")
 
     # Check if the user has already booked this day-timespan combo
-    if slot_already_booked(user_id, day, module_start, module_end):
+    if slot_already_booked(user_id, day, module_start, module_end, con):
         raise ValueError("Occupied slot")
     
     # Update availability (raises ValueError if the availability is already 0)
-    update_availability(activity_id, day, module, -1)
+    update_availability(activity_id, day, module, -1, con)
     
     # Update registrations
     cur.execute("INSERT INTO registrations (user_id, activity_id, day, module_start, module_end) VALUES (?, ?, ?, ?, ?);", (user_id, activity_id, day, module_start, module_end))
-    g.con.commit()
+    con.commit()
     
     # Close cursor
     cur.close()
 
 
-def update_availability(activity_id: int, day: int, module: int, amount: int) -> None:
+def update_availability(activity_id: int, day: int, module: int, amount: int, con: Connection) -> None:
     """Updates the availability
 
     Args:
@@ -151,7 +152,7 @@ def update_availability(activity_id: int, day: int, module: int, amount: int) ->
         ValueError if the availability is already 0.
     """
     # SQL setup
-    cur = g.con.cursor()
+    cur = con.cursor()
     
     # Load availability
     availability = cur.execute("SELECT availability FROM activities WHERE id = ?", (activity_id,)).fetchone()[0]
@@ -165,7 +166,7 @@ def update_availability(activity_id: int, day: int, module: int, amount: int) ->
     
     # Update availability
     cur.execute("UPDATE activities SET availability = ? WHERE id = ?;", (availability, activity_id))
-    g.con.commit()
+    con.commit()
     
     # SQL close
     cur.close()
@@ -184,8 +185,8 @@ def get_image_path(image: str) -> str:
     return f"{ACTIVITY_IMAGES_DIRECTORY}/{image}"
 
 
-def fmt_activity_booking(activity_id: int) -> str:
-    cur = g.con.cursor()
+def fmt_activity_booking(activity_id: int, con: Connection) -> str:
+    cur = con.cursor()
 
     cur.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ? AND activity_id = ?", (session["user_id"], activity_id))
     span = cur.fetchone()
@@ -210,9 +211,9 @@ def qr_code_for(url: str) -> Response:
     return send_file(img_io, mimetype="image/png")
 
 
-def generate_schedule(user_id: int, user_type: str):
+def generate_schedule(user_id: int, user_type: str, con: Connection):
     """Generate the schedule for the me page."""
-    cur = g.con.cursor()
+    cur = con.cursor()
     
     # Fetch all user registrations -> list[tuple[..]]
     result = """
