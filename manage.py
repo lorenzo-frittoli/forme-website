@@ -156,6 +156,8 @@ def try_fill_schedules(user_type: str, k: int, seed: int, con: sqlite3.Connectio
     # Fill the slots with the most availability first.
     filled_modules = 0
     for curr_avail in range(len(slots_by_avail)-1, 0, -1):
+        # Fill the longer activities first
+        slots_by_avail[curr_avail].sort(key=lambda x: -x[3])
         for slot in slots_by_avail[curr_avail]:
             for users_index in range(slot[4], len(user_ids)):
                 try:
