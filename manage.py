@@ -2,6 +2,7 @@ from flask.cli import FlaskGroup
 import click
 import sqlite3
 import json
+import random
 from werkzeug.security import generate_password_hash
 
 
@@ -114,78 +115,111 @@ def load_students(filename: str) -> None:
     con.close()
 
 
+def try_fill_schedules(user_type: str, k: int, seed: int, con: sqlite3.Connection) -> bool:
+    """
+    Args:
+        user_type (str)
+        k (int): a parameter for the fill. If k is high long activities will be filled first.
+        con (sqlite3.Connection)
+    Returns:
+        pair[int, int]: number of filled modules, number of non-filled moduless"""
+    
+    cur = con.cursor()
+
+    # The days which are to be filled
+    fill_days: list[int] = [day for day in range(len(DAYS)) if user_type in PERMISSIONS[day]]
+    # All the users with the matching type
+    user_ids = list(map(lambda x: x[0], cur.execute("SELECT id FROM users WHERE type = ?;", (user_type,)).fetchall()))
+    # A different order will give different resluts.
+    random.seed(seed)
+    random.shuffle(user_ids)
+    # All the activities
+    activities = cur.execute("SELECT id, length, availability FROM activities;").fetchall()
+    # A list with an entry for each pair (activity, timespan) groupedd by availability. Faster alternative to sorting
+    # We save the index of the last successful booking we made +1 for this slot to avoid checking the same users over and over.
+    # [id, day, module, length, next user index]
+    slots_by_avail: list[list[list[int]]] = []
+
+    for id, length, availability in activities:
+        availability = json.loads(availability)
+        for day in fill_days:
+            for module in range(len(TIMESPANS)//length):
+                # When k is large, longer modules will be filled first.
+                priority = max(0, availability[day][module]) + length*k
+                while len(slots_by_avail) <= priority:
+                    slots_by_avail.append([])
+                slots_by_avail[priority].append([id, day, module, length, 0])
+
+    for slots in slots_by_avail:
+        random.shuffle(slots)
+
+    # Fill the slots with the most availability first.
+    filled_modules = 0
+    for curr_avail in range(len(slots_by_avail)-1, 0, -1):
+        for slot in slots_by_avail[curr_avail]:
+            for users_index in range(slot[4], len(user_ids)):
+                try:
+                    make_registration(user_ids[users_index], slot[0], slot[1], slot[2], user_type, con, False)
+                except ValueError:
+                    pass
+                else:
+                    # The registration was successful
+                    filled_modules += slot[3] # Length of the activity
+                    slot[4] = users_index+1
+                    slots_by_avail[curr_avail-1].append(slot)
+                    break
+            # If the registration could not be made the slot will not be moved to the next iteration
+
+    # Check that all schedules are filled
+    non_filled_modules = 0
+    for user_id in user_ids:
+        module_booked = [[False for _ in TIMESPANS] for _ in DAYS]
+        # Fetch all activities from the user
+        registrations = cur.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ?;", (user_id, )).fetchall()
+        for day, module_start, module_end in registrations:
+            for module in range(module_start, module_end+1):
+                assert not module_booked[day][module]
+                module_booked[day][module] = True
+        for day in fill_days:
+            non_filled_modules += module_booked[day].count(False)
+    
+    # Print info to terminal
+    if non_filled_modules:
+        print(f"{filled_modules} moduli riempiti, {non_filled_modules} moduli non riempiti.")
+    else:
+        print(f"Tutti i {filled_modules} moduli sono stati riempiti.")
+
+    return non_filled_modules == 0
+
+
 @cli.command()
 @click.option("-t", "--user-type", "user_type", required=True, help="Type of user whose schedule is going to be filled")
 def fill_schedules(user_type: str) -> None:
     """Fill the empty schedules of users of the specified type with random activities"""
+    # Avoid conflicts with people booking from the app
+    if input("Eseguire solamente in locale. Proseguire? Y/n: ") != "Y":
+        return
+    # Make a bakup in case the fill isn't successful.
+    make_backup(MANUAL_BACKUPS_DIR)
+    print("Backup creato")
+
     # Setup sqlite3
     con = sqlite3.connect(DATABASE)
-    cur = con.cursor()
-    
-    # Setup constants for the users loop
-    slots = [(day, timespan) for day in range(len(DAYS)) for timespan in range(len(TIMESPANS)) if user_type in PERMISSIONS[day]]
-    user_ids = cur.execute("SELECT id FROM users WHERE type = ?;", (user_type,)).fetchall()
 
-    # Fill the schedules
-    for (user_id,) in user_ids:
-        # Fetch all occupied slots
-        registrations = cur.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ?;", (user_id,)).fetchall()
-        booked_slots = []
-        
-        for day, start, end in registrations:
-            for timespan in range(start, end + 1):
-                booked_slots.append((day, timespan))
-                
-        # Fetches available activities
-        query = """
-        SELECT id, length, availability
-        FROM activities
-        WHERE id NOT IN (
-            SELECT activity_id
-            FROM registrations
-            WHERE user_id = ?
-        );
-        """
-        non_booked_activities = sorted(cur.execute(query, (user_id,)).fetchall(), key=lambda a: a[1], reverse=True)
-                
-        # Fill empty slots
-        for day, timespan in slots:
-            # If the slot is booked, continue
-            if (day, timespan) in booked_slots:
-                continue
-            
-            # Check every actvity
-            for activity_id, length, availability_str in non_booked_activities:
-                availability = json.loads(availability_str)
-                
-                # Check if actvity length is congruent with the timespan
-                if timespan % length != 0:
-                    continue
-                
-                # Check if the slot is available
-                elif availability[day][timespan // length] == 0:
-                    continue
-                
-                # Check if the next slots are available (in case of length > 1)
-                elif any([(day, pt) in booked_slots for pt in range(timespan, timespan + length) if pt < len(TIMESPANS)]):
-                    continue
-                                
-                # Remove activity
-                non_booked_activities.remove((activity_id, length, availability_str))
-                
-                # Remove used slots
-                for partial_timespan in range(timespan, timespan + length):
-                    booked_slots.append((day, partial_timespan))
-                
-                # Add registration
-                make_registration(user_id, activity_id, day, timespan // length) # Module
-
+    for k in range(0, 20):
+        for seed in range(50):
+            print(f"Tentativo {k=}, {seed=}:", end='\t')
+            if try_fill_schedules(user_type, k, seed, con):
+                # The fill was successful
                 break
-            
-            # If not break (no activity was found)
-            else:
-                raise ValueError("Not enough activities to cover the whole schedule")
+            con.rollback()
+        else:
+            # Keep searching
+            continue
+        break
 
+    con.commit()
+    con.close()
 
 # @cli.command()
 # @click.option("-n", "--name", required=True, help="Name of the staff member")
@@ -213,7 +247,6 @@ def fill_schedules(user_type: str) -> None:
 #     # Close DB connection
 #     cur.close()
 #     con.close()
-
 
 if __name__ == '__main__':
     cli()

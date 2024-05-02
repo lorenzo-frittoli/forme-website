@@ -367,7 +367,7 @@ def activity_page():
 
         # Make registration
         try:
-            make_registration(session["user_id"], activity_id, day, module, g.con)
+            make_registration(session["user_id"], activity_id, day, module, session["user_type"], g.con)
         
         except ValueError:
             return apology("Prenotazione non valida")

@@ -87,7 +87,7 @@ def slot_already_booked(user_id: int, day: int, module_start: int, module_end: i
     return bool(cur.fetchall())
 
 
-def make_registration(user_id: int, activity_id: int, day: int, module: int, con: Connection):
+def make_registration(user_id: int, activity_id: int, day: int, module: int, user_type: str, con: Connection, do_commit: bool=True):
     """Add a registration to the database
 
     Args:
@@ -95,6 +95,9 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int, con
         activity_id (int): id of the activity
         day (int): day
         module (int): if length = 2, module 0 = timespans 0, 1. Compute with: timespan // lenght
+        user_type (str)
+        con (sqlite3.Connection)
+        do_commit (bool): if the transaction should be immediatly committed. Defaults to True
 
     Raises:
         ValueError: Activity already booked by the user
@@ -102,7 +105,7 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int, con
         ValueError: Occupied slot
         ValueError: Activity not available
     """
-    if day < 0 or day >= len(DAYS) or session["user_type"] not in PERMISSIONS[day]:
+    if day < 0 or day >= len(DAYS) or user_type not in PERMISSIONS[day]:
         raise ValueError("Invalid day")
     
     cur = con.cursor()
@@ -129,17 +132,18 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int, con
         raise ValueError("Occupied slot")
     
     # Update availability (raises ValueError if the availability is already 0)
-    update_availability(activity_id, day, module, -1, con)
+    update_availability(activity_id, day, module, -1, con, do_commit)
     
     # Update registrations
     cur.execute("INSERT INTO registrations (user_id, activity_id, day, module_start, module_end) VALUES (?, ?, ?, ?, ?);", (user_id, activity_id, day, module_start, module_end))
-    con.commit()
+    if do_commit:
+        con.commit()
     
     # Close cursor
     cur.close()
 
 
-def update_availability(activity_id: int, day: int, module: int, amount: int, con: Connection) -> None:
+def update_availability(activity_id: int, day: int, module: int, amount: int, con: Connection, do_commit: bool=True) -> None:
     """Updates the availability
 
     Args:
@@ -147,6 +151,8 @@ def update_availability(activity_id: int, day: int, module: int, amount: int, co
         day (int): day to update
         module (int): if length = 2, module 0 = timespans 0, 1. Compute with: timespan // lenght
         amount (int): amount to change the availability by
+        con (sqlite3.Connection)
+        do_commit (bool): if the transaction should be immediatly committed. Defaults to True
     
     Raises:
         ValueError if the availability is already 0.
@@ -166,7 +172,8 @@ def update_availability(activity_id: int, day: int, module: int, amount: int, co
     
     # Update availability
     cur.execute("UPDATE activities SET availability = ? WHERE id = ?;", (availability, activity_id))
-    con.commit()
+    if do_commit:
+        con.commit()
     
     # SQL close
     cur.close()
