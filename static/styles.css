@@ -1,38 +1,42 @@
+/* template.html */
+
 /* Size for brand */
 nav .navbar-brand {
     font-size: xx-large;
 }
 
 /* Colors for brand */
-nav .navbar-brand .blue {
+.navbar-brand .blue {
     color: #537fbe;
 }
 
-nav .navbar-brand .red {
+.navbar-brand .red {
     color: #ea433b;
 }
 
-nav .navbar-brand .yellow {
-    color: #f5b82e;
-}
-
-nav .navbar-brand .green {
+.navbar-brand .green {
     color: #2e944b;
-}
-
-/* Style for the "type" field in activity.html */
-.type {
-    color: rgb(117, 117, 117);
 }
 
 /* Style for the warning bar*/
 .warning {
-    background-color: red;
+    border-color: red;
+    border-width: 2px;
+    border-radius: 10px;
+    background-color: rgb(255, 99, 99);
     padding: 1rem 0 1rem;
     display: none;
 }
 
+/* activity.html */
+
+/* Style for the "type" field */
+.type {
+    color: rgb(117, 117, 117);
+}
+
 /* activites.html */
+
 #headers {
     position: relative;
 }
@@ -51,25 +55,18 @@ nav .navbar-brand .green {
 }
 
 .card-wrapper {
-    margin: auto;
-    margin-top: 0;
-    width: 18rem;
+    /* this properties ovveride the fact that this is really a link*/
     color: black;
+    :hover {
+        color: black;
+    }
     text-decoration: none;
 }
 
-.card-wrapper:hover {
-    color: black;
-}
-
 .desktop-card {
-    height: 27rem;
-}
-
-.desktop-card .card-booked {
-    background: rgb(184, 242, 255);
-    border: 2px solid #0d6efd;
-    border-radius: 3px;
+    height: 26rem;
+    border-width: 2px;
+    position: relative;
 }
 
 .desktop-card .card-img {
@@ -77,9 +74,20 @@ nav .navbar-brand .green {
     object-fit: contain;
 }
 
-.mobile-card .booked-card {
-    border-color: #0d6efd;
+.desktop-card .card-booked {
+    position: absolute;
+    bottom: 15px;
+    width: calc(100% - 2rem); /* 1rem per side is the padding of card-body */
+    border-color: #4e95ff;
+    border-style: solid;
     border-width: 2px;
+    border-radius: 10px;
+    background-color: #ddf7fe;
+    padding: 5px;
+}
+
+.mobile-card {
+    border-width: 5px;
 }
 
 .mobile-card .card-body {
@@ -96,7 +104,24 @@ nav .navbar-brand .green {
 
 .mobile-card .card-body-right {
     flex: 50%;
-    padding: 1%;
+    padding-left: 1%;
+    padding-right: 1%;
+    position: relative;
+    --padding-lat: 20px;
+    padding-left: var(--padding-lat);
+    padding-right: var(--padding-lat);
+    padding-top: 10px;
+}
+
+.mobile-card .card-booked {
+    position: absolute;
+    width: calc(100% - 2*var(--padding-lat));
+    bottom: 10px;
+    border-color: #4e95ff;
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 10px;
+    background-color: #ddf7fe;
 }
 
 /* me.html, activities.html, activity.html */
@@ -108,7 +133,6 @@ nav .navbar-brand .green {
         margin-left: 20%;
     }
     .card-wrapper {
-        margin-bottom: 1rem;
         width: 100%;
     }
     .desktop-card, #table-desktop, #table-desktop, #flyer-div-desktop {
