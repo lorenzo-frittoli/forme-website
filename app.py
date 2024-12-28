@@ -7,7 +7,7 @@ import re
 from datetime import datetime
 from itertools import groupby
 
-from helpers import apology, login_required, admin_required, activity_already_booked, make_registration, update_availability, get_image_path, fmt_activity_booking, qr_code_for, generate_schedule
+from helpers import apology, login_required, admin_required, make_registration, update_availability, get_image_path, fmt_activity_booking, qr_code_for, generate_schedule
 from manage_helpers import generate_password
 import admin
 from constants import *
@@ -29,7 +29,7 @@ def before_request():
         if "user_id" in session:
             # Query db for id and hash from email
             cur = g.con.cursor()
-            query_result = cur.execute("SELECT type, name, surname, email FROM users WHERE id = ?;", (session["user_id"], )).fetchone()
+            query_result = cur.execute("SELECT type, name, surname, email, can_book FROM users WHERE id = ?;", (session["user_id"], )).fetchone()
             # If the user has been deleted (this functionality is not implemented, this should not happen)
             if not query_result:
                 session.clear()
@@ -39,7 +39,8 @@ def before_request():
             cur.close()
 
             # Update all user info (in case something has been changend in the mean time)
-            session["user_type"], session["user_name"], session["user_surname"], session["user_email"] = query_result
+            session["user_type"], session["user_name"], session["user_surname"], session["user_email"] , session["can_book"] = query_result
+            print(session["can_book"])
 
 
 @app.after_request
@@ -320,9 +321,6 @@ def activity_page():
         activity_availability = json.loads(activity_availability)
 
         activity_availability = [av for i, av in enumerate(activity_availability) if session["user_type"] in PERMISSIONS[i]]
-                
-        # Check if the activity has already been booked by the user (to display warning)
-        is_booked = activity_already_booked(session["user_id"], activity_id, g.con)
 
         activity_days = tuple((i, day) for i, day in enumerate(DAYS) if session["user_type"] in PERMISSIONS[i])
         
@@ -345,9 +343,8 @@ def activity_page():
             days=activity_days,
             timespans=activity_timespans,
             availability=activity_availability,
-            is_booked=is_booked,
             user_free=user_free,
-            user_type=session["user_type"]
+            can_book=session["can_book"]
         )
 
     # If method is POST (booking button has been pressed)

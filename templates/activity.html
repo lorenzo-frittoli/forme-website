@@ -83,7 +83,7 @@
             <!-- <h2 style="margin: 0">{{ activity.title }}</h2>
             <h4 style="margin: 0">{{ activity.type }}</h4> -->
             <div>
-                <div style="text-align: left; margin: 5%;">
+                <div style="text-align: left; margin: 1.5rem;">
                     <!-- Makes \n linebreak, while adding a bit of extra spacing -->
                     {% for section in activity.description.split("\n") %}
                         <div style="margin-bottom: 20px;">
@@ -100,9 +100,6 @@
                 </div>
             </div>
 
-            {% if user_type[0] == "#" %}
-            <h2>Non si possono più modificare le prenotazioni</h2>
-            {% else %}
             <div>
                 <!-- Availability table -->
                 <div>
@@ -146,9 +143,10 @@
                 
                 <!-- Booking / Unbooking -->
                 <div>
-                {% if not is_booked %}
-                    <h2>Prenota</h2>
-                    <div class="booking" style="margin: 2%;">
+                {% if not activity.booked|length %}
+                <div class="booking" style="margin: 2%;">
+                    {% if can_book %}
+                        <h2 style="margin-bottom: 1rem;">Prenota</h2>
                         <form action="/activity?id={{ id }}" method="post">
                             
                             <!-- Buttons for the days -->
@@ -182,31 +180,34 @@
                                 <button class="btn btn-primary btn-lg-on-mobile" name="booking-button">Prenota</button>
                             </div>
                         </form>
+                        {% else %}
+                        <h5>Non si possono più modificare le prenotazioni</h5>
+                        {% endif %}
                     </div>
-                {% else %}
+                    {% else %}
                     <div class="unbooking">
                         <div class="card card-booked">
                             <div class="card-body">
                                 <h6 style="margin-bottom: 1px;">Prenotazione: {{ activity.booked }}</h6>
                             </div>
                         </div>
+                        {% if can_book %}
                         <form action="/activity?id={{ id }}" method="post" style="margin: 5%;">
                             <button class="btn btn-primary btn-lg-on-mobile" name="unbooking-button">Rimuovi Prenotazione</button>
                         </form>
+                        {% else %}
+                        <br>
+                        <h5>Non si possono più modificare le prenotazioni</h5>
+                        {% endif %}
                     </div>
-                {% endif %}
+                    {% endif %}
                 </div>
             </div>
-            {% endif %}
         </div>
         
         <!-- Right column (desktop flyer) -->
-        <div class="col-lg-6" id="img-div">
-            <div id="flyer-div-desktop">
-                <div style="margin: 5%;">
-                    <img class="img-fluid" id="activity-image" src="{{ activity.image }}">
-                </div>
-            </div>
+        <div class="col-lg-6" id="flyer-div-desktop" style="margin-top: 1.5rem;">
+            <img class="img-fluid" id="activity-image" src="{{ activity.image }}">
         </div>
     </div>
 {% endblock %}

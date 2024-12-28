@@ -82,6 +82,7 @@ def slot_already_booked(user_id: int, day: int, module_start: int, module_end: i
         bool: True if booked, False if not
     """
     cur = con.cursor()
+    # Searches for ranges intersecting (module_start, module_end)
     cur.execute(f"SELECT activity_id FROM registrations WHERE user_id = ? AND day = ? AND module_end >= ? AND module_start <= ?;", (user_id, day, module_start, module_end))
     
     return bool(cur.fetchall())
@@ -236,7 +237,7 @@ def generate_schedule(user_id: int, user_type: str, con: Connection):
 
     # Make empty schedule
     schedule = {day: {timespan: ("", None) for timespan in TIMESPANS_TEXT}
-                for i, day in enumerate(DAYS) if user_type.replace("#", "") in PERMISSIONS[i]}
+                for i, day in enumerate(DAYS) if user_type in PERMISSIONS[i]}
     
     # Fill with known data
     for activity_id, title, day, module_start, module_end in user_registrations:

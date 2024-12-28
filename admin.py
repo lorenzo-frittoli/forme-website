@@ -95,7 +95,7 @@ def change_password(user_email, new_password) -> tuple[str, int]:
 def block_students_booking() -> tuple[str, int]:
     cur = g.con.cursor()
 
-    cur.execute("UPDATE users SET type = '#student#' WHERE type = 'student';")
+    cur.execute("UPDATE users SET can_book = FALSE WHERE type = 'student';")
     
     g.con.commit()
     cur.close()
@@ -107,7 +107,7 @@ def block_students_booking() -> tuple[str, int]:
 def block_guests_booking() -> tuple[str, int]:
     cur = g.con.cursor()
 
-    cur.execute("UPDATE users SET type = '#guest#' WHERE type = 'guest';")
+    cur.execute("UPDATE users SET can_book = FALSE WHERE type = 'guest';")
     
     g.con.commit()
     cur.close()
@@ -119,8 +119,7 @@ def block_guests_booking() -> tuple[str, int]:
 def allow_booking() -> tuple[str, int]:
     cur = g.con.cursor()
 
-    cur.execute("UPDATE users SET type = 'student' WHERE type = '#student#';")
-    cur.execute("UPDATE users SET type = 'guest' WHERE type = '#guest#';")
+    cur.execute("UPDATE users SET can_book = TRUE;")
 
     g.con.commit()
     cur.close()
