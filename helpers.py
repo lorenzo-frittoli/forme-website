@@ -1,4 +1,4 @@
-from flask import redirect, render_template, session, g, url_for, send_file, Response
+from flask import redirect, render_template, session, g, url_for, send_file, Response, abort
 from functools import wraps
 import qrcode
 from io import BytesIO
@@ -11,6 +11,22 @@ from constants import *
 def apology(message, code=400):
     """Render message as an apology to user."""
     return render_template("apology.html", message=message), code
+
+
+def update_session():
+    # Query db for id and hash from email
+    cur = g.con.cursor()
+    query_result = cur.execute("SELECT type, name, surname, email, can_book FROM users WHERE id = ?;", (session["user_id"], )).fetchone()
+    # If the user has been deleted (this functionality is not implemented, this should not happen)
+    if not query_result:
+        session.clear()
+        abort(403)
+
+    # Closing cursor
+    cur.close()
+
+    # Update all user info (in case something has been changend in the mean time)
+    session["user_type"], session["user_name"], session["user_surname"], session["user_email"] , session["can_book"] = query_result
 
 
 def login_required(f):
@@ -27,8 +43,11 @@ def login_required(f):
         cur.close()
 
         if not id:
+            session.clear()
             return redirect("/login")
-        
+
+        update_session()
+
         return f(*args, **kwargs)
     return decorated_function
 

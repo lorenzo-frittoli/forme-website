@@ -26,21 +26,6 @@ def before_request():
     if "/static/" not in request.path:
         # Open the connection to the database
         g.con = sqlite3.connect(DATABASE)
-        if "user_id" in session:
-            # Query db for id and hash from email
-            cur = g.con.cursor()
-            query_result = cur.execute("SELECT type, name, surname, email, can_book FROM users WHERE id = ?;", (session["user_id"], )).fetchone()
-            # If the user has been deleted (this functionality is not implemented, this should not happen)
-            if not query_result:
-                session.clear()
-                abort(403)
-
-            # Closing cursor
-            cur.close()
-
-            # Update all user info (in case something has been changend in the mean time)
-            session["user_type"], session["user_name"], session["user_surname"], session["user_email"] , session["can_book"] = query_result
-            print(session["can_book"])
 
 
 @app.after_request
@@ -94,7 +79,7 @@ def login_page():
     # Query db for user info
     cur = g.con.cursor()
     # query_result is like [(id, pw_hash)]
-    query_result = cur.execute("SELECT id, hash, type, name, surname FROM users WHERE email = ?;", (email, )).fetchone()
+    query_result = cur.execute("SELECT id, hash FROM users WHERE email = ?;", (email, )).fetchone()
         
     # Closing cursor
     cur.close()
@@ -103,8 +88,9 @@ def login_page():
     if not query_result:
         session.clear()
         return apology("email e/o password invalidi", 400)
-    
-    session["user_id"], pw_hash, session["user_type"], session["user_name"], session["user_surname"] = query_result
+
+    # No need to fully update the session: it will be updated after the redirect
+    session["user_id"], pw_hash = query_result
     session["user_email"] = email
 
     # Check password against hash
