@@ -241,6 +241,7 @@ def generate_schedule(user_id: int, user_type: str, con: Connection):
     # Fill with known data
     for activity_id, title, day, module_start, module_end in user_registrations:
         for timespan in range(module_start, module_end + 1):
+            assert DAYS[day] in schedule
             assert schedule[DAYS[day]][TIMESPANS_TEXT[timespan]] == ("", None)
             link = url_for(".activity_page", id=activity_id)
             schedule[DAYS[day]][TIMESPANS_TEXT[timespan]] = (title, link)

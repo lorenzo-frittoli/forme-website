@@ -1,5 +1,5 @@
 import sqlite3
-from flask import Flask, redirect, render_template, request, session, g, Response, abort
+from flask import Flask, redirect, render_template, request, session, g, Response, abort, url_for
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 import json
@@ -26,10 +26,10 @@ def before_request():
     if "/static/" not in request.path:
         # Open the connection to the database
         g.con = sqlite3.connect(DATABASE)
-        if "user_email" in session:
+        if "user_id" in session:
             # Query db for id and hash from email
             cur = g.con.cursor()
-            query_result = cur.execute("SELECT id, type, name, surname FROM users WHERE email = ?;", (session["user_email"], )).fetchone()
+            query_result = cur.execute("SELECT type, name, surname, email FROM users WHERE id = ?;", (session["user_id"], )).fetchone()
             # If the user has been deleted (this functionality is not implemented, this should not happen)
             if not query_result:
                 session.clear()
@@ -38,11 +38,13 @@ def before_request():
             # Closing cursor
             cur.close()
 
+            # Update all user info (in case something has been changend in the mean time)
+            session["user_type"], session["user_name"], session["user_surname"], session["user_email"] = query_result
+
 
 @app.after_request
 def after_request(response):
     """Ensure responses aren't cached"""
-    # I have no idea what this code is even for, don't ask, it just works ok?
 
     if "/static/" in request.path:
         # static file
@@ -88,7 +90,7 @@ def login_page():
     if not request.form.get("password"):
         return apology("password non valida", 400)
 
-    # Query db for id and hash from emailf
+    # Query db for user info
     cur = g.con.cursor()
     # query_result is like [(id, pw_hash)]
     query_result = cur.execute("SELECT id, hash, type, name, surname FROM users WHERE email = ?;", (email, )).fetchone()
@@ -441,7 +443,8 @@ def qr_code():
     
     cur.close()
 
-    return qr_code_for(LINK + "/redirect_verifica?verification_code=" + result[0])
+    return qr_code_for(LINK + url_for("verification_page", verification_code=result[0]))
+
 
 
 @app.route("/redirect_verifica")

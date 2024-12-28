@@ -88,7 +88,7 @@ def change_password(user_email, new_password) -> tuple[str, int]:
 
     cur.close()
     
-    return f"Password changed for {user_email}!", 200
+    return f"New password for {user_email}: {new_password}", 200
 
 
 @command
