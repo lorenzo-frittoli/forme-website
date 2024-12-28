@@ -9,18 +9,16 @@ from werkzeug.security import generate_password_hash
 from helpers import make_registration
 from manage_helpers import make_backup, get_activities_from_file, get_students_from_file, generate_password
 from constants import *
-from app import app
 
 
 # SETUP
-cli = FlaskGroup(app)
+cli = FlaskGroup()
 
 @cli.command()
 def make_db() -> None:
     """Drops all current tables and sets up new ones in the database"""
     if os.path.exists(DATABASE):
         make_backup(AUTO_BACKUPS_DIR)
-        print(f"Backed up db to {AUTO_BACKUPS_DIR}")
         os.remove(DATABASE)
 
     with open(MAKE_DATABASE_COMMAND_FILE, 'r') as f:
