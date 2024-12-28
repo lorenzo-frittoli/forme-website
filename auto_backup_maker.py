@@ -8,7 +8,7 @@ def main():
     """Automatically creates backups of the db
     """        
     while True:
-        make_backup(AUTO_BACKUPS_DIR)
+        make_backup(TIMED_BACKUPS_DIR)
         time.sleep(BACKUP_FREQ)
 
 

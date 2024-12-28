@@ -33,6 +33,7 @@ DIR_SEP = "\\" if os.name == "nt" else "/"
 
 BACKUPS_DIR = "backups"
 MANUAL_BACKUPS_DIR = BACKUPS_DIR + DIR_SEP + "manual"
+TIMED_BACKUPS_DIR = BACKUPS_DIR + DIR_SEP + "timed"
 AUTO_BACKUPS_DIR = BACKUPS_DIR + DIR_SEP + "auto"
 
 

@@ -34,7 +34,7 @@ def command(f):
 def all_backups() -> list[str]:
     """Returns a list with all currently present backups."""
     backups = []
-    for dir in (AUTO_BACKUPS_DIR, MANUAL_BACKUPS_DIR):
+    for dir in (AUTO_BACKUPS_DIR, MANUAL_BACKUPS_DIR, TIMED_BACKUPS_DIR):
         if not os.path.exists(dir):
             os.makedirs(dir)
         backups += [dir + DIR_SEP + filename for filename in os.listdir(dir)]
