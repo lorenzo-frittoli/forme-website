@@ -18,39 +18,24 @@ cli = FlaskGroup(app)
 @cli.command()
 def make_db() -> None:
     """Drops all current tables and sets up new ones in the database"""
-    # Create db file if it doesn't exist
-    open(DATABASE, "w").close()
-    
-    # Initialize sqlite3
+    if os.path.exists(DATABASE):
+        # !TODO: add auto-backup
+        os.remove(DATABASE)
+
+    _ = open(DATABASE, 'w') # Creates new DB file
+
+    with open(MAKE_DATABASE_COMMAND_FILE, 'r') as f:
+        sql_script = f.read()   # Command file as string
+
     con = sqlite3.connect(DATABASE)
     cur = con.cursor()
 
-    # Drop all tables
-    TABLE_PARAMETER = "{TABLE_PARAMETER}"
-    DROP_TABLE_SQL = f"DROP TABLE {TABLE_PARAMETER};"
-    GET_TABLES_SQL = "SELECT name FROM sqlite_schema WHERE type='table' AND name != 'sqlite_sequence';"
-    
-    cur.execute(GET_TABLES_SQL)
-    tables = cur.fetchall()
+    cur.executescript(sql_script)
 
-    for table, in tables:
-        sql = DROP_TABLE_SQL.replace(TABLE_PARAMETER, table)
-        cur.execute(sql)
-    
-    # Init the database
-    with open(MAKE_DATABASE_COMMAND_FILE, 'r') as sql_file:
-        sql_script = sql_file.read()
-        
-    for command in sql_script.split(";"):
-        con.execute(f"{command};")
-    
-    # Commit changes
     con.commit()
-
-    # Close sqlite3 (optional)
+    
     cur.close()
     con.close()
-    
 
 @cli.command()
 def backup_db() -> None:

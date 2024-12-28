@@ -7,8 +7,8 @@ CREATE TABLE users (
     surname TEXT NOT NULL,
     type TEXT NOT NULL,
     class TEXT,
-    verification_code TEXT KEY NOT NULL UNIQUE
-    can_book INTEGER NOT NULL DEFAULT 1;
+    verification_code TEXT KEY NOT NULL UNIQUE,
+    can_book INTEGER NOT NULL DEFAULT 1
 );
 
 -- Activities table
