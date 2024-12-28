@@ -22,8 +22,6 @@ def make_db() -> None:
         # !TODO: add auto-backup
         os.remove(DATABASE)
 
-    _ = open(DATABASE, 'w') # Creates new DB file
-
     with open(MAKE_DATABASE_COMMAND_FILE, 'r') as f:
         sql_script = f.read()   # Command file as string
 
