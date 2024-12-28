@@ -23,6 +23,7 @@
         document.addEventListener("DOMContentLoaded", function() {
             dayButtonsLabels = document.getElementsByName("day-button-label");
             timespanButtonsLabels = document.getElementsByName("timespan-button-label");
+            timespanButtons = document.getElementsByName("timespan-button");
             availability = JSON.parse('{{ availability|tojson }}');
             user_free = JSON.parse('{{ user_free|tojson }}');
             
@@ -32,38 +33,33 @@
                     // Hides the available slots text and the booking button
                     document.getElementById("booking-button-div").style.visibility = "hidden";
 
-                    // Reloads the timespans buttons div, so that no button is selected when switching day
-                    $.get(document.URL, function(data) {
-                        var content = $(data).find("#timespans-buttons-div").html();
-                        $("#timespans-buttons-div").html(content);
+                    // Make the buttons visible
+                    document.getElementById("timespans-buttons-div").style.visibility = "visible"
+
+                    for (let j = 0; j < timespanButtonsLabels.length; j++) {
+                        // De-select the timespan button
+                        timespanButtons[j].checked = false;
+                        // Add event listeners to timespan buttons to generate booking button
+                        timespanButtonsLabels[j].addEventListener("click", function() {
+                            // Somehow, the value of j is saved correctly (only if it is declared with "let")
+                            let avail = availability[i][j];
+                            $("#available-slots").text(
+                                avail === 1 ? '1 posto disponibile' : `${avail} posti disponibili`
+                            );
+                            document.getElementById("booking-button-div").style.visibility = "visible";
+                        });
                         
-                        // Re-applies enlargement after reloading the content of the div
-                        enlarge();
-
-                        // Make the buttons visible
-                        document.getElementById("timespans-buttons-div").style.visibility = "visible"
-
-                        for (let j = 0; j < timespanButtonsLabels.length; j++) {
-                            availableSlots = availability[i][j];
-
-                            // Add event listeners to timespan buttons to generate booking button
-                            timespanButtonsLabels[j].addEventListener("click", function() {
-                                $("#available-slots").text(`${availableSlots} posti disponibili`);
-                                document.getElementById("booking-button-div").style.visibility = "visible";
-                            });
-                            
-                            // Disable buttons where there are no slots left
-                            if (availableSlots <= 0 || !user_free[i][j]) {
-                                timespanButtonsLabels[j].classList.remove("btn-outline-primary");
-                                timespanButtonsLabels[j].classList.add("btn-outline-secondary");
-                                timespanButtonsLabels[j].classList.add("disabled");
-                            } else {
-                                timespanButtonsLabels[j].classList.remove("btn-outline-secondary");
-                                timespanButtonsLabels[j].classList.remove("disabled");
-                                timespanButtonsLabels[j].classList.add("btn-outline-primary");
-                            }
+                        // Disable buttons where there are no slots left
+                        if (availability[i][j] <= 0 || !user_free[i][j]) {
+                            timespanButtonsLabels[j].classList.remove("btn-outline-primary");
+                            timespanButtonsLabels[j].classList.add("btn-outline-secondary");
+                            timespanButtonsLabels[j].classList.add("disabled");
+                        } else {
+                            timespanButtonsLabels[j].classList.remove("btn-outline-secondary");
+                            timespanButtonsLabels[j].classList.remove("disabled");
+                            timespanButtonsLabels[j].classList.add("btn-outline-primary");
                         }
-                    });
+                    }
                 });
             }
         });
@@ -77,19 +73,6 @@
         <p>{{ activity.classroom }}</p>
     </div>
     <hr>
-
-    {% if activity.booked %}
-        <div class="card text-danger border-danger" style="height: 6.5rem; width: 15rem; margin: auto;">
-            <div class="card-body">
-                <div class="card-title">
-                    <h3>Prenotazione:</h>
-                </div>
-                <div class="card-text">
-                    <p>{{ activity.booked }}</p>
-                </div>
-            </div>
-        </div>
-    {% endif %}
 
     <!-- Body -->
     <!-- Info -->
@@ -118,7 +101,7 @@
             </div>
 
             {% if user_type[0] == "#" %}
-            <h2>Non si possono piu' modificare le prenotazioni</h2>
+            <h2>Non si possono più modificare le prenotazioni</h2>
             {% else %}
             <div>
                 <!-- Availability table -->
@@ -165,11 +148,11 @@
                 <div>
                 {% if not is_booked %}
                     <h2>Prenota</h2>
-                    <div class="booking" style="margin: 5%;">
+                    <div class="booking" style="margin: 2%;">
                         <form action="/activity?id={{ id }}" method="post">
                             
                             <!-- Buttons for the days -->
-                            <div style="margin-top: 5%;">
+                            <div>
                                 <h5>Giorno</h5>
                                 <div class="btn-group btn-group-lg-on-mobile container-fluid" role="group" style="flex-wrap: wrap;">
                                     {% for day in days %}
@@ -180,8 +163,8 @@
                             </div>
                             
                             <!-- Buttons for the timespans -->
-                            <div id="timespans-buttons-div" style="margin-top: 5%; visibility: hidden;">
-                                <h5>Ora</h5>
+                            <div id="timespans-buttons-div" style="margin-top: 1rem; visibility: hidden;">
+                                <h5>Orario</h5>
                                 <div id="timespans-button-group" class="btn-group btn-group-lg-on-mobile container-fluid" role="group" style="flex-wrap: wrap;">
                                     {% for timespan in timespans %}
                                     <input type="radio" value="{{ timespan[0] }}" class="btn-check" name="timespan-button" id="{{ timespan[0] }}-timespan-button" autocomplete="off">
@@ -193,7 +176,7 @@
                             <!-- Booking button and number of available slots -->
                             <div class="container-fluid" id="booking-button-div" style="margin-top: 5%; visibility: hidden;">
                                 <!-- Number of available slots -->
-                                <p id="available-slots">placeholder</p>
+                                <p id="available-slots"></p>
                                 
                                 <!-- Booking button -->
                                 <button class="btn btn-primary btn-lg-on-mobile" name="booking-button">Prenota</button>
@@ -202,7 +185,11 @@
                     </div>
                 {% else %}
                     <div class="unbooking">
-                        <h2>Attività già prenotata</h2>
+                        <div class="card card-booked">
+                            <div class="card-body">
+                                <h6 style="margin-bottom: 1px;">Prenotazione: {{ activity.booked }}</h6>
+                            </div>
+                        </div>
                         <form action="/activity?id={{ id }}" method="post" style="margin: 5%;">
                             <button class="btn btn-primary btn-lg-on-mobile" name="unbooking-button">Rimuovi Prenotazione</button>
                         </form>
