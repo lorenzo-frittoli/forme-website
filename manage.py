@@ -19,7 +19,8 @@ cli = FlaskGroup(app)
 def make_db() -> None:
     """Drops all current tables and sets up new ones in the database"""
     if os.path.exists(DATABASE):
-        # !TODO: add auto-backup
+        make_backup(AUTO_BACKUPS_DIR)
+        print(f"Backed up db to {AUTO_BACKUPS_DIR}")
         os.remove(DATABASE)
 
     with open(MAKE_DATABASE_COMMAND_FILE, 'r') as f:
