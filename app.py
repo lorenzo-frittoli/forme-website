@@ -91,7 +91,6 @@ def login_page():
 
     # No need to fully update the session: it will be updated after the redirect
     session["user_id"], pw_hash = query_result
-    session["user_email"] = email
 
     # Check password against hash
     if not check_password_hash(pw_hash, request.form["password"]):
@@ -109,7 +108,6 @@ def logout_page():
     # Forget any user_id
     session.clear()
 
-    # Redirect user to login form
     return redirect("/")
 
 
@@ -245,7 +243,7 @@ def activity_page():
         # JSON string -> list[list[remaining by time] by day]
         activity_availability = json.loads(activity_availability)
 
-        if session["user_type"] == "staff":
+        if g.user_type == "staff":
         
             today = datetime.today().strftime("%d/%m")
             try:
@@ -291,8 +289,8 @@ def activity_page():
             )
             
         
-        # session["user_type"] != "staff"
-        cur.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ?", (session["user_id"], ))
+        # g.user_type != "staff"
+        cur.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ?", (g.user_id, ))
         user_registrations = cur.fetchall()
 
         # Close cursor
@@ -301,9 +299,9 @@ def activity_page():
         # Details of the activity
         activity_dict["booked"] = fmt_activity_booking(activity_id, g.con)
 
-        activity_availability = [av for i, av in enumerate(activity_availability) if session["user_type"] in PERMISSIONS[i]]
+        activity_availability = [av for i, av in enumerate(activity_availability) if g.user_type in PERMISSIONS[i]]
 
-        activity_days = tuple((i, day) for i, day in enumerate(DAYS) if session["user_type"] in PERMISSIONS[i])
+        activity_days = tuple((i, day) for i, day in enumerate(DAYS) if g.user_type in PERMISSIONS[i])
         
         user_free = [[True for _ in TIMESPANS] for _ in DAYS]
 
@@ -315,7 +313,7 @@ def activity_page():
 
         user_free = [[all(day_free[module_start:module_start+activity_length])
                      for module_start in range(0, len(TIMESPANS)-activity_length+1, activity_length)]
-                     for i, day_free in enumerate(user_free) if session["user_type"] in PERMISSIONS[i]]
+                     for i, day_free in enumerate(user_free) if g.user_type in PERMISSIONS[i]]
         
         return render_template(
             "activity.html",
@@ -325,7 +323,7 @@ def activity_page():
             timespans=activity_timespans,
             availability=activity_availability,
             user_free=user_free,
-            can_book=session["can_book"]
+            can_book=g.can_book
         )
 
     # Method is POST
@@ -342,7 +340,7 @@ def activity_page():
 
         # Make registration
         try:
-            make_registration(session["user_id"], activity_id, day, module, session["user_type"], g.con)
+            make_registration(g.user_id, activity_id, day, module, g.user_type, g.con)
         
         except ValueError:
             return apology("Prenotazione non valida")
@@ -351,7 +349,7 @@ def activity_page():
     elif "unbooking-button" in request.form:
         cur = g.con.cursor()
         
-        registration = cur.execute("SELECT day, module_start FROM registrations WHERE user_id = ? AND activity_id = ?;", (session["user_id"], activity_id)).fetchone()
+        registration = cur.execute("SELECT day, module_start FROM registrations WHERE user_id = ? AND activity_id = ?;", (g.user_id, activity_id)).fetchone()
         length = cur.execute("SELECT length FROM activities WHERE id = ?;", (activity_id, )).fetchone()
         
         if None in (registration, length):
@@ -365,7 +363,7 @@ def activity_page():
         update_availability(activity_id, day, module, 1, g.con)
         
         # Remove registration
-        cur.execute("DELETE FROM registrations WHERE user_id = ? AND activity_id = ?;", (session["user_id"], activity_id))
+        cur.execute("DELETE FROM registrations WHERE user_id = ? AND activity_id = ?;", (g.user_id, activity_id))
         g.con.commit()
         cur.close()
         
@@ -384,11 +382,11 @@ def me_page():
     return render_template(
         "me.html",
         title="Il mio orario",
-        schedule=generate_schedule(session["user_id"], session["user_type"], g.con),
-        user_name = session["user_name"],
-        user_surname = session["user_surname"],
-        user_email = session["user_email"],
-        user_type=session["user_type"]
+        schedule=generate_schedule(g.user_id, g.user_type, g.con),
+        user_name = g.user_name,
+        user_surname = g.user_surname,
+        user_email = g.user_email,
+        user_type=g.user_type
     )
 
 
@@ -410,9 +408,9 @@ def qr_code():
     """Generate the qr code for verification
     """
     cur = g.con.cursor()
-    result = cur.execute("SELECT verification_code FROM users WHERE id = ?", (session["user_id"], )).fetchone()
+    result = cur.execute("SELECT verification_code FROM users WHERE id = ?", (g.user_id, )).fetchone()
     if not result:
-        raise RuntimeError(f"User not found in qr_code: user_id {session['user_id']}, email {session['user_email']}")
+        raise RuntimeError(f"User not found in qr_code: user_id {g.user_id}, email {g.user_email}")
     
     cur.close()
 

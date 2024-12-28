@@ -13,22 +13,6 @@ def apology(message, code=400):
     return render_template("apology.html", message=message), code
 
 
-def update_session():
-    # Query db for id and hash from email
-    cur = g.con.cursor()
-    query_result = cur.execute("SELECT type, name, surname, email, can_book FROM users WHERE id = ?;", (session["user_id"], )).fetchone()
-    # If the user has been deleted (this functionality is not implemented, this should not happen)
-    if not query_result:
-        session.clear()
-        abort(403)
-
-    # Closing cursor
-    cur.close()
-
-    # Update all user info (in case something has been changend in the mean time)
-    session["user_type"], session["user_name"], session["user_surname"], session["user_email"] , session["can_book"] = query_result
-
-
 def login_required(f):
     """
     Decorate routes to require login.
@@ -39,16 +23,20 @@ def login_required(f):
             return redirect("/login")
 
         cur = g.con.cursor()
-        id = cur.execute("SELECT id FROM users WHERE id = ?;", (session["user_id"], )).fetchone()
+        query_result = cur.execute("SELECT type, name, surname, email, can_book FROM users WHERE id = ?;", (session["user_id"], )).fetchone()
         cur.close()
 
-        if not id:
+        # If the user has been deleted (this functionality is not implemented, this should not happen)
+        if not query_result:
             session.clear()
             return redirect("/login")
 
-        update_session()
+        # Update all user info (in case something has been changend in the mean time)
+        g.user_type, g.user_name, g.user_surname, g.user_email , g.can_book = query_result
+        g.user_id = session["user_id"]
 
         return f(*args, **kwargs)
+
     return decorated_function
 
 
@@ -64,7 +52,7 @@ def admin_required(f):
     @wraps(f)
     @login_required
     def decorated_function(*args, **kwargs):
-        if session.get("user_email") not in ADMIN_EMAILS:
+        if g.user_email not in ADMIN_EMAILS:
             return apology("Auth failed", 403)
         
         return f(*args, **kwargs)
@@ -215,7 +203,7 @@ def get_image_path(image: str) -> str:
 def fmt_activity_booking(activity_id: int, con: Connection) -> str:
     cur = con.cursor()
 
-    cur.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ? AND activity_id = ?", (session["user_id"], activity_id))
+    cur.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ? AND activity_id = ?", (g.user_id, activity_id))
     span = cur.fetchone()
     cur.close()
 
