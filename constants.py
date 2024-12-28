@@ -9,8 +9,8 @@ DAYS = ("09/10", "10/10", "11/10")
 TIMESPANS = (("08:00", "09:00"), ("09:00", "10:00"), ("10:00", "11:00"), ("11:00", "12:00"))
 TIMESPANS_TEXT = tuple("-".join(timespan) for timespan in TIMESPANS)
 PERMISSIONS = (("student", ), ("student", "guest"), ("guest", ))
-PERMISSIONS = tuple((*day, "staff") for day in PERMISSIONS) # Adds "staff" to every day's permissions
 
+assert len(set(DAYS)) == len(DAYS)
 assert len(PERMISSIONS) == len(DAYS)
 
 

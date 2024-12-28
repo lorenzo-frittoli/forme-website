@@ -256,11 +256,10 @@ def activity_page():
             "image": get_image_path(activity_image),
         }
 
+        # JSON string -> list[list[remaining by time] by day]
+        activity_availability = json.loads(activity_availability)
+
         if session["user_type"] == "staff":
-            # Details of the activity
-        
-            # JSON string -> list[list[remaining by time] by day]
-            activity_availability = json.loads(activity_availability)
         
             today = datetime.today().strftime("%d/%m")
             try:
@@ -275,7 +274,7 @@ def activity_page():
                     days=DAYS,
                     timespans=activity_timespans,
                     availability=activity_availability,
-                    has_registrations=False
+                    has_bookings=False
                 )
 
             cur.execute("SELECT name, surname, class, module_start, module_end FROM users JOIN registrations ON users.id = registrations.user_id WHERE activity_id = ? AND day = ?;", (activity_id, day_index))
@@ -315,9 +314,6 @@ def activity_page():
 
         # Details of the activity
         activity_dict["booked"] = fmt_activity_booking(activity_id, g.con)
-        
-        # JSON string -> list[list[remaining by time] by day]
-        activity_availability = json.loads(activity_availability)
 
         activity_availability = [av for i, av in enumerate(activity_availability) if session["user_type"] in PERMISSIONS[i]]
 
