@@ -1,6 +1,6 @@
 import time
 
-from constants import AUTO_BACKUPS_DIR, BACKUP_FREQ
+from constants import TIMED_BACKUPS_DIR, BACKUP_FREQ
 from manage_helpers import make_backup
 
 
