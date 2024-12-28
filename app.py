@@ -108,7 +108,7 @@ def login_page():
     session["user_email"] = email
 
     # Check password against hash
-    if not check_password_hash(pw_hash, request.form.get("password")):
+    if not check_password_hash(pw_hash, request.form["password"]):
         session.clear()
         return apology("email e/o password invalidi", 400)
 
@@ -223,15 +223,14 @@ def activities_page():
 @login_required
 def activity_page():
     """Activity page w/ details"""
-    # If the page is loaded with GET (eg: clicking a link, getting redirected...)
-    if request.method == "GET":
-        # Fetch data
-        try:
-            activity_id = int(request.args["id"])
-
-        except (KeyError, ValueError):
-            return apology("Invalid http request")
+    try:
+        activity_id = int(request.args["id"])
         
+    except (KeyError, ValueError):
+        return apology("Invalid http request")
+
+    # Method is GET
+    if request.method == "GET":        
         # Setup
         cur = g.con.cursor()
         
@@ -347,19 +346,14 @@ def activity_page():
             can_book=session["can_book"]
         )
 
-    # If method is POST (booking button has been pressed)
-    try:
-        activity_id = int(request.args["id"])
-        
-    except (KeyError, ValueError):
-        return apology("Invalid http request")
+    # Method is POST
     
     # If booking
     if "booking-button" in request.form:
         # Fetch data
         try:
-            day = int(request.form.get('day-button'))
-            module = int(request.form.get("timespan-button"))
+            day = int(request.form['day-button'])
+            module = int(request.form["timespan-button"])
             
         except (TypeError, ValueError):
             return apology("Invalid http request")
