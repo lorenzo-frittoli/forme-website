@@ -205,7 +205,6 @@ def activity_page():
         # Query the database
         query_result = g.con.execute("SELECT title, description, type, length, classroom, image, availability FROM activities WHERE id = ?;", [activity_id,]).fetchone()
 
-        print(query_result)
         if query_result is None:
             return apology("Invalid http request")
 
