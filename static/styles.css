@@ -95,16 +95,10 @@ nav .navbar-brand {
     border-width: 5px;
 }
 
-.mobile-card .card-body {
-    display: flex;
-    padding: 0;
-}
-
 .mobile-card .card-img {
-    height: auto;
-    max-width: 50%;
+    width: 100%;
     object-fit: contain;
-    flex: 50%;
+    flex: 100%;
 }
 
 .mobile-card .card-body-right {
@@ -116,12 +110,6 @@ nav .navbar-brand {
     padding-left: var(--padding-lat);
     padding-right: var(--padding-lat);
     padding-top: 10px;
-}
-
-.mobile-card .card-booked {
-    position: absolute;
-    width: calc(100% - 2*var(--padding-lat));
-    bottom: 10px;
 }
 
 /* me.html, activities.html, activity.html */

@@ -64,24 +64,21 @@
                 <!-- mobile layout -->
                 <div class="card mx-auto mobile-card">
                     <div class="card-body">
-                        <img class="card-img" src="{{ activity.image }}">
-                        <div class="card-body-right">
-                            <h5 class="card-title">{{ activity.title }}</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">{{ activity.type }}</h6>
-                            <p class="card-subtitle text-muted">
-                                {% if activity.length > 1 %}
-                                    {{ activity.length }} Moduli
-                                {% else %}
-                                    1 Modulo
-                                {% endif %}
-                            </p>
-                            {% if activity.booked|length%}
-                            <br>
-                            <div class="card-booked">
-                                Prenotazione: <br> {{ activity.booked }}
-                            </div>
-                            {% endif %}
+                        <h5 class="card-title">{{ activity.title }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ activity.type }} - 
+                        {% if activity.length > 1 %}
+                            {{ activity.length }} Moduli
+                        {% else %}
+                            1 Modulo
+                        {% endif %}
+                        </h6>
+                        <!--img class="card-img" src="{{ activity.image }}"-->
+                        {% if activity.booked|length%}
+                        <!--<br>-->
+                        <div class="card-booked mt-3">
+                            Prenotazione: <br> {{ activity.booked }}
                         </div>
+                        {% endif %}
                     </div>
                 </div>
             </a>
