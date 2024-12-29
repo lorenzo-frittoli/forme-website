@@ -27,6 +27,20 @@ def before_request():
         # Open the connection to the database
         g.con = sqlite3.connect(DATABASE)
 
+        if session.get("user_id") is None:
+            return
+
+        query_result = g.con.execute("SELECT type, name, surname, email, can_book FROM users WHERE id = ?;", (session["user_id"], )).fetchone()
+
+        # If the user has been deleted (this functionality is not implemented, this should not happen)
+        if not query_result:
+            session.clear()
+            return
+
+        # Save all user info
+        g.user_type, g.user_name, g.user_surname, g.user_email , g.can_book = query_result
+        g.user_id = session["user_id"]
+
 
 @app.after_request
 def after_request(response):

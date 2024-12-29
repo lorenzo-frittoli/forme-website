@@ -22,16 +22,12 @@ def login_required(f):
         if session.get("user_id") is None:
             return redirect("/login")
 
-        query_result = g.con.execute("SELECT type, name, surname, email, can_book FROM users WHERE id = ?;", (session["user_id"], )).fetchone()
+        query_result = g.con.execute("SELECT 1 FROM users WHERE id = ?;", (session["user_id"], )).fetchone()
 
         # If the user has been deleted (this functionality is not implemented, this should not happen)
         if not query_result:
             session.clear()
             return redirect("/login")
-
-        # Update all user info (in case something has been changend in the mean time)
-        g.user_type, g.user_name, g.user_surname, g.user_email , g.can_book = query_result
-        g.user_id = session["user_id"]
 
         return f(*args, **kwargs)
 
