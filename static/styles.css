@@ -38,11 +38,6 @@ nav .navbar-brand {
 
 /* activity.html */
 
-/* Style for the "type" field */
-.type {
-    color: rgb(117, 117, 117);
-}
-
 .unbooking .card-booked {
     display: flex;
     margin: auto;
