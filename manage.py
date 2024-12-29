@@ -25,13 +25,10 @@ def make_db() -> None:
         sql_script = f.read()   # Command file as string
 
     con = sqlite3.connect(DATABASE)
-    cur = con.cursor()
 
-    cur.executescript(sql_script)
+    con.executescript(sql_script)
 
     con.commit()
-    
-    cur.close()
     con.close()
 
 @cli.command()
@@ -50,8 +47,7 @@ def load_activities(filename: str) -> None:
 
     # Setup sqlite3
     con = sqlite3.connect(DATABASE)
-    cur = con.cursor()
-    
+
     activities = get_activities_from_file(filename)
 
     qry = """
@@ -60,11 +56,10 @@ def load_activities(filename: str) -> None:
         """
 
     # Load activities in db
-    cur.executemany(qry, activities)
+    con.executemany(qry, activities)
     con.commit()
 
     # Close sqlite3
-    cur.close()
     con.close()
 
 
@@ -78,8 +73,7 @@ def load_students(filename: str) -> None:
     """
     # Setup sqlite3
     con = sqlite3.connect(DATABASE)
-    cur = con.cursor()
-    
+
     # Load student data
     students = get_students_from_file(filename)
     for student in students:
@@ -89,11 +83,10 @@ def load_students(filename: str) -> None:
         student["verification_code"] = generate_password(VERIFICATION_CODE_LENGTH)
     
     # Write to DB
-    cur.executemany("INSERT INTO users (type, email, hash, name, surname, class, verification_code) VALUES ('student', :email, :hash, :name, :surname, :class, :verification_code)", students)
+    con.executemany("INSERT INTO users (type, email, hash, name, surname, class, verification_code) VALUES ('student', :email, :hash, :name, :surname, :class, :verification_code)", students)
     con.commit()
 
     # Close sqlite3
-    cur.close()
     con.close()
 
 
@@ -104,19 +97,17 @@ def try_fill_schedules(user_type: str, k: int, seed: int, con: sqlite3.Connectio
         k (int): a parameter for the fill. If k is high long activities will be filled first.
         con (sqlite3.Connection)
     Returns:
-        pair[int, int]: number of filled modules, number of non-filled moduless"""
-    
-    cur = con.cursor()
-
+        pair[int, int]: number of filled modules, number of non-filled modules
+    """
     # The days which are to be filled
     fill_days: list[int] = [day for day in range(len(DAYS)) if user_type in PERMISSIONS[day]]
     # All the users with the matching type
-    user_ids = list(map(lambda x: x[0], cur.execute("SELECT id FROM users WHERE type = ?;", (user_type,)).fetchall()))
+    user_ids = list(map(lambda x: x[0], con.execute("SELECT id FROM users WHERE type = ?;", (user_type,)).fetchall()))
     # A different order will give different resluts.
     random.seed(seed)
     random.shuffle(user_ids)
     # All the activities
-    activities = cur.execute("SELECT id, length, availability FROM activities;").fetchall()
+    activities = con.execute("SELECT id, length, availability FROM activities;").fetchall()
     # A list with an entry for each pair (activity, timespan) groupedd by availability. Faster alternative to sorting
     # We save the index of the last successful booking we made +1 for this slot to avoid checking the same users over and over.
     # [id, day, module, length, next user index]
@@ -159,7 +150,7 @@ def try_fill_schedules(user_type: str, k: int, seed: int, con: sqlite3.Connectio
     for user_id in user_ids:
         module_booked = [[False for _ in TIMESPANS] for _ in DAYS]
         # Fetch all activities from the user
-        registrations = cur.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ?;", (user_id, )).fetchall()
+        registrations = con.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ?;", (user_id, )).fetchall()
         for day, module_start, module_end in registrations:
             for module in range(module_start, module_end+1):
                 assert not module_booked[day][module]
@@ -205,32 +196,6 @@ def fill_schedules(user_type: str) -> None:
     con.commit()
     con.close()
 
-# @cli.command()
-# @click.option("-n", "--name", required=True, help="Name of the staff member")
-# @click.option("-s", "--surname", required=True, help="Surname of the staff member")
-# @click.option("-e", "--email", required=True, help="Email of the staff member")
-# @click.option("-p", "--pw", "--password", "password", required=True, help="Password of the account")
-# # REMOVE? alaready admin command
-# def make_staff(name: str, surname: str, email: str, password: str) -> None:
-#     """Make a new staff account
-#     Args:
-#         name (str): name of the staff member
-#         surname (str): surname of the staff member
-#         email (str): email of the staff member
-#         password (str): password of the account
-#     """
-#     # Open DB connection
-#     con = sqlite3.connect(DATABASE)
-#     cur = con.cursor()
-
-#     # Save user
-#     pw_hash = generate_password_hash(password, GENERATE_PASSWORD_METHOD)
-#     cur.execute("INSERT INTO users (type, email, hash, name, surname, verification_code) VALUES ('staff', ?, ?, ?, ?, ?)", (email, pw_hash, name, surname))
-#     con.commit()
-    
-#     # Close DB connection
-#     cur.close()
-#     con.close()
 
 if __name__ == '__main__':
     cli()

@@ -70,11 +70,8 @@ def change_password(user_email, new_password) -> tuple[str, int]:
     if user_email in ADMIN_EMAILS:
         return "Cannot change an admin's password", 200
 
-    cur = g.con.cursor()
-
     # Check that the user exists
-    cur.execute("SELECT 1 FROM users WHERE email = ?", (user_email, ))
-    if not cur.fetchone():
+    if not g.con.execute("SELECT 1 FROM users WHERE email = ?", (user_email, )).fetchone():
         return "Email not found", 200
     
     # Create a random password in none is provided
@@ -83,53 +80,39 @@ def change_password(user_email, new_password) -> tuple[str, int]:
 
     password_hash = generate_password_hash(new_password, method=GENERATE_PASSWORD_METHOD)
 
-    cur.execute("UPDATE users SET hash = ? WHERE email = ?", (password_hash, user_email))
+    g.con.execute("UPDATE users SET hash = ? WHERE email = ?", (password_hash, user_email))
     g.con.commit()
 
-    cur.close()
-    
     return f"New password for {user_email}: {new_password}", 200
 
 
 @command
 def block_students_booking() -> tuple[str, int]:
-    cur = g.con.cursor()
-
-    cur.execute("UPDATE users SET can_book = FALSE WHERE type = 'student';")
-    
+    g.con.execute("UPDATE users SET can_book = FALSE WHERE type = 'student';")
     g.con.commit()
-    cur.close()
 
     return "Bookings blocked", 200
 
 
 @command
 def block_guests_booking() -> tuple[str, int]:
-    cur = g.con.cursor()
-
-    cur.execute("UPDATE users SET can_book = FALSE WHERE type = 'guest';")
-    
+    g.con.execute("UPDATE users SET can_book = FALSE WHERE type = 'guest';")
     g.con.commit()
-    cur.close()
     
     return "Bookings blocked", 200
 
 
 @command
 def allow_booking() -> tuple[str, int]:
-    cur = g.con.cursor()
-
-    cur.execute("UPDATE users SET can_book = TRUE;")
-
+    g.con.execute("UPDATE users SET can_book = TRUE;")
     g.con.commit()
-    cur.close()
 
     return "Bookings allowed", 200
 
 
 @command
 def make_user(name: str, surname: str, email: str, _type: str, _class: str) -> tuple[str, int]:
-    """Make a new staff account
+    """Create a new account
 
     Args:
         name (str): name of the user
@@ -148,19 +131,16 @@ def make_user(name: str, surname: str, email: str, _type: str, _class: str) -> t
     elif _class != "":
         return "Class would be empty for " + _type, 400
 
-    cur = g.con.cursor()
-
     pwd = generate_password()
     pw_hash = generate_password_hash(pwd, GENERATE_PASSWORD_METHOD)
     verification_code = generate_password(VERIFICATION_CODE_LENGTH)
     # Save user
     try:
-        cur.execute("INSERT INTO users (type, email, hash, name, surname, verification_code) VALUES (?, ?, ?, ?, ?, ?)", (_type, email, pw_hash, name, surname, verification_code))
+        g.con.execute("INSERT INTO users (type, email, hash, name, surname, verification_code) VALUES (?, ?, ?, ?, ?, ?)", (_type, email, pw_hash, name, surname, verification_code))
     except sqlite3.DatabaseError as e:
         return f"{e.__class__.__name__}: {' '.join(e.args)}", 400
 
     g.con.commit()
-    cur.close()
 
     return f"User created: {email}\nPassword: {pwd}", 200
 

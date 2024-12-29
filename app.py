@@ -77,12 +77,8 @@ def login_page():
         return apology("password non valida", 400)
 
     # Query db for user info
-    cur = g.con.cursor()
     # query_result is like [(id, pw_hash)]
-    query_result = cur.execute("SELECT id, hash FROM users WHERE email = ?;", (email, )).fetchone()
-        
-    # Closing cursor
-    cur.close()
+    query_result = g.con.execute("SELECT id, hash FROM users WHERE email = ?;", (email, )).fetchone()
 
     # If there is no user saved with the provided email
     if not query_result:
@@ -94,7 +90,7 @@ def login_page():
 
     # Check password against hash
     if not check_password_hash(pw_hash, request.form["password"]):
-        session.clear()
+        session .clear()
         return apology("email e/o password invalidi", 400)
 
     # Redirect user to home page
@@ -153,22 +149,17 @@ def register_page():
     if password != confirmation:
         return apology("Password e conferma non coincidono", 400)
 
-    cur = g.con.cursor()
-    
     # Check if the email is already taken
-    # cur.execute returns a tuple with the result or None etc
-    found = cur.execute("SELECT 1 FROM users WHERE email = ?;", (email, )).fetchone()
+    # g.con.execute returns a tuple with the result or None etc
+    found = g.con.execute("SELECT 1 FROM users WHERE email = ?;", (email, )).fetchone()
 
     if found:
         return apology("Email già registrata", 400)
 
     # Save the new user & commit
-    cur.execute("INSERT INTO users (email, hash, name, surname, type, verification_code) VALUES (?, ?, ?, ?, ?, ?);",
+    g.con.execute("INSERT INTO users (email, hash, name, surname, type, verification_code) VALUES (?, ?, ?, ?, ?, ?);",
                 (email, generate_password_hash(password, method=GENERATE_PASSWORD_METHOD), name, surname, "guest", generate_password(20)))
     g.con.commit()
-    
-    # Closes cursor
-    cur.close()
 
     # Redirect to the homepage
     return redirect("/login")
@@ -178,10 +169,9 @@ def register_page():
 @login_required
 def activities_page():
     """List of all activities"""
-    cur = g.con.cursor()
-    
+
     # Query DB for id, title, type of every activity in the form list[tuple[id: int, title: str, type: str]]
-    query_output = cur.execute("SELECT id, title, type, description, length, image FROM activities;").fetchall()
+    query_output = g.con.execute("SELECT id, title, type, description, length, image FROM activities;").fetchall()
     
     # If no activity is loaded yet, return apology
     if not query_output:
@@ -196,9 +186,6 @@ def activities_page():
                         "booked": fmt_activity_booking(activity_id, g.con),
                         "image": get_image_path(image_name)
                         } for activity_id, activity_title, activity_type, activity_description, activity_length, image_name in query_output]
-        
-    # Close cursor
-    cur.close()
 
     return render_template("activities.html", activities=activities_list)
 
@@ -215,13 +202,10 @@ def activity_page():
 
     # Method is GET
     if request.method == "GET":        
-        # Setup
-        cur = g.con.cursor()
-        
         # Query the database
-        cur.execute("SELECT title, description, type, length, classroom, image, availability FROM activities WHERE id = ?;", (activity_id,))
-        query_result = cur.fetchone()
+        query_result = g.con.execute("SELECT title, description, type, length, classroom, image, availability FROM activities WHERE id = ?;", [activity_id,]).fetchone()
 
+        print(query_result)
         if query_result is None:
             return apology("Invalid http request")
 
@@ -250,7 +234,6 @@ def activity_page():
                 day_index = DAYS.index(today)
             except ValueError:
                 # No registrations to be shown for today
-                cur.close()
                 return render_template(
                     "activity_staff.html",
                     id=activity_id,
@@ -261,7 +244,7 @@ def activity_page():
                     has_bookings=False
                 )
 
-            cur.execute("SELECT name, surname, class, module_start, module_end FROM users JOIN registrations ON users.id = registrations.user_id WHERE activity_id = ? AND day = ?;", (activity_id, day_index))
+            query_result = g.con.execute("SELECT name, surname, class, module_start, module_end FROM users JOIN registrations ON users.id = registrations.user_id WHERE activity_id = ? AND day = ?;", (activity_id, day_index)).fetchall()
             
             def parse_registration(booking: tuple) -> tuple:
                 if booking[2]:
@@ -269,13 +252,11 @@ def activity_page():
                 else:
                     return booking[1] + " " + booking[0], "Esterno", int(booking[3]), int(booking[4])
             
-            bookings = list(map(parse_registration, cur.fetchall()))
+            bookings = list(map(parse_registration, query_result))
 
             # group the registrations by time
             bookings = sorted(bookings, key=lambda reg: reg[2:4]) # required by groupby
             bookings_by_time = {TIMESPANS[key[0]][0] + "-" + TIMESPANS[key[1]][1]: tuple(map(lambda reg: reg[0:2], group)) for key, group in groupby(bookings, lambda reg: reg[2:4])}
-
-            cur.close()
 
             return render_template(
                 "activity_staff.html",
@@ -290,11 +271,7 @@ def activity_page():
             
         
         # g.user_type != "staff"
-        cur.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ?", (g.user_id, ))
-        user_registrations = cur.fetchall()
-
-        # Close cursor
-        cur.close()
+        user_registrations = g.con.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ?", (g.user_id, )).fetchall()
 
         # Details of the activity
         activity_dict["booked"] = fmt_activity_booking(activity_id, g.con)
@@ -347,10 +324,8 @@ def activity_page():
 
     # If unbooking
     elif "unbooking-button" in request.form:
-        cur = g.con.cursor()
-        
-        registration = cur.execute("SELECT day, module_start FROM registrations WHERE user_id = ? AND activity_id = ?;", (g.user_id, activity_id)).fetchone()
-        length = cur.execute("SELECT length FROM activities WHERE id = ?;", (activity_id, )).fetchone()
+        registration = g.con.execute("SELECT day, module_start FROM registrations WHERE user_id = ? AND activity_id = ?;", (g.user_id, activity_id)).fetchone()
+        length = g.con.execute("SELECT length FROM activities WHERE id = ?;", (activity_id, )).fetchone()
         
         if None in (registration, length):
             return apology("Invalid http request")
@@ -363,9 +338,8 @@ def activity_page():
         update_availability(activity_id, day, module, 1, g.con)
         
         # Remove registration
-        cur.execute("DELETE FROM registrations WHERE user_id = ? AND activity_id = ?;", (g.user_id, activity_id))
+        g.con.execute("DELETE FROM registrations WHERE user_id = ? AND activity_id = ?;", (g.user_id, activity_id))
         g.con.commit()
-        cur.close()
         
     # Wildcard (error)
     else:
@@ -407,12 +381,9 @@ def qr_code_page():
 def qr_code():
     """Generate the qr code for verification
     """
-    cur = g.con.cursor()
-    result = cur.execute("SELECT verification_code FROM users WHERE id = ?", (g.user_id, )).fetchone()
+    result = g.con.execute("SELECT verification_code FROM users WHERE id = ?", (g.user_id, )).fetchone()
     if not result:
         raise RuntimeError(f"User not found in qr_code: user_id {g.user_id}, email {g.user_email}")
-    
-    cur.close()
 
     return qr_code_for(LINK + url_for("verification_page", verification_code=result[0]))
 
@@ -426,12 +397,9 @@ def verification_page():
     except (KeyError, ValueError):
         return apology("Invalid http request")
 
-    cur = g.con.cursor()
-    result = cur.execute("SELECT id, type, name, surname, email FROM users WHERE verification_code = ?", (verification_code, )).fetchone()
+    result = g.con.execute("SELECT id, type, name, surname, email FROM users WHERE verification_code = ?", (verification_code, )).fetchone()
     if not result:
         return apology("Utente non trovato.")
-
-    cur.close()
 
     return render_template(
         "me.html",
