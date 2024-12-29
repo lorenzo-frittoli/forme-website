@@ -1,10 +1,10 @@
-{% extends "layout.html" %}
+{% extends "activity_layout.html" %}
 
 {% block title %}
     Attività
 {% endblock %}
 
-{% block main %}
+{% block scripts %}
     <!-- Handles booking buttons -->
     <script>
         // Function that enlarges buttons for mobile
@@ -64,148 +64,67 @@
             }
         });
     </script>
+{% endblock %}
 
-    <!-- Page Contents -->
-    <!-- Heading -->
-    <div style="margin: 0 2.5%;">
-        <h1>{{ activity.title }}</h1>
-        <h5>{{ activity.type }}</h5>
-        <p>{{ activity.classroom }}</p>
-    </div>
-    <hr>
-
-    <!-- Body -->
-    <!-- Info -->
-    <div class="row">
-        <!-- Left column -->
-        <div class="col-lg-6" id="description-div" style="text-align: center;">
-            <!-- Description -->
-            <!-- <h2 style="margin: 0">{{ activity.title }}</h2>
-            <h4 style="margin: 0">{{ activity.type }}</h4> -->
+{% block bookings %}
+    <!-- Booking / Unbooking -->
+    {% if not activity.booked|length %}
+    <div class="booking" style="margin: 2%;">
+        {% if can_book %}
+        <h2 style="margin-bottom: 1rem;">Prenota</h2>
+        <form action="/activity?id={{ id }}" method="post">
+            
+            <!-- Buttons for the days -->
             <div>
-                <div style="text-align: left; margin: 1.5rem;">
-                    <!-- Makes \n linebreak, while adding a bit of extra spacing -->
-                    {% for section in activity.description.split("\n") %}
-                    <p>{{ section }}</p>
+                <h5>Giorno</h5>
+                <div class="btn-group btn-group-lg-on-mobile container-fluid" role="group" style="flex-wrap: wrap;">
+                    {% for day in days %}
+                    <input type="radio" value="{{ day[0] }}" class="btn-check" name="day-button" id="{{ day[0] }}-day-button" autocomplete="off">
+                    <label class="btn btn-outline-primary" name="day-button-label" id="{{ day[0] }}-day-button-label" for="{{ day[0] }}-day-button">{{ day[1] }}</label>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Buttons for the timespans -->
+            <div id="timespans-buttons-div" style="margin-top: 1rem; visibility: hidden;">
+                <h5>Orario</h5>
+                <div id="timespans-button-group" class="btn-group btn-group-lg-on-mobile container-fluid" role="group" style="flex-wrap: wrap;">
+                    {% for timespan in timespans %}
+                    <input type="radio" value="{{ timespan[0] }}" class="btn-check" name="timespan-button" id="{{ timespan[0] }}-timespan-button" autocomplete="off">
+                    <label class="btn btn-outline-primary" name="timespan-button-label" id="{{ timespan[0] }}-timespan-button-label" for="{{ timespan[0] }}-timespan-button">{{ timespan[1] }}</label>
                     {% endfor %}
                 </div>
             </div>
 
-            <!-- Flyer (mobile) -->
-            <div class="col-lg-6" id="flyer-div-mobile">
-                <div style="margin: 5%;">
-                    <img class="img-fluid" id="activity-image" src="{{ activity.image }}">
-                </div>
-            </div>
-
-            <div>
-                <!-- Availability table -->
-                <div>
-                    <h2>Disponibilità</h2>
-                    <div style="margin: 5%;">
-                        <table class="table table-striped" id="table-mobile">
-                            <thead>
-                                <th> </th>
-                                {% for day in days %}
-                                <th>{{ day[1] }}</th>
-                                {% endfor %}
-                            </thead>
-                            {% for timespan in timespans %}
-                            <tr>
-                                <th>{{ timespan[1] }}</th>
-                                {% for rem in availability %}
-                                <td>{{ rem[timespan[0]] }}</td>
-                                {% endfor %}
-                            </tr>
-                            {% endfor %}
-                        </table>
-                        <table class="table table-striped" id="table-desktop">
-                            <thead>
-                                <th>Giorni</th>
-                                {% for timespan in timespans %}
-                                <th>{{ timespan[1] }}</th>
-                                {% endfor %}
-                            </thead>
-                            
-                            {% for day in days %}
-                            <tr>
-                                <td>{{ day[1] }}</td>
-                                {% for rem in availability[loop.index0] %}
-                                <td>{{ rem }}</td>
-                                {% endfor %}
-                            </tr>
-                            {% endfor %}
-                        </table>
-                    </div>
-                </div>
+            <!-- Booking button and number of available slots -->
+            <div class="container-fluid" id="booking-button-div" style="margin-top: 5%; visibility: hidden;">
+                <!-- Number of available slots -->
+                <p id="available-slots"></p>
                 
-                <!-- Booking / Unbooking -->
-                <div>
-                {% if not activity.booked|length %}
-                <div class="booking" style="margin: 2%;">
-                    {% if can_book %}
-                        <h2 style="margin-bottom: 1rem;">Prenota</h2>
-                        <form action="/activity?id={{ id }}" method="post">
-                            
-                            <!-- Buttons for the days -->
-                            <div>
-                                <h5>Giorno</h5>
-                                <div class="btn-group btn-group-lg-on-mobile container-fluid" role="group" style="flex-wrap: wrap;">
-                                    {% for day in days %}
-                                    <input type="radio" value="{{ day[0] }}" class="btn-check" name="day-button" id="{{ day[0] }}-day-button" autocomplete="off">
-                                    <label class="btn btn-outline-primary" name="day-button-label" id="{{ day[0] }}-day-button-label" for="{{ day[0] }}-day-button">{{ day[1] }}</label>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                            
-                            <!-- Buttons for the timespans -->
-                            <div id="timespans-buttons-div" style="margin-top: 1rem; visibility: hidden;">
-                                <h5>Orario</h5>
-                                <div id="timespans-button-group" class="btn-group btn-group-lg-on-mobile container-fluid" role="group" style="flex-wrap: wrap;">
-                                    {% for timespan in timespans %}
-                                    <input type="radio" value="{{ timespan[0] }}" class="btn-check" name="timespan-button" id="{{ timespan[0] }}-timespan-button" autocomplete="off">
-                                    <label class="btn btn-outline-primary" name="timespan-button-label" id="{{ timespan[0] }}-timespan-button-label" for="{{ timespan[0] }}-timespan-button">{{ timespan[1] }}</label>
-                                    {% endfor %}
-                                </div>
-                            </div>
-
-                            <!-- Booking button and number of available slots -->
-                            <div class="container-fluid" id="booking-button-div" style="margin-top: 5%; visibility: hidden;">
-                                <!-- Number of available slots -->
-                                <p id="available-slots"></p>
-                                
-                                <!-- Booking button -->
-                                <button class="btn btn-primary btn-lg-on-mobile" name="booking-button">Prenota</button>
-                            </div>
-                        </form>
-                        {% else %}
-                        <h5>Non si possono più modificare le prenotazioni</h5>
-                        {% endif %}
-                    </div>
-                    {% else %}
-                    <div class="unbooking">
-                        <div class="card card-booked">
-                            <div class="card-body">
-                                <h6 style="margin-bottom: 1px;">Prenotazione: {{ activity.booked }}</h6>
-                            </div>
-                        </div>
-                        {% if can_book %}
-                        <form action="/activity?id={{ id }}" method="post" style="margin: 5%;">
-                            <button class="btn btn-primary btn-lg-on-mobile" name="unbooking-button">Rimuovi Prenotazione</button>
-                        </form>
-                        {% else %}
-                        <br>
-                        <h5>Non si possono più modificare le prenotazioni</h5>
-                        {% endif %}
-                    </div>
-                    {% endif %}
+                <!-- Booking button -->
+                <button class="btn btn-primary btn-lg-on-mobile" name="booking-button">Prenota</button>
+            </div>
+        </form>
+        {% else %}
+        <h5>Non si possono più modificare le prenotazioni</h5>
+        {% endif %}
+        {% else %}
+        <div class="unbooking">
+            <div class="card card-booked">
+                <div class="card-body">
+                    <h6 style="margin-bottom: 1px;">Prenotazione: {{ activity.booked }}</h6>
                 </div>
             </div>
+            {% if can_book %}
+            <form action="/activity?id={{ id }}" method="post" style="margin: 5%;">
+                <button class="btn btn-primary btn-lg-on-mobile" name="unbooking-button">Rimuovi Prenotazione</button>
+            </form>
+            {% else %}
+            <br>
+            <h5>Non si possono più modificare le prenotazioni</h5>
+            {% endif %}
         </div>
-        
-        <!-- Right column (desktop flyer) -->
-        <div class="col-lg-6" id="flyer-div-desktop" style="margin-top: 1.5rem;">
-            <img class="img-fluid" id="activity-image" src="{{ activity.image }}">
-        </div>
+        {% endif %}
     </div>
+
 {% endblock %}

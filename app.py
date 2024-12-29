@@ -227,8 +227,9 @@ def activity_page():
         activity_availability = json.loads(activity_availability)
 
         if g.user_type == "staff":
-        
             today = datetime.today().strftime("%d/%m")
+            activity_days = list(enumerate(DAYS))
+
             try:
                 day_index = DAYS.index(today)
             except ValueError:
@@ -237,7 +238,7 @@ def activity_page():
                     "activity_staff.html",
                     id=activity_id,
                     activity=activity_dict,
-                    days=DAYS,
+                    days=activity_days,
                     timespans=activity_timespans,
                     availability=activity_availability,
                     has_bookings=False
@@ -261,7 +262,7 @@ def activity_page():
                 "activity_staff.html",
                 id=activity_id,
                 activity=activity_dict,
-                days=DAYS,
+                days=activity_days,
                 timespans=activity_timespans,
                 availability=activity_availability,
                 has_bookings=True,
