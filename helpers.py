@@ -1,4 +1,4 @@
-from flask import redirect, render_template, session, g, url_for, send_file, Response
+from flask import redirect, render_template, session, g, url_for, send_file, Response, abort
 from functools import wraps
 import qrcode
 from io import BytesIO
@@ -22,14 +22,19 @@ def login_required(f):
         if session.get("user_id") is None:
             return redirect("/login")
 
-        cur = g.con.cursor()
-        id = cur.execute("SELECT id FROM users WHERE id = ?;", (session["user_id"], )).fetchone()
-        cur.close()
+        query_result = g.con.execute("SELECT type, name, surname, email, can_book FROM users WHERE id = ?;", (session["user_id"], )).fetchone()
 
-        if not id:
+        # If the user has been deleted (this functionality is not implemented, this should not happen)
+        if not query_result:
+            session.clear()
             return redirect("/login")
-        
+
+        # Update all user info (in case something has been changend in the mean time)
+        g.user_type, g.user_name, g.user_surname, g.user_email , g.can_book = query_result
+        g.user_id = session["user_id"]
+
         return f(*args, **kwargs)
+
     return decorated_function
 
 
@@ -45,7 +50,7 @@ def admin_required(f):
     @wraps(f)
     @login_required
     def decorated_function(*args, **kwargs):
-        if session.get("user_email") not in ADMIN_EMAILS:
+        if g.user_email not in ADMIN_EMAILS:
             return apology("Auth failed", 403)
         
         return f(*args, **kwargs)
@@ -64,10 +69,9 @@ def activity_already_booked(user_id: int, activity_id: int, con: Connection) -> 
         bool: True if already booked, False if not
     """
     
-    cur = con.cursor()
-    cur.execute("SELECT activity_id FROM registrations WHERE user_id = ? AND activity_id = ?;", (user_id, activity_id))
-    
-    return bool(cur.fetchall())
+    return bool(
+        g.con.execute("SELECT activity_id FROM registrations WHERE user_id = ? AND activity_id = ?;", (user_id, activity_id)).fetchall()
+    )
 
 
 def slot_already_booked(user_id: int, day: int, module_start: int, module_end: int, con: Connection) -> bool:
@@ -81,11 +85,11 @@ def slot_already_booked(user_id: int, day: int, module_start: int, module_end: i
     Returns:
         bool: True if booked, False if not
     """
-    cur = con.cursor()
     # Searches for ranges intersecting (module_start, module_end)
-    cur.execute(f"SELECT activity_id FROM registrations WHERE user_id = ? AND day = ? AND module_end >= ? AND module_start <= ?;", (user_id, day, module_start, module_end))
     
-    return bool(cur.fetchall())
+    return bool(
+        g.con.execute(f"SELECT activity_id FROM registrations WHERE user_id = ? AND day = ? AND module_end >= ? AND module_start <= ?;", (user_id, day, module_start, module_end)).fetchall()
+    )
 
 
 def make_registration(user_id: int, activity_id: int, day: int, module: int, user_type: str, con: Connection, do_commit: bool=True):
@@ -109,9 +113,7 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int, use
     if day < 0 or day >= len(DAYS) or user_type not in PERMISSIONS[day]:
         raise ValueError("Invalid day")
     
-    cur = con.cursor()
-
-    length = cur.execute("SELECT length FROM activities WHERE id = ?;", (activity_id,)).fetchone()
+    length = g.con.execute("SELECT length FROM activities WHERE id = ?;", (activity_id,)).fetchone()
     if length is None:
         raise ValueError("Invalid activity id")
     
@@ -136,12 +138,9 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int, use
     update_availability(activity_id, day, module, -1, con, do_commit)
     
     # Update registrations
-    cur.execute("INSERT INTO registrations (user_id, activity_id, day, module_start, module_end) VALUES (?, ?, ?, ?, ?);", (user_id, activity_id, day, module_start, module_end))
+    g.con.execute("INSERT INTO registrations (user_id, activity_id, day, module_start, module_end) VALUES (?, ?, ?, ?, ?);", (user_id, activity_id, day, module_start, module_end))
     if do_commit:
         con.commit()
-    
-    # Close cursor
-    cur.close()
 
 
 def update_availability(activity_id: int, day: int, module: int, amount: int, con: Connection, do_commit: bool=True) -> None:
@@ -158,11 +157,8 @@ def update_availability(activity_id: int, day: int, module: int, amount: int, co
     Raises:
         ValueError if the availability is already 0.
     """
-    # SQL setup
-    cur = con.cursor()
-    
     # Load availability
-    availability = cur.execute("SELECT availability FROM activities WHERE id = ?", (activity_id,)).fetchone()[0]
+    availability = g.con.execute("SELECT availability FROM activities WHERE id = ?", (activity_id,)).fetchone()[0]
     availability = json.loads(availability)
     
     # Modify availability
@@ -172,13 +168,9 @@ def update_availability(activity_id: int, day: int, module: int, amount: int, co
     availability = json.dumps(availability)
     
     # Update availability
-    cur.execute("UPDATE activities SET availability = ? WHERE id = ?;", (availability, activity_id))
+    g.con.execute("UPDATE activities SET availability = ? WHERE id = ?;", (availability, activity_id))
     if do_commit:
         con.commit()
-    
-    # SQL close
-    cur.close()
-    cur.close()
 
 
 def get_image_path(image: str) -> str:
@@ -194,11 +186,7 @@ def get_image_path(image: str) -> str:
 
 
 def fmt_activity_booking(activity_id: int, con: Connection) -> str:
-    cur = con.cursor()
-
-    cur.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ? AND activity_id = ?", (session["user_id"], activity_id))
-    span = cur.fetchone()
-    cur.close()
+    span = g.con.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ? AND activity_id = ?", (g.user_id, activity_id)).fetchone()
 
     if span is None:
         return ""
@@ -221,8 +209,7 @@ def qr_code_for(url: str) -> Response:
 
 def generate_schedule(user_id: int, user_type: str, con: Connection):
     """Generate the schedule for the me page."""
-    cur = con.cursor()
-    
+
     # Fetch all user registrations -> list[tuple[..]]
     result = """
     SELECT activities.id, activities.title, registrations.day, registrations.module_start, registrations.module_end
@@ -231,9 +218,8 @@ def generate_schedule(user_id: int, user_type: str, con: Connection):
             registrations.activity_id = activities.id
         WHERE user_id = ?;
     """
-    cur.execute(result, (user_id, ))
 
-    user_registrations = cur.fetchall()
+    user_registrations = g.con.execute(result, (user_id, )).fetchall()
 
     # Make empty schedule
     schedule = {day: {timespan: ("", None) for timespan in TIMESPANS_TEXT}
