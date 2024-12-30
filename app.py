@@ -157,7 +157,7 @@ def register_page():
     
     # Checks the password field
     if not password or len(password) > MAX_FIELD_LENGTH:
-        return apology("Psassword non valida", 400)
+        return apology("Password non valida", 400)
     
     # Checks that password and confirmation match
     if password != confirmation:
