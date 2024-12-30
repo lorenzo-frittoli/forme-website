@@ -54,6 +54,26 @@ def admin_required(f):
     return decorated_function
 
 
+def staff_required(f):
+    """Decorate to require staff account. Requires login with `@login_required`.
+
+    Args:
+        f (_type_): function to decorate
+
+    Returns:
+        _type_: decorated function
+    """
+    @wraps(f)
+    @login_required
+    def decorated_function(*args, **kwargs):
+        if g.user_type != "staff":
+            return apology("Auth failed", 403)
+        
+        return f(*args, **kwargs)
+    
+    return decorated_function
+
+
 def activity_already_booked(user_id: int, activity_id: int, con: Connection) -> bool:
     """Checks wether a course has been booked already by that student.
 

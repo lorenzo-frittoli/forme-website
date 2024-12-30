@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Me
+{% endblock %}
+
+{% block main %}
+    <form method="post">
+        <p>
+            Gli utenti possono essere cercati per <b>nome</b>, <b>cognome</b>, <b>email</b> e <b>classe</b>.
+            <br>
+            La ricerca non deve essere esatta, verranno visualizzati tutti gli utenti con nomi, cognomi o email simili.
+            <br>
+            Esempi validi di ricerca:
+            <br>
+            "Matteo Rossi" - "matteo" - "ROSSI" - "5G" - "rossi 4g"
+        </p>
+        <input class="form-control mx-auto w-auto" id="query" name="query" placeholder="" type="text">
+        <br>
+        <button class="btn btn-primary" type="submit">Cerca</button>
+    </form>
+    <br>
+    <table class="table table-striped">
+        {% for result in results %}
+        <tr>
+            <td>
+                <a href="{{ result[0][1] }}">
+                    {{ result[0][0] }}
+                </a>
+            </td>
+            {% for field in result[1:] %}
+            <td>
+                {{ field }}
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

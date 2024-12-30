@@ -7,7 +7,7 @@ import re
 from datetime import datetime
 from itertools import groupby
 
-from helpers import apology, login_required, admin_required, make_registration, update_availability, get_image_path, fmt_activity_booking, qr_code_for, generate_schedule
+from helpers import apology, login_required, admin_required, staff_required, make_registration, update_availability, get_image_path, fmt_activity_booking, qr_code_for, generate_schedule
 from manage_helpers import generate_password
 import admin
 from constants import *
@@ -424,6 +424,42 @@ def verification_page():
         user_name = result[2],
         user_surname = result[3],
         user_email = result[4]
+    )
+
+@app.route("/user_search", methods=["GET", "POST"])
+@staff_required
+def search_page():
+    if request.method == "GET":
+        return render_template("search_page.html")
+
+    # Method is POST
+    query = request.form.get("query")
+
+    # Stop the user from dumping the database abusing LIKE clauses
+    if query is None or '%' in query or '_' in query or len(query) > 50:
+        return apology("Invalid http request", 400)
+
+    query = query.split()
+
+    if max(map(len, query), default=0) < 2:
+        return apology("Inserire almeno 2 caratteri per la ricerca")
+
+    search_sql = "(name LIKE ? COLLATE NOCASE OR surname LIKE ? COLLATE NOCASE OR email LIKE ? COLLATE NOCASE OR class=? COLLATE NOCASE)"
+    sql_query = "SELECT surname, name, class, email, verification_code FROM users WHERE " + " AND ".join([search_sql] * len(query)) + " ORDER BY surname || name;"
+
+    results = g.con.execute(
+        sql_query,
+        sum((('%'+q+'%', '%'+q+'%', '%'+q+'%', q) for q in query), start=tuple())
+    ).fetchall()
+
+    def parse_row(row: tuple) -> tuple:
+        return (' '.join(row[:2]), url_for("verification_page", verification_code=row[4])), row[2] or "esterno", row[3]
+
+    results = map(parse_row, results)
+
+    return render_template(
+        "search_page.html",
+        results=results
     )
 
 

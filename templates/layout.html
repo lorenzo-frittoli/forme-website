@@ -54,6 +54,9 @@
                             </a></li>
                             <li class="nav-item"><a class="nav-link" href="/activities">Attività</a></li>
                             <li class="nav-item"><a class="nav-link" href="/codice_verifica">Verifica</a></li>
+                            {% if g.user_type == "staff" %}
+                            <li class="nav-item"><a class="nav-link" href="/user_search">Ricerca utenti</a></li>
+                            {% endif %}
                         </ul>
                         <ul class="navbar-nav ms-auto mt-2">
                             <li><a class="nav-link" href="/privacy">Privacy</a></li>
