@@ -28,7 +28,7 @@
     {% endif %}
 
     <h1>{% if user_type == "impersonate" %}Verifica orario{% elif user_type == "staff" %}Informazioni per lo staff{% else %}Il mio orario{% endif %}</h1>
-    <h5>{{ user_name }} {{ user_surname }}</h5>
+    <h5>{{ user_surname }} {{ user_name }}</h5>
     <p>{{ user_email }}</p>
     {% if user_type != "staff" %}
     <div class="mb-3" style="margin: 2rem 0;">
