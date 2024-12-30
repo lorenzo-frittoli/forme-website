@@ -24,10 +24,10 @@
         });
     </script>
 
-    <h3 class="warning">Tutti i moduli vuoti verranno riempiti casualmente</h3>
+    <h3 class="warning" style="display: none;">Tutti i moduli vuoti verranno riempiti casualmente</h3>
     {% endif %}
 
-    <h1>{{ title }}</h1>
+    <h1>{% if user_type == "impersonate" %}Verifica orario{% elif user_type == "staff" %}Informazioni per lo staff{% else %}Il mio orario{% endif %}</h1>
     <h5>{{ user_name }} {{ user_surname }}</h5>
     <p>{{ user_email }}</p>
     {% if user_type != "staff" %}
@@ -88,6 +88,14 @@
         </table>
     </div>
     {% else %}
-        <h6>Gli account di tipo staff non hanno un orario</h6>
+    <p>
+        Gli account staff possono visualizzare le attività normalmente, tuttavia
+        <h6>Non possono prenotarsi</h6>
+        <h6>Possono visualizzare le disponibilità per tutti i giorni del festival</h6>
+        <h6>Hanno accesso alle prenotazioni degli altri utenti</h6>
+        <p>
+            Le prenotazioni sono visibili il giorno stesso in fondo alla pagina dell'attività, dove per gli altri account sono presenti i bottoni per prenotarsi.
+        </p>
+    </p>
     {% endif %}
 {% endblock %}

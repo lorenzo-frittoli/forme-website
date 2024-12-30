@@ -258,7 +258,7 @@ def activity_page():
                     has_bookings=False
                 )
 
-            query_result = g.con.execute("SELECT name, surname, class, module_start, module_end FROM users JOIN registrations ON users.id = registrations.user_id WHERE activity_id = ? AND day = ?;", (activity_id, day_index)).fetchall()
+            query_result = g.con.execute("SELECT name, surname, class, module_start, module_end FROM users JOIN registrations ON users.id = registrations.user_id WHERE activity_id = ? AND day = ? ORDER BY type, surname || name;", (activity_id, day_index)).fetchall()
             
             def parse_registration(booking: tuple) -> tuple:
                 if booking[2]:
@@ -369,7 +369,6 @@ def me_page():
 
     return render_template(
         "me.html",
-        title="Il mio orario",
         schedule=generate_schedule(g.user_id, g.user_type, g.con),
         user_name = g.user_name,
         user_surname = g.user_surname,
@@ -415,11 +414,13 @@ def verification_page():
     if not result:
         return apology("Utente non trovato.")
 
+    if result[1] == "staff":
+        return apology("Account staff.")
+
     return render_template(
         "me.html",
-        title="Verifica orario",
         schedule=generate_schedule(int(result[0]), result[1], g.con),
-        user_type="none",
+        user_type="impersonate", # This way the warning banner doesn't show up
         user_name = result[2],
         user_surname = result[3],
         user_email = result[4]
