@@ -7,7 +7,7 @@ import re
 from datetime import datetime
 from itertools import groupby
 
-from helpers import apology, login_required, admin_required, staff_required, make_registration, update_availability, get_image_path, fmt_activity_booking, qr_code_for, generate_schedule
+from helpers import apology, login_required, admin_required, staff_required, make_registration, update_availability, get_image_path, fmt_activity_booking, qr_code_for, generate_schedule, fmt_timespan
 from manage_helpers import generate_password
 import admin
 from constants import *
@@ -225,7 +225,7 @@ def activity_page():
         activity_title, activity_description, activity_type, activity_length, activity_classroom, activity_image, activity_availability = query_result
 
         activity_timespans = tuple(
-            (i//activity_length, TIMESPANS[i][0] + "-" + TIMESPANS[i + activity_length - 1][1])
+            (i//activity_length, fmt_timespan(i, i + activity_length - 1))
             for i in range(0, len(TIMESPANS)-activity_length+1, activity_length)
         )
 
@@ -270,7 +270,7 @@ def activity_page():
 
             # group the registrations by time
             bookings = sorted(bookings, key=lambda reg: reg[2:4]) # required by groupby
-            bookings_by_time = {TIMESPANS[key[0]][0] + "-" + TIMESPANS[key[1]][1]: tuple(map(lambda reg: reg[0:2], group)) for key, group in groupby(bookings, lambda reg: reg[2:4])}
+            bookings_by_time = {fmt_timespan(key[0], key[1]): tuple(map(lambda reg: reg[0:2], group)) for key, group in groupby(bookings, lambda reg: reg[2:4])}
 
             return render_template(
                 "activity_staff.html",
