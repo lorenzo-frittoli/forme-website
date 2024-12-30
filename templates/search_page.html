@@ -20,6 +20,7 @@
         <button class="btn btn-primary" type="submit">Cerca</button>
     </form>
     <br>
+    <h5>{% if results|length == 1%}1 risultato{% else %}{{ results|length }} risultati{% endif %}</h5>
     <table class="table table-striped">
         {% for result in results %}
         <tr>

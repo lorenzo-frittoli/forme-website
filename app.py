@@ -455,7 +455,7 @@ def search_page():
     def parse_row(row: tuple) -> tuple:
         return (' '.join(row[:2]), url_for("verification_page", verification_code=row[4])), row[2] or "esterno", row[3]
 
-    results = map(parse_row, results)
+    results = tuple(map(parse_row, results))
 
     return render_template(
         "search_page.html",
