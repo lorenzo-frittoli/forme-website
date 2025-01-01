@@ -7,7 +7,7 @@ import re
 from datetime import datetime
 from itertools import groupby
 
-from helpers import apology, login_required, admin_required, staff_required, make_registration, update_availability, get_image_path, fmt_activity_booking, qr_code_for, generate_schedule, fmt_timespan
+from helpers import apology, login_required, admin_required, staff_required, make_registration, update_availability, get_image_path, fmt_activity_booking, qr_code_for, generate_schedule, fmt_timespan, normalize_text
 from manage_helpers import generate_password
 import admin
 from constants import *
@@ -451,13 +451,17 @@ def search_page():
 
     results = g.con.execute(
         sql_query,
-        sum((('%'+q+'%', '%'+q+'%', '%'+q+'%', q) for q in query), start=tuple())
+        # Use normalized text for the email
+        sum((('%'+q+'%', '%'+q+'%', '%'+normalize_text(q)+'%', q) for q in query), start=tuple())
     ).fetchall()
+
+    # normalize text for the search that follows
+    query = list(map(normalize_text, query))
 
     # Counts the numbers of keywords in the search that are exactly matched
     def count_exact_matches(res):
         res = res[:2] # using only surname and name
-        res = map(str.lower, res)
+        res = map(normalize_text, res)
         res = sum(map(str.split, res), start=[])
         return sum(q in res for q in query)
 

@@ -4,6 +4,7 @@ import qrcode
 from io import BytesIO
 import json
 from sqlite3 import Connection
+import unicodedata
 
 from constants import *
 
@@ -191,6 +192,11 @@ def update_availability(activity_id: int, day: int, module: int, amount: int, co
     g.con.execute("UPDATE activities SET availability = ? WHERE id = ?;", (availability, activity_id))
     if do_commit:
         con.commit()
+
+
+def normalize_text(text: str):
+    """Remove accents and use lower case"""
+    return unicodedata.normalize('NFKD', text).encode('ASCII', 'ignore').decode().lower()
 
 
 def get_image_path(image: str) -> str:
