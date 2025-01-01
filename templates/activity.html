@@ -108,23 +108,23 @@
         {% else %}
         <h5>Non si possono più modificare le prenotazioni</h5>
         {% endif %}
-        {% else %}
-        <div class="unbooking">
-            <div class="card card-booked">
-                <div class="card-body">
-                    <h6 style="margin-bottom: 1px;">Prenotazione: {{ activity.booked }}</h6>
-                </div>
+    </div>
+    {% else %}
+    <div class="unbooking">
+        <div class="card card-booked">
+            <div class="card-body">
+                <h6 style="margin-bottom: 1px;">Prenotazione: {{ activity.booked }}</h6>
             </div>
-            {% if can_book %}
-            <form action="/activity?id={{ id }}" method="post" style="margin: 5%;">
-                <button class="btn btn-primary btn-lg-on-mobile" name="unbooking-button">Rimuovi Prenotazione</button>
-            </form>
-            {% else %}
-            <br>
-            <h5>Non si possono più modificare le prenotazioni</h5>
-            {% endif %}
         </div>
+        {% if can_book %}
+        <form action="/activity?id={{ id }}" method="post" style="margin: 5%;">
+            <button class="btn btn-primary btn-lg-on-mobile" name="unbooking-button">Rimuovi Prenotazione</button>
+        </form>
+        {% else %}
+        <br>
+        <h5>Non si possono più modificare le prenotazioni</h5>
         {% endif %}
     </div>
+    {% endif %}
 
 {% endblock %}
