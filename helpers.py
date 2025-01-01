@@ -121,11 +121,15 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int, use
         do_commit (bool): if the transaction should be immediatly committed. Defaults to True
 
     Raises:
+        ValueError: Bookings are closed
         ValueError: Activity already booked by the user
         ValueError: Module out of bounds
         ValueError: Occupied slot
         ValueError: Activity not available
     """
+    if not g.can_book:
+        raise ValueError("Bookings are closed")
+
     if day < 0 or day >= len(DAYS) or user_type not in PERMISSIONS[day]:
         raise ValueError("Invalid day")
     
