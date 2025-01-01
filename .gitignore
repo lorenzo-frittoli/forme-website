@@ -4,5 +4,6 @@
 /flask_session
 /data
 /static/activity_images
-database.db
+*.db
 /venv
+/src/__pycache__
