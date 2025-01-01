@@ -435,9 +435,11 @@ def search_page():
     # Method is POST
     query = request.form.get("query")
 
-    # Stop the user from dumping the database abusing LIKE clauses
-    if query is None or '%' in query or '_' in query or len(query) > 50:
+    if query is None:
         return apology("Invalid http request", 400)
+
+    # Escpae wildcard characters
+    query = query.replace("%", "\\%").replace("_", "\\_")
 
     query = query.split()
 
