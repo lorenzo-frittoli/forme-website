@@ -30,7 +30,7 @@ def before_request():
         if session.get("user_id") is None:
             return
 
-        query_result = g.con.execute("SELECT type, name, surname, email, can_book FROM users WHERE id = ?;", (session["user_id"], )).fetchone()
+        query_result = g.con.execute("SELECT type, name, surname, email, can_book, theme FROM users WHERE id = ?;", (session["user_id"], )).fetchone()
 
         # If the user has been deleted (this functionality is not implemented, this should not happen)
         if not query_result:
@@ -38,7 +38,7 @@ def before_request():
             return
 
         # Save all user info
-        g.user_type, g.user_name, g.user_surname, g.user_email , g.can_book = query_result
+        g.user_type, g.user_name, g.user_surname, g.user_email , g.can_book, g.user_theme = query_result
         g.user_id = session["user_id"]
 
 
@@ -461,6 +461,23 @@ def search_page():
         "search_page.html",
         results=results
     )
+
+
+@app.route("/set_theme", methods=["POST"])
+@login_required
+def change_theme():
+    """Change theme for this user"""
+
+    new_theme = request.args.get("theme")
+
+    if new_theme not in ("light", "dark"):
+        return apology("Invalid http request, 400")
+
+    g.user_theme = new_theme
+    g.con.execute("UPDATE users SET theme = ? WHERE id = ?;", (new_theme, g.user_id))
+    g.con.commit()
+
+    return "", 204
 
 
 @app.route("/admin", methods=["GET", "POST"])

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
 
-<html lang="en" data-bs-theme="light">
+<html lang="en" data-bs-theme="{{ g.user_theme }}"">
 
     <head>
 
@@ -20,18 +20,21 @@
 
     </head>
 
+    {% if session["user_id"] %}
     <script>
         $(document).ready(function() {
             document.getElementById('darkModeSwitch').addEventListener('change', () => {
                 const currentTheme = document.documentElement.getAttribute('data-bs-theme');
                 const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
                 $("#darkModeLabel").text(newTheme === 'dark' ? '🌙' : '☀️');
-        
                 document.documentElement.setAttribute('data-bs-theme', newTheme);
+
+                // Send a request to the server to change the theme
+                fetch("/set_theme?theme=" + newTheme, {method: "POST"});
             });
-        
         });
     </script>
+    {% endif %}
 
     <body>
 
@@ -58,8 +61,13 @@
                         </ul>
                         <ul class="navbar-nav ms-auto mt-2">
                             <div class="ms-auto mt-2 form-check form-switch">
+                                {% if g.user_theme == "light" %}
                                 <label id="darkModeLabel">☀️</label>
                                 <input class="form-check-input" type="checkbox" id="darkModeSwitch">
+                                {% else %}
+                                <label id="darkModeLabel">🌙</label>
+                                <input class="form-check-input" type="checkbox" id="darkModeSwitch" checked>
+                                {% endif %}
                             </div>
                             <li><a class="nav-link" href="/privacy">Privacy</a></li>
                             <li class="nav-item"><a class="nav-link" href="/logout">Log Out</a></li>
