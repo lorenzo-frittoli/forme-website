@@ -5,7 +5,7 @@ from inspect import signature
 from typing import Union
 from werkzeug.security import generate_password_hash
 
-from manage_helpers import make_backup, generate_password
+from manage_helpers import make_backup, generate_password, valid_class
 from constants import *
 
 commands = {}
@@ -126,7 +126,7 @@ def make_user(name: str, surname: str, email: str, _type: str, _class: str) -> t
         return "Invalid user type: " + _type, 400
 
     if _type == "student":
-        if len(_class) != 2 or _class[0] not in ALLOWED_CLASSES[0] or _class[1] not in ALLOWED_CLASSES[1]:
+        if not valid_class(_class):
             return "Invalid class: " + _class, 400
     elif _class != "":
         return "Class would be empty for " + _type, 400

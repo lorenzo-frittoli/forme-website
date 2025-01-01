@@ -111,3 +111,7 @@ def make_backup(dir: str) -> str:
     con_backup.close()
 
     return filename
+
+
+def valid_class(_class: str) -> bool:
+    return len(_class) == 2 and _class[0] in ALLOWED_CLASSES[0] and _class[1] in ALLOWED_CLASSES[1]
