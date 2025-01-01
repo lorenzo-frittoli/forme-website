@@ -5,20 +5,19 @@
 {% endblock %}
 
 {% block main %}
-    <div class="mb-3">
-        <h1 style="margin-bottom: 1rem;">Admin Area</h1>
-        <form action="/admin" method="post">
-            {% for command, arguments in commands.items() %}
-            <button type="submit" name="command" value="{{ command }}">{{ command }}</button>
-            {% for argument in arguments%}
-            <input name="{{ argument }}" placeholder="{{ argument}}">
-            {% endfor %}
-            <br>
-            <br>
-            {% endfor %}
-        </form>
-        <p>
-            {% for line in response %}{{ line }}<br>{% endfor %}
-        </p>
-    </div>
+    <h1><a href="/admin" style="color: inherit;">Admin Area</a></h1>
+    <br>
+    <form action="/admin" method="post">
+        {% for command, arguments in commands.items() %}
+        <button type="submit" name="command" value="{{ command }}">{{ command }}</button>
+        {% for argument in arguments%}
+        <input name="{{ argument }}" placeholder="{{ argument}}">
+        {% endfor %}
+        <br>
+        <br>
+        {% endfor %}
+    </form>
+    <p>
+        {% for line in response %}{{ line }}<br>{% endfor %}
+    </p>
 {% endblock %}

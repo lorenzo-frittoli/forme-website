@@ -5,14 +5,13 @@
 {% endblock %}
 
 {% block main %}
-    <div class="mb-3">
-        <h1 style="margin-bottom: 1rem;">Admin Authentication</h1>
-        <form action="/admin" method="post">
-            {% for name, value in command.items() %}
-            <input type="hidden" name="{{ name }}" value="{{ value }}">
-            {% endfor %}
-            <input id="password" name="password" placeholder="Password" type="password">
-            <button type="submit">Authenticate</button>
-        </form>
-    </div>
+    <h1>Admin Authentication</h1>
+    <br>
+    <form action="/admin" method="post">
+        {% for name, value in command.items() %}
+        <input type="hidden" name="{{ name }}" value="{{ value }}">
+        {% endfor %}
+        <input id="password" name="password" placeholder="Password" type="password">
+        <button type="submit">Authenticate</button>
+    </form>
 {% endblock %}
