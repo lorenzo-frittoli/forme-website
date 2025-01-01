@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
 
-<html lang="en" data-bs-theme="auto">
+<html lang="en" data-bs-theme="light">
 
     <head>
 
@@ -25,6 +25,7 @@
             document.getElementById('darkModeSwitch').addEventListener('change', () => {
                 const currentTheme = document.documentElement.getAttribute('data-bs-theme');
                 const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                $("#darkModeLabel").text(newTheme === 'dark' ? '🌙' : '☀️');
         
                 document.documentElement.setAttribute('data-bs-theme', newTheme);
             });
@@ -44,9 +45,6 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbar">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="darkModeSwitch">
-                    </div>
                     {% if session["user_id"] %}
                         <ul class="navbar-nav me-auto mt-2">
                             <li class="nav-item"><a class="nav-link" href="/me">Me</a></li>
@@ -54,6 +52,10 @@
                             <li class="nav-item"><a class="nav-link" href="/codice_verifica">Verifica</a></li>
                         </ul>
                         <ul class="navbar-nav ms-auto mt-2">
+                            <div class="ms-auto mt-2 form-check form-switch">
+                                <label id="darkModeLabel">☀️</label>
+                                <input class="form-check-input" type="checkbox" id="darkModeSwitch">
+                            </div>
                             <li><a class="nav-link" href="/privacy">Privacy</a></li>
                             <li class="nav-item"><a class="nav-link" href="/logout">Log Out</a></li>
                         </ul>
