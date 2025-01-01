@@ -441,7 +441,7 @@ def search_page():
     # Escpae wildcard characters
     query = query.replace("%", "\\%").replace("_", "\\_")
 
-    query = query.split()
+    query = query.lower().split()
 
     if max(map(len, query), default=0) < 2:
         return apology("Inserire almeno 2 caratteri per la ricerca")
@@ -453,6 +453,16 @@ def search_page():
         sql_query,
         sum((('%'+q+'%', '%'+q+'%', '%'+q+'%', q) for q in query), start=tuple())
     ).fetchall()
+
+    # Counts the numbers of keywords in the search that are exactly matched
+    def count_exact_matches(res):
+        res = res[:2] # using only surname and name
+        res = map(str.lower, res)
+        res = sum(map(str.split, res), start=[])
+        return sum(q in res for q in query)
+
+    # Stable sort: sorts the results by match precision while keeping the alphabetical order from the sql query
+    results.sort(key=lambda res: count_exact_matches(res), reverse=True)
 
     def parse_row(row: tuple) -> tuple:
         return (' '.join(row[:2]), url_for("verification_page", verification_code=row[4])), row[2] or "esterno", row[3]
