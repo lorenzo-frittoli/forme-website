@@ -104,7 +104,7 @@ def login_page():
 
     # Check password against hash
     if not check_password_hash(pw_hash, request.form["password"]):
-        session .clear()
+        session.clear()
         return apology("email e/o password invalidi", 400)
 
     # Redirect user to home page
@@ -444,7 +444,7 @@ def search_page():
     if max(map(len, query), default=0) < 2:
         return apology("Inserire almeno 2 caratteri per la ricerca")
 
-    search_sql = "(name LIKE ? COLLATE NOCASE OR surname LIKE ? COLLATE NOCASE OR email LIKE ? COLLATE NOCASE OR class=? COLLATE NOCASE)"
+    search_sql = "(name LIKE ? COLLATE NOCASE OR surname LIKE ? COLLATE NOCASE OR email LIKE ? COLLATE NOCASE OR class = ? COLLATE NOCASE)"
     sql_query = "SELECT surname, name, class, email, verification_code FROM users WHERE " + " AND ".join([search_sql] * len(query)) + " ORDER BY surname || name;"
 
     results = g.con.execute(
