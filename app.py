@@ -7,7 +7,7 @@ import re
 from datetime import datetime
 from itertools import groupby
 
-from helpers import apology, login_required, admin_required, make_registration, update_availability, get_image_path, fmt_activity_booking, qr_code_for, generate_schedule
+from helpers import apology, login_required, admin_required, staff_required, make_registration, update_availability, get_image_path, fmt_activity_booking, qr_code_for, generate_schedule, fmt_timespan
 from manage_helpers import generate_password
 import admin
 from constants import *
@@ -26,6 +26,20 @@ def before_request():
     if "/static/" not in request.path:
         # Open the connection to the database
         g.con = sqlite3.connect(DATABASE)
+
+        if session.get("user_id") is None:
+            return
+
+        query_result = g.con.execute("SELECT type, name, surname, email, can_book FROM users WHERE id = ?;", (session["user_id"], )).fetchone()
+
+        # If the user has been deleted (this functionality is not implemented, this should not happen)
+        if not query_result:
+            session.clear()
+            return
+
+        # Save all user info
+        g.user_type, g.user_name, g.user_surname, g.user_email , g.can_book = query_result
+        g.user_id = session["user_id"]
 
 
 @app.after_request
@@ -143,7 +157,7 @@ def register_page():
     
     # Checks the password field
     if not password or len(password) > MAX_FIELD_LENGTH:
-        return apology("Psassword non valida", 400)
+        return apology("Password non valida", 400)
     
     # Checks that password and confirmation match
     if password != confirmation:
@@ -205,14 +219,13 @@ def activity_page():
         # Query the database
         query_result = g.con.execute("SELECT title, description, type, length, classroom, image, availability FROM activities WHERE id = ?;", [activity_id,]).fetchone()
 
-        print(query_result)
         if query_result is None:
             return apology("Invalid http request")
 
         activity_title, activity_description, activity_type, activity_length, activity_classroom, activity_image, activity_availability = query_result
 
         activity_timespans = tuple(
-            (i//activity_length, TIMESPANS[i][0] + "-" + TIMESPANS[i + activity_length - 1][1])
+            (i//activity_length, fmt_timespan(i, i + activity_length - 1))
             for i in range(0, len(TIMESPANS)-activity_length+1, activity_length)
         )
 
@@ -228,8 +241,9 @@ def activity_page():
         activity_availability = json.loads(activity_availability)
 
         if g.user_type == "staff":
-        
             today = datetime.today().strftime("%d/%m")
+            activity_days = list(enumerate(DAYS))
+
             try:
                 day_index = DAYS.index(today)
             except ValueError:
@@ -238,13 +252,13 @@ def activity_page():
                     "activity_staff.html",
                     id=activity_id,
                     activity=activity_dict,
-                    days=DAYS,
+                    days=activity_days,
                     timespans=activity_timespans,
                     availability=activity_availability,
                     has_bookings=False
                 )
 
-            query_result = g.con.execute("SELECT name, surname, class, module_start, module_end FROM users JOIN registrations ON users.id = registrations.user_id WHERE activity_id = ? AND day = ?;", (activity_id, day_index)).fetchall()
+            query_result = g.con.execute("SELECT name, surname, class, module_start, module_end FROM users JOIN registrations ON users.id = registrations.user_id WHERE activity_id = ? AND day = ? ORDER BY type, surname || name;", (activity_id, day_index)).fetchall()
             
             def parse_registration(booking: tuple) -> tuple:
                 if booking[2]:
@@ -256,13 +270,13 @@ def activity_page():
 
             # group the registrations by time
             bookings = sorted(bookings, key=lambda reg: reg[2:4]) # required by groupby
-            bookings_by_time = {TIMESPANS[key[0]][0] + "-" + TIMESPANS[key[1]][1]: tuple(map(lambda reg: reg[0:2], group)) for key, group in groupby(bookings, lambda reg: reg[2:4])}
+            bookings_by_time = {fmt_timespan(key[0], key[1]): tuple(map(lambda reg: reg[0:2], group)) for key, group in groupby(bookings, lambda reg: reg[2:4])}
 
             return render_template(
                 "activity_staff.html",
                 id=activity_id,
                 activity=activity_dict,
-                days=DAYS,
+                days=activity_days,
                 timespans=activity_timespans,
                 availability=activity_availability,
                 has_bookings=True,
@@ -355,7 +369,6 @@ def me_page():
 
     return render_template(
         "me.html",
-        title="Il mio orario",
         schedule=generate_schedule(g.user_id, g.user_type, g.con),
         user_name = g.user_name,
         user_surname = g.user_surname,
@@ -401,14 +414,52 @@ def verification_page():
     if not result:
         return apology("Utente non trovato.")
 
+    if result[1] == "staff":
+        return apology("Account staff.")
+
     return render_template(
         "me.html",
-        title="Verifica orario",
         schedule=generate_schedule(int(result[0]), result[1], g.con),
-        user_type="none",
+        user_type="impersonate", # This way the warning banner doesn't show up
         user_name = result[2],
         user_surname = result[3],
         user_email = result[4]
+    )
+
+@app.route("/user_search", methods=["GET", "POST"])
+@staff_required
+def search_page():
+    if request.method == "GET":
+        return render_template("search_page.html")
+
+    # Method is POST
+    query = request.form.get("query")
+
+    # Stop the user from dumping the database abusing LIKE clauses
+    if query is None or '%' in query or '_' in query or len(query) > 50:
+        return apology("Invalid http request", 400)
+
+    query = query.split()
+
+    if max(map(len, query), default=0) < 2:
+        return apology("Inserire almeno 2 caratteri per la ricerca")
+
+    search_sql = "(name LIKE ? COLLATE NOCASE OR surname LIKE ? COLLATE NOCASE OR email LIKE ? COLLATE NOCASE OR class=? COLLATE NOCASE)"
+    sql_query = "SELECT surname, name, class, email, verification_code FROM users WHERE " + " AND ".join([search_sql] * len(query)) + " ORDER BY surname || name;"
+
+    results = g.con.execute(
+        sql_query,
+        sum((('%'+q+'%', '%'+q+'%', '%'+q+'%', q) for q in query), start=tuple())
+    ).fetchall()
+
+    def parse_row(row: tuple) -> tuple:
+        return (' '.join(row[:2]), url_for("verification_page", verification_code=row[4])), row[2] or "esterno", row[3]
+
+    results = tuple(map(parse_row, results))
+
+    return render_template(
+        "search_page.html",
+        results=results
     )
 
 

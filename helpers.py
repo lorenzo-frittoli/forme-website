@@ -22,16 +22,12 @@ def login_required(f):
         if session.get("user_id") is None:
             return redirect("/login")
 
-        query_result = g.con.execute("SELECT type, name, surname, email, can_book FROM users WHERE id = ?;", (session["user_id"], )).fetchone()
+        query_result = g.con.execute("SELECT 1 FROM users WHERE id = ?;", (session["user_id"], )).fetchone()
 
         # If the user has been deleted (this functionality is not implemented, this should not happen)
         if not query_result:
             session.clear()
             return redirect("/login")
-
-        # Update all user info (in case something has been changend in the mean time)
-        g.user_type, g.user_name, g.user_surname, g.user_email , g.can_book = query_result
-        g.user_id = session["user_id"]
 
         return f(*args, **kwargs)
 
@@ -51,6 +47,26 @@ def admin_required(f):
     @login_required
     def decorated_function(*args, **kwargs):
         if g.user_email not in ADMIN_EMAILS:
+            return apology("Auth failed", 403)
+        
+        return f(*args, **kwargs)
+    
+    return decorated_function
+
+
+def staff_required(f):
+    """Decorate to require staff account. Requires login with `@login_required`.
+
+    Args:
+        f (_type_): function to decorate
+
+    Returns:
+        _type_: decorated function
+    """
+    @wraps(f)
+    @login_required
+    def decorated_function(*args, **kwargs):
+        if g.user_type != "staff":
             return apology("Auth failed", 403)
         
         return f(*args, **kwargs)
@@ -185,13 +201,18 @@ def get_image_path(image: str) -> str:
     return f"{ACTIVITY_IMAGES_DIRECTORY}/{image}"
 
 
+def fmt_timespan(start: int, end: int):
+    """Return the formatted text for the range [start, end]"""
+    return TIMESPANS[start][0] + '-' + TIMESPANS[end][1]
+
+
 def fmt_activity_booking(activity_id: int, con: Connection) -> str:
     span = g.con.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ? AND activity_id = ?", (g.user_id, activity_id)).fetchone()
 
     if span is None:
         return ""
     else:
-        return TIMESPANS[span[1]][0] + "-" + TIMESPANS[span[2]][1] + " del " + DAYS[span[0]]
+        return fmt_timespan(span[1], span[2]) + " del " + DAYS[span[0]]
 
 
 def qr_code_for(url: str) -> Response:

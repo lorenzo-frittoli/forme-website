@@ -1,0 +1,82 @@
+{% extends "layout.html" %}
+
+{% block main %}
+    {% block scripts %}{% endblock %}
+
+    <!-- Page Contents -->
+    <!-- Heading -->
+    <div style="margin: 0 2.5%;">
+        <h1>{{ activity.title }}</h1>
+        <h5>{{ activity.type }}</h5>
+        <p>{{ activity.classroom }}</p>
+    </div>
+    <hr>
+
+    <!-- Body -->
+    <!-- Info -->
+    <div class="row">
+        <!-- Left column -->
+        <div class="col" id="description-div" style="text-align: center;">
+            <!-- Description -->
+            <!-- <h2 style="margin: 0">{{ activity.title }}</h2>
+            <h4 style="margin: 0">{{ activity.type }}</h4> -->
+            
+            <!-- Flyer (mobile) -->
+            <div id="flyer-div-mobile" style="margin: 5%;">
+                <img class="img-fluid" src="{{ activity.image }}">
+            </div>
+
+            <div style="text-align: left; margin: 1.5rem;">
+                <!-- Makes \n linebreak, while adding a bit of extra spacing -->
+                {% for section in activity.description.split("\n") %}
+                <p>{{ section }}</p>
+                {% endfor %}
+            </div>
+
+            <!-- Availability table -->
+            <h2>Disponibilità</h2>
+            <div style="margin: 5%;">
+                <table class="table table-striped" id="table-mobile">
+                    <thead>
+                        <th> </th>
+                        {% for day in days %}
+                        <th>{{ day[1] }}</th>
+                        {% endfor %}
+                    </thead>
+                    {% for timespan in timespans %}
+                    <tr>
+                        <th>{{ timespan[1] }}</th>
+                        {% for rem in availability %}
+                        <td>{{ rem[timespan[0]] }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </table>
+                <table class="table table-striped" id="table-desktop">
+                    <thead>
+                        <th>Giorni</th>
+                        {% for timespan in timespans %}
+                        <th>{{ timespan[1] }}</th>
+                        {% endfor %}
+                    </thead>
+                    
+                    {% for day in days %}
+                    <tr>
+                        <td>{{ day[1] }}</td>
+                        {% for rem in availability[loop.index0] %}
+                        <td>{{ rem }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            
+            {% block bookings %}{% endblock %}        
+        </div>
+
+        <!-- Right column (desktop flyer) -->
+        <div class="col" id="flyer-div-desktop" style="margin-top: 1.5rem;">
+            <img class="img-fluid" src="{{ activity.image }}">
+        </div>
+    </div>
+{% endblock %}
