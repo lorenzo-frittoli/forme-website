@@ -217,12 +217,12 @@ def activity_page():
     # Method is GET
     if request.method == "GET":        
         # Query the database
-        query_result = g.con.execute("SELECT title, description, type, length, classroom, image, availability FROM activities WHERE id = ?;", [activity_id,]).fetchone()
+        query_result = g.con.execute("SELECT title, description, type, length, classroom, speakers, image, availability FROM activities WHERE id = ?;", [activity_id,]).fetchone()
 
         if query_result is None:
             return apology("Invalid http request")
 
-        activity_title, activity_description, activity_type, activity_length, activity_classroom, activity_image, activity_availability = query_result
+        activity_title, activity_description, activity_type, activity_length, activity_classroom, activity_speakers, activity_image, activity_availability = query_result
 
         activity_timespans = tuple(
             (i//activity_length, fmt_timespan(i, i + activity_length - 1))
@@ -234,6 +234,7 @@ def activity_page():
             "description": activity_description,
             "type": activity_type,
             "classroom": activity_classroom,
+            "speakers": activity_speakers,
             "image": get_image_path(activity_image),
         }
 
