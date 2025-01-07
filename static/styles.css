@@ -116,7 +116,7 @@ nav .navbar-brand {
 }
 
 /* me.html, activities.html, activity.html */
-@media (max-width: 767px) {
+@media (max-width: 991.98px) {
     #activities-filter {
         position: relative;
         margin-bottom: 1rem;
@@ -140,7 +140,7 @@ nav .navbar-brand {
     }
 }
 
-@media (min-width: 768px) {
+@media (min-width: 992px) {
     #activities-filter {
         position: absolute;
         left: calc(1% + 10px);
