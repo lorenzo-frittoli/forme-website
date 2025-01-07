@@ -70,7 +70,7 @@
     <!-- Booking / Unbooking -->
     {% if not activity.booked|length %}
     <div class="booking" style="margin: 2%;">
-        {% if can_book %}
+        {% if g.can_book %}
         <h2 style="margin-bottom: 1rem;">Prenota</h2>
         <form action="/activity?id={{ id }}" method="post">
             
@@ -116,7 +116,7 @@
                 <h6 style="margin-bottom: 1px;">Prenotazione: {{ activity.booked }}</h6>
             </div>
         </div>
-        {% if can_book %}
+        {% if g.can_book %}
         <form action="/activity?id={{ id }}" method="post" style="margin: 5%;">
             <button class="btn btn-primary btn-lg-on-mobile" name="unbooking-button">Rimuovi Prenotazione</button>
         </form>

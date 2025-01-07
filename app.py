@@ -313,8 +313,7 @@ def activity_page():
             days=activity_days,
             timespans=activity_timespans,
             availability=activity_availability,
-            user_free=user_free,
-            can_book=g.can_book
+            user_free=user_free
         )
 
     # Method is POST
