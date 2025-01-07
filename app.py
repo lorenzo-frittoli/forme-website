@@ -487,7 +487,7 @@ def change_theme():
     new_theme = request.args.get("theme")
 
     if new_theme not in ("light", "dark"):
-        return apology("Invalid http request, 400")
+        return "", 400
 
     g.user_theme = new_theme
     g.con.execute("UPDATE users SET theme = ? WHERE id = ?;", (new_theme, g.user_id))
