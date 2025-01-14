@@ -1,17 +1,7 @@
-import time
-
-from constants import TIMED_BACKUPS_DIR, BACKUP_FREQ
+from constants import TIMED_BACKUPS_DIR
 from manage_helpers import make_backup
 
-
-def main():
-    """Automatically creates backups of the db
-    """        
-    while True:
-        make_backup(TIMED_BACKUPS_DIR)
-        time.sleep(BACKUP_FREQ)
-
+# This script is meant to be run each day as a scheduled task.
 
 if __name__ == "__main__":
-    print("Ctrl-C to kill")
-    main()
+    make_backup(TIMED_BACKUPS_DIR)

@@ -26,7 +26,6 @@ ALLOWED_CLASSES = ("345", "ABCDEIFGHIL") # Classes are strings like '3A', '4F'
 
 
 # Backups
-BACKUP_FREQ = 24*60*60 # Each day
 MAX_BACKUPS = 100
 
 DIR_SEP = "\\" if os.name == "nt" else "/"
