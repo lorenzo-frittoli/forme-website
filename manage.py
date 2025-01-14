@@ -181,7 +181,7 @@ def fill_schedules(user_type: str) -> None:
     if input("Eseguire solamente in locale. Proseguire? Y/n: ") != "Y":
         return
     # Make a bakup in case the fill isn't successful.
-    make_backup(MANUAL_BACKUPS_DIR)
+    make_backup(AUTO_BACKUPS_DIR)
     print("Backup creato")
 
     # Setup sqlite3

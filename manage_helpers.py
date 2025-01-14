@@ -68,8 +68,8 @@ def make_backup(dir: str) -> str:
         os.remove(dir + DIR_SEP + backup[1])
 
     # Lock the database and save the new backup
-    filename = datetime.strftime(datetime.now(), FILENAME_FRMT)
-    con_backup = sqlite3.connect(dir + DIR_SEP + filename)
+    filename = dir + DIR_SEP + datetime.strftime(datetime.now(), FILENAME_FRMT)
+    con_backup = sqlite3.connect(filename)
     con_live = sqlite3.connect(DATABASE)
     con_live.backup(con_backup)
     con_live.close()

@@ -38,14 +38,14 @@ def all_backups() -> list[str]:
         if not os.path.exists(dir):
             os.makedirs(dir)
         backups += [dir + DIR_SEP + filename for filename in os.listdir(dir)]
-    return backups
+    return sorted(backups)
 
 
 @command
 def backup_db() -> tuple[str, int]:
     """Creates a new backup."""
     filename = make_backup(MANUAL_BACKUPS_DIR)
-    return "Backup created: " + MANUAL_BACKUPS_DIR + DIR_SEP + filename, 200
+    return "Backup created: " + filename, 200
 
 
 @command
@@ -59,7 +59,7 @@ def download_db(backup) -> Response | tuple[str, int]:
     """Downloads a backup.
     If a backup name is specified the selected backup us downloaded, otherwise a new one is created and sent."""
     if not backup:
-        backup = MANUAL_BACKUPS_DIR + DIR_SEP + make_backup(MANUAL_BACKUPS_DIR)
+        backup = make_backup(MANUAL_BACKUPS_DIR)
     elif backup not in all_backups():
         return "Invalid backup name", 200
     return send_file(backup)
