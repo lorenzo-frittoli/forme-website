@@ -6,7 +6,7 @@ Segui questi """semplici""" passaggi e potrai anche tu entrare nell'Hall of ~Fai
 Ci sono un paio di cose da scaricare:
 !TODO 4release
 - [Python3](https://www.python.org/downloads/).
-- [Codice del sito](https://github.com/lorenzo-frittoli/forme-website).
+- [Codice del sito](https://codeload.github.com/lorenzo-frittoli/forme-website/legacy.zip/main).
 
 Adesso apri un terminale e naviga alla cartella del codice del sito (quella che hai scaricato prima).
 
