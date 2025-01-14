@@ -10,7 +10,7 @@ Alcuni comandi hanno bisogno di dei parametri, per esempio:
 
 I comandi più importanti sono quattro:
 
-#### Comandi utilizzati per caricare il database:
+#### Comandi utilizzati per creare il database:
 - `make-db`
 - `load-activities -f [FILE JSON]`
 - `load-students -f [FILE CSV]`
