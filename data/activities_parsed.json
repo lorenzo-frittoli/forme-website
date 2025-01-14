@@ -1,0 +1,82 @@
+[
+    {
+        "image": "placeholder.jpg",
+        "capacity": 20,
+        "length": 1,
+        "classroom": "Palestra",
+        "title": "ACTIVITY 1",
+        "speakers": "A few guys including a, b and c",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Maecenas volutpat blandit aliquam etiam erat velit scelerisque in. Praesent semper feugiat nibh sed pulvinar proin. Condimentum vitae sapien pellentesque habitant. Mi in nulla posuere sollicitudin aliquam. Commodo viverra maecenas accumsan lacus vel facilisis. Etiam non quam lacus suspendisse faucibus. Eu non diam phasellus vestibulum lorem sed risus ultricies tristique. Egestas pretium aenean pharetra magna ac placerat. Sed velit dignissim sodales ut eu sem integer vitae justo. Facilisi etiam dignissim diam quis enim lobortis scelerisque fermentum dui. In arcu cursus euismod quis.",
+        "type": "Some category"
+    },
+    {
+        "image": "placeholder.jpg",
+        "capacity": 20,
+        "length": 1,
+        "classroom": "Aula informatica 6.7",
+        "title": "ACTIVITY 2",
+        "speakers": "A few guys including a, b and c",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Maecenas volutpat blandit aliquam etiam erat velit scelerisque in. Praesent semper feugiat nibh sed pulvinar proin. Condimentum vitae sapien pellentesque habitant. Mi in nulla posuere sollicitudin aliquam. Commodo viverra maecenas accumsan lacus vel facilisis. Etiam non quam lacus suspendisse faucibus. Eu non diam phasellus vestibulum lorem sed risus ultricies tristique. Egestas pretium aenean pharetra magna ac placerat. Sed velit dignissim sodales ut eu sem integer vitae justo. Facilisi etiam dignissim diam quis enim lobortis scelerisque fermentum dui. In arcu cursus euismod quis.",
+        "type": "Some category"
+    },
+    {
+        "image": "placeholder.jpg",
+        "capacity": 1,
+        "length": 1,
+        "classroom": "Aula 4.4",
+        "title": "ACTIVITY 3",
+        "speakers": "A few guys including a, b and c",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Maecenas volutpat blandit aliquam etiam erat velit scelerisque in. Praesent semper feugiat nibh sed pulvinar proin. Condimentum vitae sapien pellentesque habitant. Mi in nulla posuere sollicitudin aliquam. Commodo viverra maecenas accumsan lacus vel facilisis. Etiam non quam lacus suspendisse faucibus. Eu non diam phasellus vestibulum lorem sed risus ultricies tristique. Egestas pretium aenean pharetra magna ac placerat. Sed velit dignissim sodales ut eu sem integer vitae justo. Facilisi etiam dignissim diam quis enim lobortis scelerisque fermentum dui. In arcu cursus euismod quis.",
+        "type": "Some category"
+    },
+    {
+        "image": "placeholder.jpg",
+        "capacity": 20,
+        "length": 1,
+        "classroom": "Scantinato",
+        "title": "ACTIVITY 4",
+        "speakers": "A few guys including a, b and c",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Maecenas volutpat blandit aliquam etiam erat velit scelerisque in. Praesent semper feugiat nibh sed pulvinar proin. Condimentum vitae sapien pellentesque habitant. Mi in nulla posuere sollicitudin aliquam. Commodo viverra maecenas accumsan lacus vel facilisis. Etiam non quam lacus suspendisse faucibus. Eu non diam phasellus vestibulum lorem sed risus ultricies tristique. Egestas pretium aenean pharetra magna ac placerat. Sed velit dignissim sodales ut eu sem integer vitae justo. Facilisi etiam dignissim diam quis enim lobortis scelerisque fermentum dui. In arcu cursus euismod quis.",
+        "type": "Some category"
+    },
+    {
+        "image": "placeholder.jpg",
+        "capacity": 30,
+        "length": 2,
+        "classroom": "Presidenza",
+        "title": "ACTIVITY 5",
+        "speakers": "A few guys including a, b and c",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Maecenas volutpat blandit aliquam etiam erat velit scelerisque in. Praesent semper feugiat nibh sed pulvinar proin. Condimentum vitae sapien pellentesque habitant. Mi in nulla posuere sollicitudin aliquam. Commodo viverra maecenas accumsan lacus vel facilisis. Etiam non quam lacus suspendisse faucibus. Eu non diam phasellus vestibulum lorem sed risus ultricies tristique. Egestas pretium aenean pharetra magna ac placerat. Sed velit dignissim sodales ut eu sem integer vitae justo. Facilisi etiam dignissim diam quis enim lobortis scelerisque fermentum dui. In arcu cursus euismod quis.",
+        "type": "Some category"
+    },
+    {
+        "image": "placeholder.jpg",
+        "capacity": 20,
+        "length": 2,
+        "classroom": "Vicepresidenza",
+        "title": "ACTIVITY 6",
+        "speakers": "A few guys including a, b and c",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Maecenas volutpat blandit aliquam etiam erat velit scelerisque in. Praesent semper feugiat nibh sed pulvinar proin. Condimentum vitae sapien pellentesque habitant. Mi in nulla posuere sollicitudin aliquam. Commodo viverra maecenas accumsan lacus vel facilisis. Etiam non quam lacus suspendisse faucibus. Eu non diam phasellus vestibulum lorem sed risus ultricies tristique. Egestas pretium aenean pharetra magna ac placerat. Sed velit dignissim sodales ut eu sem integer vitae justo. Facilisi etiam dignissim diam quis enim lobortis scelerisque fermentum dui. In arcu cursus euismod quis.",
+        "type": "Some category"
+    },
+    {
+        "image": "placeholder.jpg",
+        "capacity": 5,
+        "length": 2,
+        "classroom": "Aula 1.9",
+        "title": "ACTIVITY 7",
+        "speakers": "A few guys including a, b and c",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Maecenas volutpat blandit aliquam etiam erat velit scelerisque in. Praesent semper feugiat nibh sed pulvinar proin. Condimentum vitae sapien pellentesque habitant. Mi in nulla posuere sollicitudin aliquam. Commodo viverra maecenas accumsan lacus vel facilisis. Etiam non quam lacus suspendisse faucibus. Eu non diam phasellus vestibulum lorem sed risus ultricies tristique. Egestas pretium aenean pharetra magna ac placerat. Sed velit dignissim sodales ut eu sem integer vitae justo. Facilisi etiam dignissim diam quis enim lobortis scelerisque fermentum dui. In arcu cursus euismod quis.",
+        "type": "Some category"
+    },
+    {
+        "image": "placeholder.jpg",
+        "capacity": 10,
+        "length": 2,
+        "classroom": "Aula 3.2",
+        "title": "ACTIVITY 8",
+        "speakers": "A few guys including d, e, f",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Maecenas volutpat blandit aliquam etiam erat velit scelerisque in. Praesent semper feugiat nibh sed pulvinar proin. Condimentum vitae sapien pellentesque habitant. Mi in nulla posuere sollicitudin aliquam. Commodo viverra maecenas accumsan lacus vel facilisis. Etiam non quam lacus suspendisse faucibus. Eu non diam phasellus vestibulum lorem sed risus ultricies tristique. Egestas pretium aenean pharetra magna ac placerat. Sed velit dignissim sodales ut eu sem integer vitae justo. Facilisi etiam dignissim diam quis enim lobortis scelerisque fermentum dui. In arcu cursus euismod quis.",
+        "type": "Some category"
+    }
+]

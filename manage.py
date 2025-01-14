@@ -7,7 +7,7 @@ from werkzeug.security import generate_password_hash
 
 
 from helpers import make_registration
-from manage_helpers import make_backup, get_activities_from_file, get_students_from_file, generate_password
+from manage_helpers import make_backup, get_students_from_file, generate_password
 from constants import *
 
 
@@ -48,7 +48,12 @@ def load_activities(filename: str) -> None:
     # Setup sqlite3
     con = sqlite3.connect(DATABASE)
 
-    activities = get_activities_from_file(filename)
+    with open(filename, "r", encoding="UTF-8") as file:
+        activities = json.load(file)
+        for activity in activities:
+            activity["availability"] = json.dumps(
+                [[activity["capacity"] for _ in range(0, len(TIMESPANS) - activity["length"] + 1, activity["length"])] for _ in DAYS]
+            )
 
     qry = """
         INSERT INTO activities (title, description, type, length, classroom, image, speakers, availability)
