@@ -16,7 +16,7 @@ cli = FlaskGroup()
 
 @cli.command()
 def make_db() -> None:
-    """Drops all current tables and sets up new ones in the database"""
+    """Create a new empty database"""
     if os.path.exists(DATABASE):
         make_backup(AUTO_BACKUPS_DIR)
         os.remove(DATABASE)
@@ -33,6 +33,7 @@ def make_db() -> None:
 
 @cli.command()
 def backup_db() -> None:
+    """Create a backup of the database"""
     make_backup(MANUAL_BACKUPS_DIR)
 
 
@@ -186,7 +187,7 @@ def fill_schedules(user_type: str) -> None:
     # Setup sqlite3
     con = sqlite3.connect(DATABASE)
 
-    for k in range(0, 20):
+    for k in range(20):
         for seed in range(50):
             print(f"Tentativo {k=}, {seed=}:", end='\t')
             if try_fill_schedules(user_type, k, seed, con):

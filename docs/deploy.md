@@ -1,3 +1,25 @@
+# Prima di tutto
+Controllare che ci siano abbastanza posti per tutti. Le capacità dei laboratori devono essere sufficienti per tutti gli studenti partecipanti.
+Assicurarsi di avere tutto il necessario:
+
+Per i laboratori:
+- titolo
+- descrizione
+- locandina
+- relatori
+- aula
+- numero massimo di studenti
+- durata
+
+Per gli studenti:
+- cognome nome
+- classe (preferibilmente)
+- mail (preferibilmente)
+
+Per far funzionare il sito:
+- le credenziali di https://eu.pythonanywhere.com/
+- le credenziali della mail
+
 # Setup database
 ## Caricare le attività
 - Caricare titolo, relatori, descrizione, locandina
@@ -5,9 +27,10 @@
 
 ## Caricare gli utenti
 - Assicurarsi che il file con gli studenti sia nel formato corretto
-- Aggiungere le mail con data/parse_students.py
+- Se necessario, aggiungere le mail utilizzando [parse_students](parse_students)
 - Selezionare gli studenti staff
-- "python3 manage.py load-students -f [[file csv con tutti gli studenti]]"
+- "python3 manage.py load-students -f [[file csv con tutti gli studenti]]" > passwords.txt
+- avere cura di tenere il file contente le password per poterle poi mandare via mail.
 
 # Aggiornare le pagine
 - Cambiare l'anno (crtl-h ####)
@@ -21,22 +44,22 @@
 - TIMESPANS: i moduli dei laboratori come tuple (inizio modulo, fine modulo)
 - PERMISSIONS: per ogni giorno, quali tipi di studenti posso iscriversi ai laboratori
 - ALLOWED_CLASSES: le classi / sezioni che parteciperanno al ForMe
-- ADMIN_EMAILS: le email degli account admin (**admin != staff, gli account admin dovrebbero essere al massimo due o tre**)
+- ADMIN_EMAILS: le mail degli account admin (**admin != staff, gli admin devono aver letto questa documentazione**)
 - ADMIN_PASSWORD: hash della password per la pagina admin, come generato da `werkzeug.security.generate_password_hash`
 
 # Controlli
-- Assicurarsi che titoli troppo lunghi delle attività non creino problemi
+- Eseguire il sito in locale
+- Assicurarsi che tutti gli elementi della pagina 'Attività' siano in ordine e funzionanti.
 - Provare a registrarsi, effettuare il login, scaricare il catalogo, prenotare, cancellare prenotazioni, utilizzare la pagina admin
 
 # Deploy
 
-- Caricare tutto sul sito: https://eu.pythonanywhere.com/user/ForMeCassini/
+- Caricare tutto su https://eu.pythonanywhere.com/ ()
 - "Enable webapp" nel pannello "Web"
 - Il sito sarà visibile presso https://formecassini.eu.pythonanywhere.com/
 #### Attivare il backup giornaliero automatico nel pannello "Tasks":
 script: "python3 /home/ForMeCassini/sito_forme/auto_backup_maker.py" orario: ogni notte
 
-# Last steps
 ## mandare le mail
 
 # Mentre il sito è funzionante
@@ -44,5 +67,7 @@ script: "python3 /home/ForMeCassini/sito_forme/auto_backup_maker.py" orario: ogn
 - Verificare l'autenticità degli utenti esterni
 
 # Ultimi passaggi
-- Chiudere le registrazioni dalla pagina admin
-- Creare i fogli firme con make_pdfs.py dunque compilare il latex generato in pdf (eg overleaf.com)
+- Chiudere le registrazioni per gli studenti dalla pagina admin
+- Scaricare il database dalla pagina admin
+- Riempire gli orari degli studenti che non si sono prenotati usando [`fill-schedules`](cli.md)
+- Creare i fogli firme con [`make_pdfs.py`](../make_pdfs.py) dunque compilare il latex generato in pdf (eg overleaf.com)
