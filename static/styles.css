@@ -91,6 +91,10 @@ nav .navbar-brand {
     height: 24px;
 }
 
+.sun, .moon {
+    cursor:pointer;
+}
+
 .input:checked + .slider {
     background-color: #183153;
 }
