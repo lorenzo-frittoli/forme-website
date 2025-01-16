@@ -55,7 +55,7 @@ def list_backups() -> tuple[str, int]:
 
 
 @command
-def download_db(backup) -> Response | tuple[str, int]:
+def download_db(backup) -> Union[Response, tuple[str, int]]:
     """Downloads a backup.
     If a backup name is specified the selected backup us downloaded, otherwise a new one is created and sent."""
     if not backup:
