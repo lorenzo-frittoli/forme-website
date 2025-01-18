@@ -26,21 +26,21 @@ This is all stored on the db.
 
 ## Project Structure
 Folders:
-- [`data`](data) : this folder is used to store data before it is added to the database
-- [`docs`](docs) : documentation
-- [`static`](static) : here we keep images (such as the year's logo) and the [`styles.css`](static/styles.css) which is our css file.
-- [`templates`](templates) : this is where templates are stored; a template is an HTML file that defines the layout of a webpage.
+- [`data`](../data) : this folder is used to store data before it is added to the database
+- [`docs`](.) : documentation
+- [`static`](../static) : here we keep images (such as the year's logo) and the [`styles.css`](../static/styles.css) which is our css file.
+- [`templates`](../templates) : this is where templates are stored; a template is an HTML file that defines the layout of a webpage.
 
 Main:
-- [`app.py`](app.py) : main file of the project
-- [`helpers.py`](helpers.py) : helper functions for `app.py`
-- [`constants.py`](constants.py) : global constants
-- [`admin.py`](admin.py) : defines commands on the admin page
+- [`app.py`](../app.py) : main file of the project
+- [`helpers.py`](../helpers.py) : helper functions for `app.py`
+- [`constants.py`](../constants.py) : global constants
+- [`admin.py`](../admin.py) : defines commands on the admin page
 
 Utility:
-- [`manage.py`](manage.py) : CLI to setup for prod
-- [`manage_helpers.py`](manage_helpers.py) : helper functions for `manage.py`
-- [`auto_backup_maker.py`](auto_backup_maker.py) : if you keep this running it will periodically backup the db
+- [`manage.py`](../manage.py) : CLI to setup for prod
+- [`manage_helpers.py`](../manage_helpers.py) : helper functions for `manage.py`
+- [`auto_backup_maker.py`](../auto_backup_maker.py) : if you keep this running it will periodically backup the db
 
 Meta:
-- [`requirements.txt`](requirements.txt) : required python libraries
+- [`requirements.txt`](../requirements.txt) : required python libraries
