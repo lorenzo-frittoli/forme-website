@@ -116,10 +116,10 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int, use
         user_id (int): id of the user
         activity_id (int): id of the activity
         day (int): day
-        module (int): if length = 2, module 0 = timespans 0, 1. Compute with: timespan // lenght
+        module (int): if length = 2, module 0 = timespans 0, 1. Compute with: timespan // length
         user_type (str)
         con (sqlite3.Connection)
-        do_commit (bool): if the transaction should be immediatly committed. Defaults to True
+        do_commit (bool): if the transaction should be immediately committed. Defaults to True
 
     Raises:
         ValueError: Bookings are closed
@@ -170,10 +170,10 @@ def update_availability(activity_id: int, day: int, module: int, amount: int, co
     Args:
         activity_id (int): id of the activity
         day (int): day to update
-        module (int): if length = 2, module 0 = timespans 0, 1. Compute with: timespan // lenght
+        module (int): if length = 2, module 0 = timespans 0, 1. Compute with: timespan // length
         amount (int): amount to change the availability by
         con (sqlite3.Connection)
-        do_commit (bool): if the transaction should be immediatly committed. Defaults to True
+        do_commit (bool): if the transaction should be immediately committed. Defaults to True
     
     Raises:
         ValueError if the availability is already 0.

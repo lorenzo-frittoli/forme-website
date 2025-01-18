@@ -109,12 +109,12 @@ def try_fill_schedules(user_type: str, k: int, seed: int, con: sqlite3.Connectio
     fill_days: list[int] = [day for day in range(len(DAYS)) if user_type in PERMISSIONS[day]]
     # All the users with the matching type
     user_ids = list(map(lambda x: x[0], con.execute("SELECT id FROM users WHERE type = ?;", (user_type,)).fetchall()))
-    # A different order will give different resluts.
+    # A different order will give different results.
     random.seed(seed)
     random.shuffle(user_ids)
     # All the activities
     activities = con.execute("SELECT id, length, availability FROM activities;").fetchall()
-    # A list with an entry for each pair (activity, timespan) groupedd by availability. Faster alternative to sorting
+    # A list with an entry for each pair (activity, timespan) grouped by availability. Faster alternative to sorting
     # We save the index of the last successful booking we made +1 for this slot to avoid checking the same users over and over.
     # [id, day, module, length, next user index]
     slots_by_avail: list[list[list[int]]] = []
@@ -180,7 +180,7 @@ def fill_schedules(user_type: str) -> None:
     # Avoid conflicts with people booking from the app
     if input("Eseguire solamente in locale. Proseguire? Y/n: ") != "Y":
         return
-    # Make a bakup in case the fill isn't successful.
+    # Make a backup in case the fill isn't successful.
     make_backup(AUTO_BACKUPS_DIR)
     print("Backup creato")
 

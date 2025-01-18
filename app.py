@@ -191,7 +191,7 @@ def activities_page():
     if not query_output:
         return apology("Nessuna attività disponibile al momento", 200)
     
-    # Make list of tuples into list of dicts for easy acces with jinja
+    # Make list of tuples into list of dicts for easy access with jinja
     activities_list = [{"id": activity_id,
                         "title": activity_title,
                         "type": activity_type,
@@ -438,7 +438,7 @@ def search_page():
     if query is None:
         return apology("Invalid http request", 400)
 
-    # Escpae wildcard characters
+    # Escape wildcard characters
     query = query.replace("%", "\\%").replace("_", "\\_")
 
     query = query.lower().split()
