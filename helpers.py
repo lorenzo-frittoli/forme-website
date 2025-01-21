@@ -1,4 +1,4 @@
-from flask import redirect, render_template, session, g, url_for, send_file, Response, abort
+from flask import redirect, render_template, session, g, url_for, send_file, Response
 from functools import wraps
 import qrcode
 from io import BytesIO
@@ -21,13 +21,6 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if session.get("user_id") is None:
-            return redirect("/login")
-
-        query_result = g.con.execute("SELECT 1 FROM users WHERE id = ?;", (session["user_id"], )).fetchone()
-
-        # If the user has been deleted (this functionality is not implemented, this should not happen)
-        if not query_result:
-            session.clear()
             return redirect("/login")
 
         return f(*args, **kwargs)
