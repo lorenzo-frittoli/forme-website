@@ -180,7 +180,6 @@ def register_page():
 
 
 @app.route("/activities", methods=["GET"])
-@login_required
 def activities_page():
     """List of all activities"""
 
@@ -197,7 +196,7 @@ def activities_page():
                         "type": activity_type,
                         "description": activity_description,
                         "length": activity_length,
-                        "booked": fmt_activity_booking(activity_id, g.con),
+                        "booked": fmt_activity_booking(activity_id, g.con) if "user_id" in session else "",
                         "image": get_image_path(image_name)
                         } for activity_id, activity_title, activity_type, activity_description, activity_length, image_name in query_output]
 
@@ -205,7 +204,6 @@ def activities_page():
 
 
 @app.route("/activity", methods=["GET", "POST"])
-@login_required
 def activity_page():
     """Activity page w/ details"""
     try:
@@ -240,6 +238,18 @@ def activity_page():
 
         # JSON string -> list[list[remaining by time] by day]
         activity_availability = json.loads(activity_availability)
+
+        if "user_id" not in session:
+            # For users not logged in
+
+            return render_template(
+                "activity_layout.html",
+                id=activity_id,
+                activity=activity_dict,
+                days=tuple(enumerate(DAYS)),
+                timespans=activity_timespans,
+                availability=activity_availability
+            )
 
         if g.user_type == "staff":
             today = datetime.today().strftime("%d/%m")
@@ -318,7 +328,10 @@ def activity_page():
         )
 
     # Method is POST
-    
+
+    if "user_id" not in session:
+        return apology("Invalid http request")
+ 
     # If booking
     if "booking-button" in request.form:
         # Fetch data
