@@ -21,6 +21,7 @@ Per i laboratori:
 - durata
 
 Per gli studenti:
+[Come ottenere le informazioni per gli studenti](studenti.md)
 - cognome nome
 - classe (preferibilmente)
 - mail (preferibilmente. [Perché?](invio_credenziali.md))
