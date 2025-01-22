@@ -37,7 +37,7 @@ The [documentation](./) is entirely in italian.
 This project is under the [Eclipse Public License](LICENSE) (v2.0).
 
 ## Contribute / contact us
-Open an [issue on github](https://github.com/lorenzo-frittoli/forme-website/issues/new) or contact us via email (found on our github profiles below).
+Open an [issue on github](https://github.com/lorenzo-frittoli/forme-website/issues/new) or contact us via email (found in our github profiles below).
 
 ## Authors
 
