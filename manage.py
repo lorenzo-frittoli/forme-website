@@ -140,7 +140,7 @@ def try_fill_schedules(user_type: str, k: int, seed: int, con: sqlite3.Connectio
         for slot in slots_by_avail[curr_avail]:
             for users_index in range(slot[4], len(user_ids)):
                 try:
-                    make_registration(user_ids[users_index], slot[0], slot[1], slot[2], user_type, con, False)
+                    make_registration(user_ids[users_index], slot[0], slot[1], slot[2], user_type, con)
                 except ValueError:
                     pass
                 else:

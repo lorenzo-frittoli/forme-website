@@ -80,7 +80,7 @@ def activity_already_booked(user_id: int, activity_id: int, con: Connection) -> 
     """
     
     return bool(
-        g.con.execute("SELECT activity_id FROM registrations WHERE user_id = ? AND activity_id = ?;", (user_id, activity_id)).fetchall()
+        con.execute("SELECT activity_id FROM registrations WHERE user_id = ? AND activity_id = ?;", (user_id, activity_id)).fetchall()
     )
 
 
@@ -98,11 +98,11 @@ def slot_already_booked(user_id: int, day: int, module_start: int, module_end: i
     # Searches for ranges intersecting (module_start, module_end)
     
     return bool(
-        g.con.execute(f"SELECT activity_id FROM registrations WHERE user_id = ? AND day = ? AND module_end >= ? AND module_start <= ?;", (user_id, day, module_start, module_end)).fetchall()
+        con.execute(f"SELECT activity_id FROM registrations WHERE user_id = ? AND day = ? AND module_end >= ? AND module_start <= ?;", (user_id, day, module_start, module_end)).fetchall()
     )
 
 
-def make_registration(user_id: int, activity_id: int, day: int, module: int, user_type: str, con: Connection, do_commit: bool=True):
+def make_registration(user_id: int, activity_id: int, day: int, module: int, user_type: str, con: Connection):
     """Add a registration to the database
 
     Args:
@@ -121,13 +121,10 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int, use
         ValueError: Occupied slot
         ValueError: Activity not available
     """
-    if not g.can_book:
-        raise ValueError("Bookings are closed")
-
     if day < 0 or day >= len(DAYS) or user_type not in PERMISSIONS[day]:
         raise ValueError("Invalid day")
     
-    length = g.con.execute("SELECT length FROM activities WHERE id = ?;", (activity_id,)).fetchone()
+    length = con.execute("SELECT length FROM activities WHERE id = ?;", (activity_id,)).fetchone()
     if length is None:
         raise ValueError("Invalid activity id")
     
@@ -149,15 +146,13 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int, use
         raise ValueError("Occupied slot")
     
     # Update availability (raises ValueError if the availability is already 0)
-    update_availability(activity_id, day, module, -1, con, do_commit)
+    update_availability(activity_id, day, module, -1, con)
     
     # Update registrations
-    g.con.execute("INSERT INTO registrations (user_id, activity_id, day, module_start, module_end) VALUES (?, ?, ?, ?, ?);", (user_id, activity_id, day, module_start, module_end))
-    if do_commit:
-        con.commit()
+    con.execute("INSERT INTO registrations (user_id, activity_id, day, module_start, module_end) VALUES (?, ?, ?, ?, ?);", (user_id, activity_id, day, module_start, module_end))
 
 
-def update_availability(activity_id: int, day: int, module: int, amount: int, con: Connection, do_commit: bool=True) -> None:
+def update_availability(activity_id: int, day: int, module: int, amount: int, con: Connection) -> None:
     """Updates the availability
 
     Args:
@@ -172,9 +167,17 @@ def update_availability(activity_id: int, day: int, module: int, amount: int, co
         ValueError if the availability is already 0.
     """
     # Load availability
-    availability = g.con.execute("SELECT availability FROM activities WHERE id = ?", (activity_id,)).fetchone()[0]
-    availability = json.loads(availability)
-    
+    result = con.execute("SELECT availability FROM activities WHERE id = ?", (activity_id,)).fetchone()
+    if not result:
+        raise ValueError()
+
+    availability = json.loads(result[0])
+
+    # Check if we are removing bookings from a cancelled activity (availability[][] = -1)
+    if availability[day][module] == -1 and amount > 0:
+        # keep the availability to -1 for a cancelled activity
+        return
+
     # Modify availability
     availability[day][module] += amount
     if availability[day][module] < 0:
@@ -182,9 +185,7 @@ def update_availability(activity_id: int, day: int, module: int, amount: int, co
     availability = json.dumps(availability)
     
     # Update availability
-    g.con.execute("UPDATE activities SET availability = ? WHERE id = ?;", (availability, activity_id))
-    if do_commit:
-        con.commit()
+    con.execute("UPDATE activities SET availability = ? WHERE id = ?;", (availability, activity_id))
 
 
 def normalize_text(text: str):
@@ -210,7 +211,7 @@ def fmt_timespan(start: int, end: int):
 
 
 def fmt_activity_booking(activity_id: int, con: Connection) -> str:
-    span = g.con.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ? AND activity_id = ?", (g.user_id, activity_id)).fetchone()
+    span = con.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ? AND activity_id = ?", (g.user_id, activity_id)).fetchone()
 
     if span is None:
         return ""
@@ -243,7 +244,7 @@ def generate_schedule(user_id: int, user_type: str, con: Connection):
         WHERE user_id = ?;
     """
 
-    user_registrations = g.con.execute(result, (user_id, )).fetchall()
+    user_registrations = con.execute(result, (user_id, )).fetchall()
 
     # Make empty schedule
     schedule = {day: {timespan: ("", None) for timespan in TIMESPANS_TEXT}

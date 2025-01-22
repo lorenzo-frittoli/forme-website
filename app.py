@@ -331,6 +331,9 @@ def activity_page():
 
     if "user_id" not in session:
         return apology("Invalid http request")
+
+    if not g.can_book:
+        return apology("Invalid http request")
  
     # If booking
     if "booking-button" in request.form:
@@ -345,6 +348,7 @@ def activity_page():
         # Make registration
         try:
             make_registration(g.user_id, activity_id, day, module, g.user_type, g.con)
+            g.con.commit()
         
         except ValueError:
             return apology("Prenotazione non valida")
