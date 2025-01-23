@@ -12,20 +12,28 @@ from manage_helpers import make_backup, generate_password, valid_class, create_a
 from constants import *
 
 commands = {}
-command_annotations = {}
+command_annotations = []
 
 def command(f):
     """Decorator to add a command in the admin area."""
     assert f.__name__ not in commands
 
-    # Add prefix to avoid conflicts
-    arguments = [f.__name__ + "_" + arg for arg in signature(f).parameters]
-    command_annotations[f.__name__] = arguments
+    arguments = [
+        {
+            "name": f.__name__ + '_' + arg,
+            "real_name": arg
+        } for arg in signature(f).parameters
+    ]
+    command_annotations.append({
+        "name": f.__name__,
+        "args": arguments,
+        "doc": f.__doc__
+    })
 
     # All parameters are automatically extracted from the request and passed to the function as strings.
     @wraps(f)
     def wrapper():
-        args = {argument.removeprefix(f.__name__ + "_"): request.form.get(argument) for argument in arguments}
+        args = {arg["real_name"]: request.form.get(arg["name"]) for arg in arguments}
         
         if any(map(lambda x: x is None, args)):
             return "", 400
@@ -71,7 +79,7 @@ def download_db(backup: str) -> Union[Response, tuple[str, int]]:
 
 
 @command
-def change_pwd(user_email: str, new_password: str) -> tuple[str, int]:
+def change_password(user_email: str, new_password: str) -> tuple[str, int]:
     if user_email in ADMIN_EMAILS:
         return "Cannot change an admin's password", 200
 
@@ -179,7 +187,7 @@ Affected users:
 
 
 @command
-def remove_cancelled(id, day, module) -> tuple[str, int]:
+def remove_cancelled_activity_registrations(id, day, module) -> tuple[str, int]:
     """Remove bookings from a cancelled activity
 
     Args:
@@ -239,7 +247,7 @@ Deleted registrations for activity {id} on day {day} {"timespan " + fmt_timespan
 
 
 @command
-def recalc_availability(id, new_capacity) -> tuple[str, int]:
+def recalculate_availability(id, new_capacity) -> tuple[str, int]:
     """Uses:
     - recalculate the availability of an activity when its capacity changes
     - revert a cancel_activity command by executing this command to recompute the original availability
