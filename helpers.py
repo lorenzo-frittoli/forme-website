@@ -207,7 +207,7 @@ def get_image_path(image: str) -> str:
 
 def fmt_timespan(start: int, end: int):
     """Return the formatted text for the range [start, end]"""
-    return TIMESPANS[start][0] + '-' + TIMESPANS[end][1]
+    return TIMESPANS[start][0] + ' - ' + TIMESPANS[end][1]
 
 
 def fmt_activity_booking(activity_id: int, con: Connection) -> str:
