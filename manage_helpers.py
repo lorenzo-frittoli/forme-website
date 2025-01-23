@@ -81,3 +81,7 @@ def make_backup(dir: str) -> str:
 
 def valid_class(_class: str) -> bool:
     return len(_class) == 2 and _class[0] in ALLOWED_CLASSES[0] and _class[1] in ALLOWED_CLASSES[1]
+
+
+def create_availability(capacity: int, length: int) -> list[list[int]]:
+    return [[capacity for _ in range(0, len(TIMESPANS) - length + 1, length)] for _ in DAYS]
