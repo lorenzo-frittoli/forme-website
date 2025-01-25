@@ -443,17 +443,14 @@ def verification_page():
         user_email = result[4]
     )
 
-@app.route("/user_search", methods=["GET", "POST"])
+@app.route("/user_search")
 @staff_required
 def search_page():
-    if request.method == "GET":
+    query = request.args.get("query")
+
+    # Also check empty queries
+    if not query:
         return render_template("search_page.html")
-
-    # Method is POST
-    query = request.form.get("query")
-
-    if query is None:
-        return apology("Invalid http request", 400)
 
     # Escape wildcard characters
     query = query.replace("%", "\\%").replace("_", "\\_")
