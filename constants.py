@@ -28,8 +28,7 @@ ALLOWED_CLASSES = ("345", "ABCDEIFGHIL") # Classes are strings like '3A', '4F'
 # Backups
 MAX_BACKUPS = 100
 
-DIR_SEP = "\\" if os.name == "nt" else "/"
-
+DIR_SEP = os.sep
 BACKUPS_DIR = "backups"
 MANUAL_BACKUPS_DIR = BACKUPS_DIR + DIR_SEP + "manual"
 TIMED_BACKUPS_DIR = BACKUPS_DIR + DIR_SEP + "timed"
