@@ -1,4 +1,3 @@
-# RUN FROM PARENT DIRECTORY
 from constants import *
 from helpers import fmt_timespan
 import sqlite3
