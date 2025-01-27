@@ -1,0 +1,15 @@
+Ciao,
+
+sono aperte le iscrizioni per i laboratori del ForMe ####!
+Puoi prenotarti visitando il sito: https://formecassini.eu.pythonanywhere.com/login.
+
+I laboratori saranno aperti anche agli esterni il sabato. Gli esterni possono registrarsi qui:
+https://formecassini.eu.pythonanywhere.com/register
+
+Ecco le tue credenziali:
+
+utente: {email}
+password: {password}
+
+A presto,
+lo staff ForMe.
