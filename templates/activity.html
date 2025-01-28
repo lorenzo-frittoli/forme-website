@@ -72,7 +72,7 @@
     <div class="booking" style="margin: 2%;">
         {% if g.can_book %}
         <h2 style="margin-bottom: 1rem;">Prenota</h2>
-        <form action="/activity?id={{ id }}" method="post">
+        <form method="post">
             
             <!-- Buttons for the days -->
             <div>
@@ -117,7 +117,7 @@
             </div>
         </div>
         {% if g.can_book %}
-        <form action="/activity?id={{ id }}" method="post" style="margin: 5%;">
+        <form method="post" style="margin: 5%;">
             <button class="btn btn-primary btn-lg-on-mobile" name="unbooking-button">Rimuovi Prenotazione</button>
         </form>
         {% else %}

@@ -7,7 +7,7 @@
 {% block main %}
     <h1>Admin Authentication</h1>
     <br>
-    <form action="/admin" method="post">
+    <form method="post">
         {% for name, value in command.items() %}
         <input type="hidden" name="{{ name }}" value="{{ value }}">
         {% endfor %}

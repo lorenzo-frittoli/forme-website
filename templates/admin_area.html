@@ -7,7 +7,7 @@
 {% block main %}
     <h1><a href="/admin" style="color: inherit;">Admin Area</a></h1>
     <br>
-    <form action="/admin" method="post">
+    <form method="post">
         {% for command in commands %}
         <div title="{{ command['doc'] }}" style="display: inline; margin-right: 5px;">
             <svg height="30px" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" style="margin-top: -3px">
