@@ -49,13 +49,13 @@
                 <div class="collapse navbar-collapse" id="navbar">
                     {% if session["user_id"] %}
                         <ul class="navbar-nav me-auto mt-2">
-                            <li class="nav-item"><a class="nav-link" href="/me">
+                            <li><a class="nav-link" href="/me">
                                 {% if g.user_type == "staff" %}Informazioni per lo staff{% else %}Il mio orario{% endif %}
                             </a></li>
-                            <li class="nav-item"><a class="nav-link" href="/activities">Attività</a></li>
-                            <li class="nav-item"><a class="nav-link" href="/codice_verifica">Verifica</a></li>
+                            <li><a class="nav-link" href="/activities">Attività</a></li>
+                            <li><a class="nav-link" href="/codice_verifica">Verifica</a></li>
                             {% if g.user_type == "staff" %}
-                            <li class="nav-item"><a class="nav-link" href="/user_search">Ricerca utenti</a></li>
+                            <li><a class="nav-link" href="/user_search">Ricerca utenti</a></li>
                             {% endif %}
                         </ul>
                         <ul class="navbar-nav ms-auto mt-2">
@@ -68,15 +68,15 @@
                                 </label>
                             </div>
                             <li><a class="nav-link" href="/privacy">Privacy</a></li>
-                            <li class="nav-item"><a class="nav-link" href="/logout">Log Out</a></li>
+                            <li><a class="nav-link" href="/logout">Log Out</a></li>
                         </ul>
                     {% else %}
                         <ul class="navbar-nav me-auto mt-2">
-                            <li class="nav-item"><a class="nav-link" href="/activities">Attività</a></li>
+                            <li><a class="nav-link" href="/activities">Attività</a></li>
                         </ul>
                         <ul class="navbar-nav ms-auto mt-2">
-                            <li class="nav-item"><a class="nav-link" href="/register">Registrati</a></li>
-                            <li class="nav-item"><a class="nav-link" href="/login">Log In</a></li>
+                            <li><a class="nav-link" href="/register">Registrati</a></li>
+                            <li><a class="nav-link" href="/login">Log In</a></li>
                         </ul>
                     {% endif %}
                 </div>
