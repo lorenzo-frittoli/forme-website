@@ -1,15 +1,18 @@
 -- Users table. Contains both users and guests
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT KEY NOT NULL UNIQUE,
-    hash TEXT NOT NULL,
+    email TEXT KEY UNIQUE,
+    hash TEXT,
     name TEXT NOT NULL,
     surname TEXT NOT NULL,
     type TEXT NOT NULL,
     class TEXT,
     verification_code TEXT KEY NOT NULL UNIQUE,
     can_book INTEGER NOT NULL DEFAULT 1,
-    theme TEXT NOT NULL DEFAULT "light"
+    theme TEXT NOT NULL DEFAULT "light",
+    -- "Double quotes" indicate an identifier. `group` has to be escaped because it is a sql keyword.
+    -- 'Single quotes' indicate string literals.
+    "group" INTEGER KEY NOT NULL DEFAULT (random())
 );
 
 -- Activities table

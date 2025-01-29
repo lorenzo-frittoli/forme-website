@@ -394,6 +394,99 @@ def me_page():
     )
 
 
+@app.route("/esterni", methods=["GET", "POST"])
+@login_required
+def group_page():
+    """Manage and add accounts of family members / friends"""
+
+    if request.method == "GET":
+        group_members = g.con.execute(
+            "SELECT id, surname, name, email FROM users WHERE \"group\" = (SELECT \"group\" from users where id = ?)",
+            (g.user_id, )
+        )
+
+        return render_template("groups.html", group_members=group_members)
+
+    # Method is POST
+
+    name = request.form.get("name")
+    surname = request.form.get("surname")
+    email = request.form.get("email")
+    password = request.form.get("password")
+    confirmation = request.form.get("confirmation")
+
+    if not name or len(name) > MAX_FIELD_LENGTH:
+        return apology("Nome non valido", 400)
+
+    if not surname or len(surname) > MAX_FIELD_LENGTH:
+        return apology("Cognome non valido", 400)
+
+    if email is None:
+        return apology("Invalid http request")
+
+    # Create a new user with email and password
+    if email:
+        email = email.lower().strip() # Some mobile browsers insert spaces for no reason
+        if len(email) > MAX_FIELD_LENGTH or not re.match(EMAIL_REGEX, email):
+            return apology("Email non valida", 400)
+
+        # Checks the password field
+        if not password or len(password) > MAX_FIELD_LENGTH:
+            return apology("Password non valida", 400)
+        
+        # Checks that password and confirmation match
+        if password != confirmation:
+            return apology("Password e conferma non coincidono", 400)
+
+        # Check if the email is already taken
+        # g.con.execute returns a tuple with the result or None
+        found = g.con.execute("SELECT 1 FROM users WHERE email = ?;", (email, )).fetchone()
+
+        if found:
+            return apology("Email già registrata", 400)
+
+        password_hash = generate_password_hash(password, method=GENERATE_PASSWORD_METHOD)
+
+    # Create a new user that can only be accessed via this page
+    else:
+        # email == ""
+        if password or confirmation:
+            return apology("Specificare anche un'email insieme alla password se si desidera poter effettuare il login con questo utente", 400)
+        
+        email = None
+        password_hash = None
+
+    # Save the new user & commit
+    g.con.execute("INSERT INTO users (email, hash, name, surname, type, verification_code, \"group\") VALUES (?, ?, ?, ?, ?, ?, (SELECT \"group\" from users where id = ?));",
+                (email, password_hash, name, surname, "guest", generate_password(20), g.user_id))
+    g.con.commit()
+
+    # Redirect to the homepage
+    return redirect("/esterni")
+
+
+@app.route("/group_login", methods=["POST"])
+@login_required
+def group_login():
+    """Log-in as another user from the same group."""
+    try:
+        new_user_id = int(request.form["user_id"])
+
+    except (ValueError, KeyError):
+        return apology("Invalid http request")
+
+    result = g.con.execute(
+        "SELECT 1 FROM users WHERE id = ? and \"group\" = (SELECT \"group\" FROM users WHERE id = ?)",
+        (new_user_id, g.user_id)
+    ).fetchone()
+
+    if result is None:
+        return apology("Log-in not allowed")
+
+    session["user_id"] = new_user_id
+
+    return redirect("/me")
+
 @app.route("/privacy")
 def privacy_page():
     """Cookie policy and privacy policy"""

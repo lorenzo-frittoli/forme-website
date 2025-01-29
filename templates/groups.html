@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Registrati
+{% endblock %}
+
+{% block main %}
+    <div class="row">
+        <div class="col-lg">
+            <h4 class="mb-3">Esterni già registrati:</h4>
+            {% for value in group_members %}
+            <div class="mb-2 mx-auto" style="max-width: 30rem;">
+                <form action="/group_login" method="post">
+                    <input hidden name="user_id" value="{{ value[0] }}">
+                    <button class="btn btn-primary w-100" type="submit">{{ value[1] }} {{ value[2] }} {% if value[3] %} <br> {{ value[3] }} {% endif %}</button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="col-lg">
+            <form method="post">
+                <h4 class="m-3">
+                    Registra un nuovo esterno
+                </h4>
+                <div class="mb-3">
+                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="name" name="name" placeholder="Nome" type="text">
+                </div>
+                <div class="mb-3">
+                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="surname" name="surname" placeholder="Cognome" type="text">
+                </div>
+                <div class="mb-3">
+                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="email" name="email" placeholder="Email (facoltativa)" type="text">
+                </div>
+                <div class="mb-3">
+                    <input class="form-control mx-auto w-auto" id="password" name="password" placeholder="Password (facoltativa)" type="password">
+                </div>
+                <div class="mb-3">
+                    <input class="form-control mx-auto w-auto" id="confirmation" name="confirmation" placeholder="Conferma password (facoltativa)" type="password">
+                </div>
+                <a href="/privacy">Privacy Policy</a>
+                <br>
+                <br>
+                <p>
+                    Inserisci mail e password se desideri che gli esterni che registri possano effettuare il login autonomamente.<br>
+                    Puoi sempre accedere al loro account effettuando il login con le tue credenziali e selezionando il loro profilo da questa pagina.
+                </p>
+                <button class="btn btn-primary" type="submit">Registra un esterno</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
