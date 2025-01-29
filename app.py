@@ -456,9 +456,11 @@ def group_page():
         email = None
         password_hash = None
 
-    # Save the new user & commit
-    g.con.execute("INSERT INTO users (email, hash, name, surname, type, verification_code, \"group\") VALUES (?, ?, ?, ?, ?, ?, (SELECT \"group\" from users where id = ?));",
-                (email, password_hash, name, surname, "guest", generate_password(20), g.user_id))
+    # Create a new user with the same group and theme
+    g.con.execute(
+        "INSERT INTO users (email, hash, name, surname, type, verification_code, theme, \"group\") VALUES (?, ?, ?, ?, ?, ?, (SELECT theme from users where id = ?), (SELECT \"group\" from users where id = ?));",
+        (email, password_hash, name, surname, "guest", generate_password(20), g.user_id, g.user_id)
+    )
     g.con.commit()
 
     # Redirect to the homepage
