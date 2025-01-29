@@ -9,7 +9,7 @@ import unicodedata
 from constants import *
 
 
-def apology(message, code=400):
+def apology(message="Invalid http request", code=400):
     """Render message as an apology to user."""
     return render_template("apology.html", message=message), code
 

@@ -82,13 +82,13 @@ def login_page():
     email = request.form.get("email")
 
     if not email:
-        return apology("email non valida", 400)
+        return apology("email non valida", 200)
 
     email = email.lower()
 
     # Ensure password was submitted
     if not request.form.get("password"):
-        return apology("password non valida", 400)
+        return apology("password non valida", 200)
 
     # Query db for user info
     # query_result is like [(id, pw_hash)]
@@ -97,7 +97,7 @@ def login_page():
     # If there is no user saved with the provided email
     if not query_result:
         session.clear()
-        return apology("email e/o password invalidi", 400)
+        return apology("email e/o password invalidi", 200)
 
     # No need to fully update the session: it will be updated after the redirect
     session["user_id"], pw_hash = query_result
@@ -105,7 +105,7 @@ def login_page():
     # Check password against hash
     if not check_password_hash(pw_hash, request.form["password"]):
         session.clear()
-        return apology("email e/o password invalidi", 400)
+        return apology("email e/o password invalidi", 200)
 
     # Redirect user to home page
     return redirect("/")
@@ -141,34 +141,34 @@ def register_page():
     # Check that the form was filled correctly
     # Checks the name filed
     if not name or len(name) > MAX_FIELD_LENGTH:
-        return apology("Nome non valido", 400)
+        return apology("Nome non valido", 200)
 
     # Checks the surname field
     if not surname or len(surname) > MAX_FIELD_LENGTH:
-        return apology("Cognome non valido", 400)
+        return apology("Cognome non valido", 200)
     
     # Checks the email field
     if not email:
-        return apology("Email non valida", 400)
+        return apology("Email non valida", 200)
 
     email = email.lower().strip() # Some mobile browsers insert spaces for no reason
     if len(email) > MAX_FIELD_LENGTH or not re.match(EMAIL_REGEX, email):
-        return apology("Email non valida", 400)
+        return apology("Email non valida", 200)
     
     # Checks the password field
     if not password or len(password) > MAX_FIELD_LENGTH:
-        return apology("Password non valida", 400)
+        return apology("Password non valida", 200)
     
     # Checks that password and confirmation match
     if password != confirmation:
-        return apology("Password e conferma non coincidono", 400)
+        return apology("Password e conferma non coincidono", 200)
 
     # Check if the email is already taken
     # g.con.execute returns a tuple with the result or None etc
     found = g.con.execute("SELECT 1 FROM users WHERE email = ?;", (email, )).fetchone()
 
     if found:
-        return apology("Email già registrata", 400)
+        return apology("Email già registrata", 200)
 
     # Save the new user & commit
     g.con.execute("INSERT INTO users (email, hash, name, surname, type, verification_code) VALUES (?, ?, ?, ?, ?, ?);",
@@ -210,7 +210,7 @@ def activity_page():
         activity_id = int(request.args["id"])
         
     except (KeyError, ValueError):
-        return apology("Invalid http request")
+        return apology()
 
     # Method is GET
     if request.method == "GET":        
@@ -218,7 +218,7 @@ def activity_page():
         query_result = g.con.execute("SELECT title, description, type, length, classroom, speakers, image, availability FROM activities WHERE id = ?;", [activity_id,]).fetchone()
 
         if query_result is None:
-            return apology("Invalid http request")
+            return apology()
 
         activity_title, activity_description, activity_type, activity_length, activity_classroom, activity_speakers, activity_image, activity_availability = query_result
 
@@ -330,10 +330,10 @@ def activity_page():
     # Method is POST
 
     if "user_id" not in session:
-        return apology("Invalid http request")
+        return apology()
 
     if not g.can_book:
-        return apology("Invalid http request")
+        return apology()
  
     # If booking
     if "booking-button" in request.form:
@@ -343,7 +343,7 @@ def activity_page():
             module = int(request.form["timespan-button"])
             
         except (TypeError, ValueError):
-            return apology("Invalid http request")
+            return apology()
 
         # Make registration
         try:
@@ -351,7 +351,7 @@ def activity_page():
             g.con.commit()
         
         except ValueError:
-            return apology("Prenotazione non valida")
+            return apology("Prenotazione non valida", 200)
 
     # If unbooking
     elif "unbooking-button" in request.form:
@@ -359,7 +359,7 @@ def activity_page():
         length = g.con.execute("SELECT length FROM activities WHERE id = ?;", (activity_id, )).fetchone()
         
         if None in (registration, length):
-            return apology("Invalid http request")
+            return apology()
         
         length = length[0]
         day, module_start = registration
@@ -374,7 +374,7 @@ def activity_page():
         
     # Wildcard (error)
     else:
-        return apology("Invalid http request")
+        return apology()
     
     return redirect("/me")
 
@@ -416,34 +416,34 @@ def group_page():
     confirmation = request.form.get("confirmation")
 
     if not name or len(name) > MAX_FIELD_LENGTH:
-        return apology("Nome non valido", 400)
+        return apology("Nome non valido", 200)
 
     if not surname or len(surname) > MAX_FIELD_LENGTH:
-        return apology("Cognome non valido", 400)
+        return apology("Cognome non valido", 200)
 
     if email is None:
-        return apology("Invalid http request")
+        return apology()
 
     # Create a new user with email and password
     if email:
         email = email.lower().strip() # Some mobile browsers insert spaces for no reason
         if len(email) > MAX_FIELD_LENGTH or not re.match(EMAIL_REGEX, email):
-            return apology("Email non valida", 400)
+            return apology("Email non valida", 200)
 
         # Checks the password field
         if not password or len(password) > MAX_FIELD_LENGTH:
-            return apology("Password non valida", 400)
+            return apology("Password non valida", 200)
         
         # Checks that password and confirmation match
         if password != confirmation:
-            return apology("Password e conferma non coincidono", 400)
+            return apology("Password e conferma non coincidono", 200)
 
         # Check if the email is already taken
         # g.con.execute returns a tuple with the result or None
         found = g.con.execute("SELECT 1 FROM users WHERE email = ?;", (email, )).fetchone()
 
         if found:
-            return apology("Email già registrata", 400)
+            return apology("Email già registrata", 200)
 
         password_hash = generate_password_hash(password, method=GENERATE_PASSWORD_METHOD)
 
@@ -451,7 +451,7 @@ def group_page():
     else:
         # email == ""
         if password or confirmation:
-            return apology("Specificare anche un'email insieme alla password se si desidera poter effettuare il login con questo utente", 400)
+            return apology("Specificare anche un'email insieme alla password se si desidera poter effettuare il login con questo utente", 200)
         
         email = None
         password_hash = None
@@ -473,7 +473,7 @@ def group_login():
         new_user_id = int(request.form["user_id"])
 
     except (ValueError, KeyError):
-        return apology("Invalid http request")
+        return apology()
 
     result = g.con.execute(
         "SELECT 1 FROM users WHERE id = ? and \"group\" = (SELECT \"group\" FROM users WHERE id = ?)",
@@ -518,14 +518,14 @@ def verification_page():
         verification_code = request.args["verification_code"]
 
     except (KeyError, ValueError):
-        return apology("Invalid http request")
+        return apology()
 
     result = g.con.execute("SELECT id, type, name, surname, email FROM users WHERE verification_code = ?", (verification_code, )).fetchone()
     if not result:
         return apology("Utente non trovato.")
 
     if result[1] == "staff":
-        return apology("Account staff.")
+        return apology("Account staff.", 200)
 
     return render_template(
         "me.html",
@@ -551,7 +551,7 @@ def search_page():
     query = query.lower().split()
 
     if max(map(len, query), default=0) < 2:
-        return apology("Inserire almeno 2 caratteri per la ricerca")
+        return apology("Inserire almeno 2 caratteri per la ricerca", 200)
 
     search_sql = "(name LIKE ? COLLATE NOCASE OR surname LIKE ? COLLATE NOCASE OR email LIKE ? COLLATE NOCASE OR class = ? COLLATE NOCASE)"
     sql_query = "SELECT surname, name, class, email, verification_code FROM users WHERE " + " AND ".join([search_sql] * len(query)) + " ORDER BY surname || name;"
