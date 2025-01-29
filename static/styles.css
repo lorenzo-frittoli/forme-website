@@ -119,7 +119,7 @@ nav .navbar-brand {
     padding: 0px;
 }
 
-/* activites.html */
+/* activities.html */
 
 #headers {
     position: relative;
@@ -139,7 +139,7 @@ nav .navbar-brand {
 }
 
 .card-wrapper {
-    /* this properties ovveride the fact that this is really a link*/
+    /* this properties override the fact that this is really a link*/
     color: inherit;
     :hover {
         color: inherit;
