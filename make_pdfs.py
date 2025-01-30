@@ -2,10 +2,7 @@ from constants import *
 from helpers import fmt_timespan
 import sqlite3
 
-TEX_DIRECTORY = "tex" + DIR_SEP
-DAYS_TEXT = ["Giovedì 9 Novembre", "Venerdì 10 Novembre", "Sabato 11 Novembre"]
-
-con = sqlite3.connect("database.db")
+con = sqlite3.connect(DATABASE)
 
 activities = con.execute("SELECT title, length, id FROM activities ORDER BY id;").fetchall()
 
@@ -37,9 +34,17 @@ f"""\\Large\\textbf{{Foglio firme - {DAYS_TEXT[day_index]}}}
             )
             for module_start in range(0, len(TIMESPANS)-activity_length+1, activity_length):
                 module_end = module_start + activity_length - 1
+                # Get the speakers
+                speakers = con.execute(
+                    "SELECT speakers FROM activities WHERE id = ?;",
+                    (activity_id, )
+                ).fetchone()[0]
                 # Double { } are not formatted by the f-string
                 put(
-f"""\\subsection{{{fmt_timespan(module_start, module_end)}}}
+f"""\\begin{{minipage}}{{100em}}
+\\subsection{{{fmt_timespan(module_start, module_end)}}}
+Relatori: {speakers} \\\\
+\\\\
 \\begin{{tabular}}{{| m{{7.2cm}} | m{{1.6cm}} | m{{7.2cm}} |}}
 \\hline"""
                 )
@@ -53,6 +58,9 @@ f"""\\subsection{{{fmt_timespan(module_start, module_end)}}}
                     # \\ : newline
                     put(surname + " " + name, "&", _class if _class else "esterno", " & \\\\")
                     put("\\hline")
-                put("\\end{tabular}")
+                put(
+"""\\end{tabular}
+\\end{minipage}"""
+)
             put("\\newpage")
         put("\\end{document}")

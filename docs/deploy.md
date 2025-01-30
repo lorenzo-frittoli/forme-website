@@ -68,13 +68,14 @@ Mentre prepari il sito, tienilo sempre aperto in locale per vedere come risultan
 
 # Aggiornare constants.py
 **Se una variabile non ha una descrizione qua sotto, probabilmente non devi toccarla.**
-- LINK: indirizzo al quale viene hostato il sito
-- DAYS: giorni del laboratorio
+- LINK: l'indirizzo al quale viene hostato il sito
+- DAYS: i giorni del laboratorio
+- DAYS_LONG: i giorni del laboratorio, in forma estesa
 - TIMESPANS: i moduli dei laboratori come tuple (inizio modulo, fine modulo)
-- PERMISSIONS: per ogni giorno, quali tipi di studenti posso iscriversi ai laboratori
+- PERMISSIONS: per ogni giorno, quali tipi di utenti posso iscriversi ai laboratori
 - ALLOWED_CLASSES: le classi / sezioni che parteciperanno al ForMe
 - ADMIN_EMAILS: le mail degli account admin (**admin != staff, gli admin devono aver letto questa documentazione**)
-- ADMIN_PASSWORD: hash della password admin (*una buona password per favore!*), come generato da `werkzeug.security.generate_password_hash`
+- ADMIN_PASSWORD: l'hash della password admin (*una buona password per favore!*), come generato da `werkzeug.security.generate_password_hash`
 
 # Controlli
 - Eseguire il sito in locale

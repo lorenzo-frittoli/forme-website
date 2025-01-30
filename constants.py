@@ -6,12 +6,14 @@ LINK = "https://formecassini.eu.pythonanywhere.com"
 
 # Event details
 DAYS = ("09/10", "10/10", "11/10")
+DAYS_TEXT = ("Giovedì 9 Novembre", "Venerdì 10 Novembre", "Sabato 11 Novembre")
 TIMESPANS = (("08:00", "09:00"), ("09:00", "10:00"), ("10:00", "11:00"), ("11:00", "12:00"))
 TIMESPANS_TEXT = tuple("-".join(timespan) for timespan in TIMESPANS)
 PERMISSIONS = (("student", ), ("student", "guest"), ("guest", ))
 
 assert len(set(DAYS)) == len(DAYS)
 assert len(PERMISSIONS) == len(DAYS)
+assert len(DAYS_TEXT) == len(DAYS)
 
 
 # Database
@@ -29,6 +31,7 @@ ALLOWED_CLASSES = ("345", "ABCDEIFGHIL") # Classes are strings like '3A', '4F'
 MAX_BACKUPS = 100
 
 DIR_SEP = os.sep
+TEX_DIRECTORY = "tex" + DIR_SEP
 BACKUPS_DIR = "backups"
 MANUAL_BACKUPS_DIR = BACKUPS_DIR + DIR_SEP + "manual"
 TIMED_BACKUPS_DIR = BACKUPS_DIR + DIR_SEP + "timed"
