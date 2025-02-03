@@ -401,7 +401,7 @@ def group_page():
 
     if request.method == "GET":
         group_members = g.con.execute(
-            "SELECT id, surname, name, email FROM users WHERE \"group\" = (SELECT \"group\" from users where id = ?)",
+            "SELECT id, surname, name FROM users WHERE \"group\" = (SELECT \"group\" from users where id = ?)",
             (g.user_id, )
         )
 
@@ -411,9 +411,6 @@ def group_page():
 
     name = request.form.get("name")
     surname = request.form.get("surname")
-    email = request.form.get("email")
-    password = request.form.get("password")
-    confirmation = request.form.get("confirmation")
 
     if not name or len(name) > MAX_FIELD_LENGTH:
         return apology("Nome non valido", 200)
@@ -421,49 +418,15 @@ def group_page():
     if not surname or len(surname) > MAX_FIELD_LENGTH:
         return apology("Cognome non valido", 200)
 
-    if email is None:
-        return apology()
-
-    # Create a new user with email and password
-    if email:
-        email = email.lower().strip() # Some mobile browsers insert spaces for no reason
-        if len(email) > MAX_FIELD_LENGTH or not re.match(EMAIL_REGEX, email):
-            return apology("Email non valida", 200)
-
-        # Checks the password field
-        if not password or len(password) > MAX_FIELD_LENGTH:
-            return apology("Password non valida", 200)
-        
-        # Checks that password and confirmation match
-        if password != confirmation:
-            return apology("Password e conferma non coincidono", 200)
-
-        # Check if the email is already taken
-        # g.con.execute returns a tuple with the result or None
-        found = g.con.execute("SELECT 1 FROM users WHERE email = ?;", (email, )).fetchone()
-
-        if found:
-            return apology("Email già registrata", 200)
-
-        password_hash = generate_password_hash(password, method=GENERATE_PASSWORD_METHOD)
-
     # Create a new user that can only be accessed via this page
-    else:
-        # email == ""
-        if password or confirmation:
-            return apology("Specificare anche un'email insieme alla password se si desidera poter effettuare il login con questo utente", 200)
-        
-        email = None
-        password_hash = None
-
     # Create a new user with the same group and theme
     g.con.execute(
         "INSERT INTO users (email, hash, name, surname, type, verification_code, theme, \"group\") VALUES (?, ?, ?, ?, ?, ?, (SELECT theme from users where id = ?), (SELECT \"group\" from users where id = ?));",
-        (email, password_hash, name, surname, "guest", generate_password(20), g.user_id, g.user_id)
+        (None, None, name, surname, "guest", generate_password(20), g.user_id, g.user_id)
     )
     g.con.commit()
 
-    # Redirect to the homepage
+    # Redirect to a get request
     return redirect("/esterni")
 
 
