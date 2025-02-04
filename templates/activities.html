@@ -4,8 +4,6 @@
     Le Nostre Attività
 {% endblock %}
 
-{% set max_card_text_length = 160 %}
-
 {% block main %}
     <script>
         function filter_activities(search) {
@@ -49,15 +47,9 @@
                             Prenotazione: <br> {{ activity.booked }}
                         </div>
                         {% else %}
-                        <p class="card-text">
-                            {% set max_description_length = max_card_text_length - 2*activity.title|length %}
-                            {% if activity.description|length <= max_description_length %}
-                                {{ activity.description }}
-                            {% else %}
-                                <!-- total length of title + description is limited -->
-                                {{ activity.description[:max_description_length-3] }}...
-                            {% endif %}
-                            </p>
+                        <p class="card-text" style="max-height: calc(var(--bs-body-line-height)*5rem); overflow-y: hidden;">
+                            {{ activity.description }}
+                        </p>
                         {% endif %}
                     </div>
                 </div>
