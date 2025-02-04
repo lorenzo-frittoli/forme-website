@@ -40,7 +40,7 @@
         <!-- http://getbootstrap.com/docs/5.3/ -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
-        <nav class="border navbar navbar-expand-lg">
+        <nav class="border-bottom navbar navbar-expand-lg">
             <div class="container-fluid">
                 <a class="navbar-brand" href="/"><span class="red">For</span><span class="green">Me</span> <span class="blue">####</span></a>
                 <button aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-bs-target="#navbar" data-bs-toggle="collapse" type="button">
@@ -82,6 +82,11 @@
                 </div>
             </div>
         </nav>
+        <div class="border-bottom navbar">
+            <div class="fs-4 m-auto text-center">
+                {{ g.user_surname }} {{ g.user_name }}
+            </div>
+        </div>
 
         <main class="container-fluid py-4 text-center">
             {% block main %}{% endblock %}

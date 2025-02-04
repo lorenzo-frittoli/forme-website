@@ -1,6 +1,6 @@
 /* all */
 
-.card-booked, .desktop-user-id {
+.card-booked {
     background-color: #ddf7fe;
     border-color: #4e95ff;
     border-style: solid;
@@ -9,18 +9,12 @@
 }
 
 [data-bs-theme="dark"]  {
-    .card-booked, .desktop-user-id {
+    .card-booked {
         background-color: #002040;
     }
 }
 
 /* layout.html */
-.desktop-user-id {
-    right: 30px;
-    bottom: 20px;
-    display: flex;
-    position: fixed;
-}
 
 /* Size for brand */
 nav .navbar-brand {
