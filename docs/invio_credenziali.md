@@ -38,4 +38,4 @@ Le password per le app si possono gestire da
 - Il limite giornaliero di invio email tramite i server Google è di 1000 email (al momento della scrittura di questo documento). Assicurati di non eccedere il limite.
 
 - Spesso anche se non vengono raggiunti i limiti giornalieri l'invio di grandi quantità di email in poco tempo può causare dei blocchi temporanei. Per questo [send_emails.py](../data/send_emails.py) resetta la connessione al server ogni 50 email.\
-Nel caso dovesse disconnettersi il server, riprendete l'invio delle mail dall'ultima non invata.
+Nel caso dovesse disconnettersi il server, riprendete l'invio delle mail dall'ultima non inviata.
