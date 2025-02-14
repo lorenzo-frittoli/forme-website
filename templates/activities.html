@@ -9,10 +9,12 @@
         function filter_activities(search) {
             search = search.toLowerCase();
             $(".card-wrapper").each(function(i, obj) {
-                let title = $(".card-title", $(this))[0].textContent.toLowerCase();
+                let title = $(".card-title", obj)[0].textContent.toLowerCase() + $(".card-subtitle", obj)[0].textContent.toLowerCase();
+                console.log(title);
                 obj.style.display = title.includes(search) ? "flex" : "none";
             });
         }
+
         $(document).ready(function() {
             // select the input field
             let filter = $("#activities-filter");
