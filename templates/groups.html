@@ -7,7 +7,7 @@
 {% block main %}
     <div class="row">
         <div class="col-lg">
-            <h4 class="mb-3">Esterni già registrati:</h4>
+            <h4 class="mb-3">Account già registrati:</h4>
             {% for value in group_members %}
             <div class="mb-2 mx-auto" style="max-width: 30rem;">
                 <form action="/group_login" method="post">
@@ -19,9 +19,7 @@
         </div>
         <div class="col-lg">
             <form method="post">
-                <h4 class="m-3">
-                    Registra un nuovo esterno
-                </h4>
+                <h4 class="m-3">Registra un nuovo esterno</h4>
                 <div class="mb-3">
                     <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="name" name="name" placeholder="Nome" type="text">
                 </div>

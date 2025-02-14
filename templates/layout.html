@@ -66,7 +66,7 @@
                                 <input type="checkbox" class="input" id="darkModeSwitch" {% if g.user_theme == "dark" %}checked{% endif %}>
                                 <span class="slider"></span>
                             </label>
-                            <li><a class="nav-link" href="/esterni">Esterni</a></li>
+                            <li><a class="nav-link" href="/esterni">Famiglia</a></li>
                             <li><a class="nav-link" href="/privacy">Privacy</a></li>
                             <li><a class="nav-link" href="/logout">Log Out</a></li>
                         </ul>
@@ -84,9 +84,7 @@
         </nav>
         {% if session["user_id"] %}
         <div class="border-bottom navbar">
-            <div class="fs-4 m-auto text-center">
-                {{ g.user_surname }} {{ g.user_name }}
-            </div>
+            <div class="fs-4 m-auto text-center">{{ g.user_surname }} {{ g.user_name }}</div>
         </div>
         {% endif %}
 
