@@ -124,6 +124,8 @@ def logout_page():
 def register_page():
     """Register user"""
 
+    return render_template("registrations_closed.html")
+
     # If called with GET (loaded the page/clicked link)
     if request.method == "GET":
         # Render the page
