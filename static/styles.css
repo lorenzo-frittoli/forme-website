@@ -114,6 +114,10 @@ nav .navbar-brand {
     padding: 1rem 0 1rem;
 }
 
+.btn-group .btn {
+    border-radius: 0 !important;
+}
+
 /* activity.html */
 
 .unbooking .card-booked {
