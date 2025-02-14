@@ -406,8 +406,6 @@ def group_page():
             {"id": g.user_id}
         ).fetchall()
 
-        print(group_members)
-
         return render_template("groups.html", group_members=group_members)
 
     # Method is POST
