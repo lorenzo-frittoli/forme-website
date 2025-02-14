@@ -400,9 +400,11 @@ def group_page():
 
     if request.method == "GET":
         group_members = g.con.execute(
-            "SELECT id, surname, name FROM users WHERE \"group\" = (SELECT \"group\" from users where id = ?)",
-            (g.user_id, )
-        )
+            "SELECT id, surname, name FROM users WHERE \"group\" = (SELECT \"group\" from users where id = :id) AND id != :id;",
+            {"id": g.user_id}
+        ).fetchall()
+
+        print(group_members)
 
         return render_template("groups.html", group_members=group_members)
 
