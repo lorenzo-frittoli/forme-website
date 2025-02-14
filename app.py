@@ -244,7 +244,7 @@ def activity_page():
             # For users not logged in
 
             return render_template(
-                "activity_layout.html",
+                "activity_readonly.html",
                 id=activity_id,
                 activity=activity_dict,
                 days=tuple(enumerate(DAYS)),
