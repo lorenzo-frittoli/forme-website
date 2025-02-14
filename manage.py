@@ -7,7 +7,7 @@ from werkzeug.security import generate_password_hash
 
 
 from helpers import make_registration
-from manage_helpers import make_backup, get_students_from_file, generate_password, create_availability
+from manage_helpers import make_backup, get_students_from_file, generate_password, create_availability, valid_class, valid_email
 from constants import *
 
 
@@ -82,11 +82,18 @@ def load_students(filename: str) -> None:
 
     # Load student data
     students = get_students_from_file(filename)
+
     for student in students:
         password = generate_password()
         print(student["email"], password)
+        student["name"] = student["name"].title()
+        student["surname"] = student["surname"].title()
+        student["class"] = student["class"].upper()
         student["hash"] = generate_password_hash(password, method=GENERATE_PASSWORD_METHOD)
         student["verification_code"] = generate_password(VERIFICATION_CODE_LENGTH)
+
+        assert valid_class(student["class"])
+        assert valid_email(student["email"])
     
     # Write to DB
     con.executemany("INSERT INTO users (type, email, hash, name, surname, class, verification_code) VALUES ('student', :email, :hash, :name, :surname, :class, :verification_code)", students)

@@ -2,6 +2,7 @@ import random
 import string
 from datetime import datetime
 import sqlite3
+import re
 
 from constants import *
 
@@ -81,6 +82,10 @@ def make_backup(dir: str) -> str:
 
 def valid_class(_class: str) -> bool:
     return len(_class) == 2 and _class[0] in ALLOWED_CLASSES[0] and _class[1] in ALLOWED_CLASSES[1]
+
+
+def valid_email(email: str) -> bool:
+    return re.match(EMAIL_REGEX, email) is not None
 
 
 def create_availability(capacity: int, length: int) -> list[list[int]]:

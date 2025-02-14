@@ -3,12 +3,11 @@ from flask import Flask, redirect, render_template, request, session, g, Respons
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 import json
-import re
 from datetime import datetime
 from itertools import groupby
 
 from helpers import apology, login_required, admin_required, staff_required, make_registration, update_availability, get_image_path, fmt_activity_booking, qr_code_for, generate_schedule, fmt_timespan, normalize_text
-from manage_helpers import generate_password
+from manage_helpers import generate_password, valid_email
 import admin
 from constants import *
 
@@ -152,7 +151,7 @@ def register_page():
         return apology("Email non valida", 200)
 
     email = email.lower().strip() # Some mobile browsers insert spaces for no reason
-    if len(email) > MAX_FIELD_LENGTH or not re.match(EMAIL_REGEX, email):
+    if len(email) > MAX_FIELD_LENGTH or not valid_email(email):
         return apology("Email non valida", 200)
     
     # Checks the password field
