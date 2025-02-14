@@ -451,6 +451,7 @@ def group_login():
 
     return redirect("/me")
 
+
 @app.route("/privacy")
 def privacy_page():
     """Cookie policy and privacy policy"""
@@ -473,7 +474,6 @@ def qr_code():
         raise RuntimeError(f"User not found in qr_code: user_id {g.user_id}, email {g.user_email}")
 
     return qr_code_for(LINK + url_for("verification_page", verification_code=result[0]))
-
 
 
 @app.route("/redirect_verifica")
@@ -499,6 +499,7 @@ def verification_page():
         user_surname = result[3],
         user_email = result[4]
     )
+
 
 @app.route("/user_search")
 @staff_required
@@ -561,7 +562,7 @@ def change_theme():
         return "", 400
 
     g.user_theme = new_theme
-    g.con.execute("UPDATE users SET theme = ? WHERE id = ?;", (new_theme, g.user_id))
+    g.con.execute("UPDATE users SET theme = ? WHERE \"group\" = (SELECT \"group\" FROM users WHERE id = ?);", (new_theme, g.user_id))
     g.con.commit()
 
     return "", 204
