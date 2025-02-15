@@ -39,6 +39,7 @@
                 click
                 werkzeug
                 qrcode
+                pillow
               ]))
           ];
         };

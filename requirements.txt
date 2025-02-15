@@ -3,3 +3,4 @@ flask-Session
 click
 werkzeug
 qrcode
+pillow
