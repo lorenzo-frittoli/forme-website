@@ -4,7 +4,7 @@
 /flask_session
 /static/activity_images
 *.db
-*.csv
+**.csv
 /venv
 /tex
 flake.lock
