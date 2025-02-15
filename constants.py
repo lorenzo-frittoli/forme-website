@@ -24,7 +24,7 @@ MAKE_DATABASE_COMMAND_FILE = "make_database.sql"
 # Accounts
 MAX_FIELD_LENGTH = 50
 VERIFICATION_CODE_LENGTH = 20
-ALLOWED_CLASSES = ("345", "ABCDEIFGHIL") # Classes are strings like '3A', '4F'
+ALLOWED_CLASSES = ("678", "KP") # Classes are strings like '3A', '4F'
 
 
 # Backups
