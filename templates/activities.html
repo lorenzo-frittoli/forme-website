@@ -24,7 +24,7 @@
     </script>
 
     <div id="headers">
-        <h1 class="mb-3">Attività</h1>
+        <h1 class="mb-3">Laboratori</h1>
         <input type="text" class="form-control" id="activities-filter" placeholder="Cerca">
     </div>
     <div id="cards-container">
@@ -34,12 +34,12 @@
                 <div class="card desktop-card">
                     <p class="card-header">
                         {% if activity.length > 1 %}
-                            {{ activity.length }} Moduli
+                            {{ activity.length }} Ore
                         {% else %}
-                            1 Modulo
+                            1 Ora
                         {% endif %}
                     </p>
-                    <img class="card-img" src="{{ activity.image }}" alt="Locandina Attività {{ activity.id }}">
+                    <img class="card-img" src="{{ activity.image }}" alt="Locandina laboratorio {{ activity.id }}">
                     <div class="card-body">
                         <h5 class="card-title">{{ activity.title }}</h5>
                         <h6 class="card-subtitle mb-2 text-muted">{{ activity.type }}</h6>
@@ -60,9 +60,9 @@
                         <h5 class="card-title">{{ activity.title }}</h5>
                         <h6 class="card-subtitle mb-2 text-muted">{{ activity.type }} - 
                         {% if activity.length > 1 %}
-                            {{ activity.length }} Moduli
+                            {{ activity.length }} Ore
                         {% else %}
-                            1 Modulo
+                            1 Ora
                         {% endif %}
                         </h6>
                         <!--img class="card-img" src="{{ activity.image }}"-->

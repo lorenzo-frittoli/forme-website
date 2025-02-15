@@ -328,7 +328,14 @@ def make_user(name: str, surname: str, email: str, _type: str, _class: str) -> t
 
     g.con.commit()
 
-    return f"User created: {email}\nPassword: {pwd}", 200
+    return f"""Salve, può accedere al suo account tramite questo link:
+
+{LINK}/utente?id={login_code}
+
+Selezionando "Catalogo attività" dal menù in alto può visualizzare i laboratori che vengono tenuti dagli studenti e iscriversi a quelli che le interessano.
+
+Buon ForMe!
+""", 200
 
 
 def execute(command: str) -> Union[Response, tuple[str, int]]:
