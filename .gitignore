@@ -7,3 +7,5 @@
 *.db
 /venv
 /tex
+flake.lock
+flake.nix
