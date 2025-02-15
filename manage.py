@@ -52,13 +52,16 @@ def load_activities(filename: str) -> None:
     with open(filename, "r", encoding="UTF-8") as file:
         activities = json.load(file)
         for activity in activities:
+            activity["id"] = int(activity["id"])
+            activity["capacity"] = int(activity["capacity"])
+            activity["length"] = int(activity["length"])
             activity["availability"] = json.dumps(
                 create_availability(activity["capacity"], activity["length"])
             )
 
     qry = """
-        INSERT INTO activities (title, description, type, length, classroom, image, speakers, availability)
-            VALUES (:title, :description, :type, :length, :classroom, :image, :speakers, :availability);
+        INSERT INTO activities (id, title, description, type, length, classroom, image, speakers, availability)
+            VALUES (:id, :title, :description, :type, :length, :classroom, :image, :speakers, :availability);
         """
 
     # Load activities in db
@@ -85,19 +88,22 @@ def load_students(filename: str) -> None:
 
     for student in students:
         password = generate_password()
-        print(student["email"], password)
         student["name"] = student["name"].title()
         student["surname"] = student["surname"].title()
+        student["email"] = student["email"].lower()
         student["class"] = student["class"].upper()
         student["hash"] = generate_password_hash(password, method=GENERATE_PASSWORD_METHOD)
         student["verification_code"] = generate_password(VERIFICATION_CODE_LENGTH)
         student["login_code"] = generate_password(LOGIN_CODE_LENGTH)
 
+        print(student["email"], password)
+        print(student)
         assert valid_class(student["class"])
         assert valid_email(student["email"])
+        assert student["type"] in ("student", "staff")
     
     # Write to DB
-    con.executemany("INSERT INTO users (type, email, hash, name, surname, class, verification_code, login_code) VALUES ('student', :email, :hash, :name, :surname, :class, :verification_code, :login_code)", students)
+    con.executemany("INSERT INTO users (type, email, hash, name, surname, class, verification_code, login_code) VALUES (:type, :email, :hash, :name, :surname, :class, :verification_code, :login_code)", students)
     con.commit()
 
     # Close sqlite3

@@ -156,25 +156,34 @@ nav .navbar-brand {
 }
 
 .desktop-card {
-    height: 26rem;
     border-width: 2px;
     position: relative;
-}
 
-.desktop-card .card-img {
-    height: 10rem;
-    object-fit: contain;
-}
+    .card-img {
+        height: 10rem;
+        object-fit: contain;
+    }
 
-.desktop-card .card-booked {
-    position: absolute;
-    bottom: 15px;
-    width: calc(100% - 2rem); /* 1rem per side is the padding of card-body */
-    padding: 5px;
+    .card-title {
+        min-height: 4.5rem;
+    }
+
+    .card-text {
+        height: 7.5rem;
+        overflow-y: hidden;
+    }
+
+    .card-booked {
+        position: absolute;
+        bottom: 15px;
+        width: calc(100% - 2rem); /* 1rem per side is the padding of card-body */
+        padding: 5px;
+    }
 }
 
 .mobile-card {
     border-width: 5px;
+    width: 100%;
 }
 
 .mobile-card .card-img {

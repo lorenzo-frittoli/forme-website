@@ -56,7 +56,7 @@ Mentre prepari il sito, tienilo sempre aperto in locale per vedere come risultan
 
 # Aggiornare le pagine
 - Cambiare l'anno (ctrl-h #### in [layout.html](../templates/layout.html), [index.html](../templates/index.html), [admin_layout.html](../templates/admin_layout.html))
-- Aggiornare [index.html](../templates/index.html): come esempio è caricata la pagina del 2024.
+- Aggiornare [index.html](../templates/index.html): come esempio è caricata la pagina del 2025.
 - Se esiste un pdf con il catalogo, caricarlo in [static/](../static/) e aggiungi un link per scaricarlo in [index.html](../templates/index.html).
 ```html
 <!-- index.html così come scaricato contiene il link per il download sotto il logo del ForMe: -->
@@ -70,7 +70,7 @@ Mentre prepari il sito, tienilo sempre aperto in locale per vedere come risultan
 **Se una variabile non ha una descrizione qua sotto, probabilmente non devi toccarla.**
 - LINK: l'indirizzo al quale viene hostato il sito
 - DAYS: i giorni del laboratorio
-- DAYS_LONG: i giorni del laboratorio, in forma estesa
+- DAYS_TEXT: i giorni del laboratorio, in forma estesa
 - TIMESPANS: i moduli dei laboratori come tuple (inizio modulo, fine modulo)
 - PERMISSIONS: per ogni giorno, quali tipi di utenti posso iscriversi ai laboratori
 - ALLOWED_CLASSES: le classi / sezioni che parteciperanno al ForMe
@@ -89,7 +89,7 @@ Mentre prepari il sito, tienilo sempre aperto in locale per vedere come risultan
 - Caricare una zip contenente il nuovo sito
 - Aprire un console (pannello "Consoles")
 - Estrarre la zip con `unzip`, rinominare la cartella in 'sito_forme'
-- Installare le librerie necessarie: `pip install -r requirements.txt`
+- Installare le librerie necessarie: `pip install --upgrade -r requirements.txt`
 - "Enable webapp" nel pannello "Web"
 - Il sito sarà visibile presso https://formecassini.eu.pythonanywhere.com/
 

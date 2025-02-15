@@ -10,7 +10,6 @@
             search = search.toLowerCase();
             $(".card-wrapper").each(function(i, obj) {
                 let title = $(".card-title", obj)[0].textContent.toLowerCase() + $(".card-subtitle", obj)[0].textContent.toLowerCase();
-                console.log(title);
                 obj.style.display = title.includes(search) ? "flex" : "none";
             });
         }
@@ -49,7 +48,7 @@
                             Prenotazione: <br> {{ activity.booked }}
                         </div>
                         {% else %}
-                        <p class="card-text" style="max-height: calc(var(--bs-body-line-height)*5rem); overflow-y: hidden;">
+                        <p class="card-text">
                             {{ activity.description }}
                         </p>
                         {% endif %}

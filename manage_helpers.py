@@ -22,14 +22,15 @@ def get_students_from_file(filename: str) -> list[dict]:
         # Each line represents a student
         for student in students_file.readlines():
             # The values are ";"-separated
-            student = student.rstrip("\n").split(";")
+            student = student.rstrip("\n").split(",")
             # The csv is in the format:
-            # ...; name+surname; ...; ...; ...; ...; class; email
+            # surname,name,email,class,type
             output.append({
+                "surname": student[0],
                 "name": student[1],
-                "surname": "",
-                "class": student[6],
-                "email": student[7]
+                "email": student[2],
+                "type": student[3],
+                "class": student[4]
             })
     
     return output

@@ -1,15 +1,22 @@
 Ciao,
 
-sono aperte le iscrizioni per i laboratori del ForMe ####!
-Puoi prenotarti visitando il sito: https://formecassini.eu.pythonanywhere.com/login.
+sono aperte le prenotazioni per i laboratori di ForMe 2025!
+Visitando il sito potrai vedere tutte le attività disponibili e prenotarti a quelle che ti interessano: https://formecassini.eu.pythonanywhere.com/
+Assicurati di riempire tutti i moduli del tuo orario. I laboratori di ForMe hanno posti limitati: prenota subito un posto nei lab migliori!
 
-I laboratori saranno aperti anche agli esterni il sabato. Gli esterni possono registrarsi qui:
-https://formecassini.eu.pythonanywhere.com/register
+Se i tuoi familiari o dei tuoi amici desiderano partecipare puoi iscriverli direttamente dal tuo account:
+seleziona "Famiglia" dal menù in alto, crea un nuovo account per loro ed utilizzalo per prenotare le attività del sabato.
+Se non riesci a fare tutti i laboratori che ti interessano puoi partecipare anche tu il sabato:
+registra un nuovo account a tuo nome nella sezione "Famiglia" ed utilizzalo per prenotarti.
+
+Maggiori informazioni sul sito e nella circolare nella bacheca del registro elettronico.
 
 Ecco le tue credenziali:
 
 utente: {email}
 password: {password}
+
+Se incontri dei problemi scrivi un'email a noreply.formecassini@gmail.com.
 
 A presto,
 lo staff ForMe.
