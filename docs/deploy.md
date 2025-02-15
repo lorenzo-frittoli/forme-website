@@ -32,7 +32,7 @@ Per far funzionare il sito:
 
 # Scaricare il codice del sito
 - scaricare da <https://codeload.github.com/lorenzo-frittoli/forme-website/legacy.zip/main>
-- Installare le librerie necessarie: `pip install -r requirements.txt`
+- Installare le librerie necessarie: `pip install --upgrade -r requirements.txt`
 
 # Provalo un attimo
 Per vedere come funziona il sito, [provalo in locale](README.md#testing) .
