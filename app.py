@@ -402,11 +402,11 @@ def group_page():
 
     if request.method == "GET":
         group_members = g.con.execute(
-            "SELECT id, surname, name FROM users WHERE \"group\" = (SELECT \"group\" from users where id = :id) AND id != :id;",
+            "SELECT login_code, surname, name FROM users WHERE \"group\" = (SELECT \"group\" from users where id = :id) AND id != :id;",
             {"id": g.user_id}
         ).fetchall()
 
-        return render_template("groups.html", group_members=group_members)
+        return render_template("groups.html", group_members=group_members, link=LINK)
 
     # Method is POST
 
@@ -422,8 +422,8 @@ def group_page():
     # Create a new user that can only be accessed via this page
     # Create a new user with the same group and theme
     g.con.execute(
-        "INSERT INTO users (email, hash, name, surname, type, verification_code, theme, \"group\") VALUES (?, ?, ?, ?, ?, ?, (SELECT theme from users where id = ?), (SELECT \"group\" from users where id = ?));",
-        (None, None, name, surname, "guest", generate_password(20), g.user_id, g.user_id)
+        "INSERT INTO users (email, hash, name, surname, type, verification_code, login_code, \"group\") VALUES (?, ?, ?, ?, ?, ?, ?, (SELECT \"group\" from users where id = ?));",
+        (None, None, name, surname, "guest", generate_password(VERIFICATION_CODE_LENGTH), generate_password(LOGIN_CODE_LENGTH), g.user_id)
     )
     g.con.commit()
 
@@ -431,27 +431,26 @@ def group_page():
     return redirect("/esterni")
 
 
-@app.route("/group_login", methods=["POST"])
-@login_required
+@app.route("/utente", methods=["GET"])
 def group_login():
-    """Log-in as another user from the same group."""
-    try:
-        new_user_id = int(request.form["user_id"])
+    """Log-in using a login code."""
 
-    except (ValueError, KeyError):
+    login_code = request.args.get("id")
+
+    if not login_code:
         return apology()
 
     result = g.con.execute(
-        "SELECT 1 FROM users WHERE id = ? and \"group\" = (SELECT \"group\" FROM users WHERE id = ?)",
-        (new_user_id, g.user_id)
+        "SELECT id FROM users WHERE login_code = ?;",
+        (login_code, )
     ).fetchone()
 
     if result is None:
-        return apology("Log-in not allowed")
+        return apology("Codice non valido")
 
-    session["user_id"] = new_user_id
+    session["user_id"] = result[0]
 
-    return redirect("/me")
+    return redirect("/")
 
 
 @app.route("/privacy")

@@ -318,9 +318,11 @@ def make_user(name: str, surname: str, email: str, _type: str, _class: str) -> t
     pwd = generate_password()
     pw_hash = generate_password_hash(pwd, GENERATE_PASSWORD_METHOD)
     verification_code = generate_password(VERIFICATION_CODE_LENGTH)
+    login_code = generate_password(LOGIN_CODE_LENGTH)
+
     # Save user
     try:
-        g.con.execute("INSERT INTO users (type, email, hash, name, surname, verification_code) VALUES (?, ?, ?, ?, ?, ?)", (_type, email, pw_hash, name, surname, verification_code))
+        g.con.execute("INSERT INTO users (type, email, hash, name, surname, verification_code, login_code) VALUES (?, ?, ?, ?, ?, ?, ?)", (_type, email, pw_hash, name, surname, verification_code, login_code))
     except sqlite3.DatabaseError as e:
         return f"{e.__class__.__name__}: {' '.join(e.args)}", 400
 

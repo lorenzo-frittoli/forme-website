@@ -91,12 +91,13 @@ def load_students(filename: str) -> None:
         student["class"] = student["class"].upper()
         student["hash"] = generate_password_hash(password, method=GENERATE_PASSWORD_METHOD)
         student["verification_code"] = generate_password(VERIFICATION_CODE_LENGTH)
+        student["login_code"] = generate_password(LOGIN_CODE_LENGTH)
 
         assert valid_class(student["class"])
         assert valid_email(student["email"])
     
     # Write to DB
-    con.executemany("INSERT INTO users (type, email, hash, name, surname, class, verification_code) VALUES ('student', :email, :hash, :name, :surname, :class, :verification_code)", students)
+    con.executemany("INSERT INTO users (type, email, hash, name, surname, class, verification_code, login_code) VALUES ('student', :email, :hash, :name, :surname, :class, :verification_code, :login_code)", students)
     con.commit()
 
     # Close sqlite3
