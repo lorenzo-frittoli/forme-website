@@ -66,7 +66,7 @@
                                 <input type="checkbox" class="input" id="darkModeSwitch" {% if g.user_theme == "dark" %}checked{% endif %}>
                                 <span class="slider"></span>
                             </label>
-                            {% if g.user_type == "student" %}
+                            {% if g.user_type != "guest" %}
                             <li><a class="nav-link" href="/esterni">I tuoi esterni</a></li>
                             {% endif %}
                             <li><a class="nav-link" href="/privacy">Privacy</a></li>
