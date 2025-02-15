@@ -121,63 +121,63 @@ def logout_page():
 
 
 # @app.route("/register", methods=["GET", "POST"])
-# def register_page():
-#     """Register user"""
+def register_page():
+    """Register user"""
 
-#     return render_template("registrations_closed.html")
+    return render_template("registrations_closed.html")
 
-#     # If called with GET (loaded the page/clicked link)
-#     if request.method == "GET":
-#         # Render the page
-#         return render_template("register.html")
+    # If called with GET (loaded the page/clicked link)
+    if request.method == "GET":
+        # Render the page
+        return render_template("register.html")
     
-#     # If called with POST (submitted the form)
-#     # Get form data
-#     name = request.form.get("name")
-#     surname = request.form.get("surname")
-#     email = request.form.get("email")
-#     password = request.form.get("password")
-#     confirmation = request.form.get("confirmation")
+    # If called with POST (submitted the form)
+    # Get form data
+    name = request.form.get("name")
+    surname = request.form.get("surname")
+    email = request.form.get("email")
+    password = request.form.get("password")
+    confirmation = request.form.get("confirmation")
 
-#     # Check that the form was filled correctly
-#     # Checks the name filed
-#     if not name or len(name) > MAX_FIELD_LENGTH:
-#         return apology("Nome non valido", 200)
+    # Check that the form was filled correctly
+    # Checks the name filed
+    if not name or len(name) > MAX_FIELD_LENGTH:
+        return apology("Nome non valido", 200)
 
-#     # Checks the surname field
-#     if not surname or len(surname) > MAX_FIELD_LENGTH:
-#         return apology("Cognome non valido", 200)
+    # Checks the surname field
+    if not surname or len(surname) > MAX_FIELD_LENGTH:
+        return apology("Cognome non valido", 200)
     
-#     # Checks the email field
-#     if not email:
-#         return apology("Email non valida", 200)
+    # Checks the email field
+    if not email:
+        return apology("Email non valida", 200)
 
-#     email = email.lower().strip() # Some mobile browsers insert spaces for no reason
-#     if len(email) > MAX_FIELD_LENGTH or not valid_email(email):
-#         return apology("Email non valida", 200)
+    email = email.lower().strip() # Some mobile browsers insert spaces for no reason
+    if len(email) > MAX_FIELD_LENGTH or not valid_email(email):
+        return apology("Email non valida", 200)
     
-#     # Checks the password field
-#     if not password or len(password) > MAX_FIELD_LENGTH:
-#         return apology("Password non valida", 200)
+    # Checks the password field
+    if not password or len(password) > MAX_FIELD_LENGTH:
+        return apology("Password non valida", 200)
     
-#     # Checks that password and confirmation match
-#     if password != confirmation:
-#         return apology("Password e conferma non coincidono", 200)
+    # Checks that password and confirmation match
+    if password != confirmation:
+        return apology("Password e conferma non coincidono", 200)
 
-#     # Check if the email is already taken
-#     # g.con.execute returns a tuple with the result or None etc
-#     found = g.con.execute("SELECT 1 FROM users WHERE email = ?;", (email, )).fetchone()
+    # Check if the email is already taken
+    # g.con.execute returns a tuple with the result or None etc
+    found = g.con.execute("SELECT 1 FROM users WHERE email = ?;", (email, )).fetchone()
 
-#     if found:
-#         return apology("Email già registrata", 200)
+    if found:
+        return apology("Email già registrata", 200)
 
-#     # Save the new user & commit
-#     g.con.execute("INSERT INTO users (email, hash, name, surname, type, verification_code) VALUES (?, ?, ?, ?, ?, ?);",
-#                 (email, generate_password_hash(password, method=GENERATE_PASSWORD_METHOD), name, surname, "guest", generate_password(20)))
-#     g.con.commit()
+    # Save the new user & commit
+    g.con.execute("INSERT INTO users (email, hash, name, surname, type, verification_code) VALUES (?, ?, ?, ?, ?, ?);",
+                (email, generate_password_hash(password, method=GENERATE_PASSWORD_METHOD), name, surname, "guest", generate_password(20)))
+    g.con.commit()
 
-#     # Redirect to the homepage
-#     return redirect("/login")
+    # Redirect to the homepage
+    return redirect("/login")
 
 
 @app.route("/activities", methods=["GET"])
