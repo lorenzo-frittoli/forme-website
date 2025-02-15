@@ -3,8 +3,8 @@
 /backups
 /flask_session
 /static/activity_images
-**/*.db
-**/*.csv
+/data/
+*.db
 /venv
 /tex
 flake.lock
