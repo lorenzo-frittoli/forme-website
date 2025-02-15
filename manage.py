@@ -97,7 +97,6 @@ def load_students(filename: str) -> None:
         student["login_code"] = generate_password(LOGIN_CODE_LENGTH)
 
         print(student["email"], password)
-        print(student)
         assert valid_class(student["class"])
         assert valid_email(student["email"])
         assert student["type"] in ("student", "staff")
