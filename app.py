@@ -400,6 +400,9 @@ def me_page():
 def group_page():
     """Manage and add accounts of family members / friends"""
 
+    if g.user_type == "guest":
+        return apology()
+
     if request.method == "GET":
         group_members = g.con.execute(
             "SELECT login_code, surname, name FROM users WHERE \"group\" = (SELECT \"group\" from users where id = :id) AND id != :id;",

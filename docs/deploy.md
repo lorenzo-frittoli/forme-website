@@ -1,5 +1,5 @@
 Benvenuto nel tuo personalissimo rito di iniziazione alla setta del SitoFormaggio. \
-Segui questi """semplici""" passaggi e potrai anche tu entrare nell'Hall of ~~Fail~~ Fame del ForMe.
+Segui questi """semplici""" passaggi e potrai anche tu entrare nell'Hall of ~~Fail~~ Fame di ForMe.
 
 # Skill necessarie:
 - python
@@ -59,7 +59,7 @@ Mentre prepari il sito, tienilo sempre aperto in locale per vedere come risultan
 - Aggiornare [index.html](../templates/index.html): come esempio è caricata la pagina del 2025.
 - Se esiste un pdf con il catalogo, caricarlo in [static/](../static/) e aggiungi un link per scaricarlo in [index.html](../templates/index.html).
 ```html
-<!-- index.html così come scaricato contiene il link per il download sotto il logo del ForMe: -->
+<!-- index.html così come scaricato contiene il link per il download sotto il logo di ForMe: -->
 <a href="/static/Catalogo ForMe.pdf" target="_blank">
     <b>Scarica il catalogo in formato PDF</b>
 </a>
