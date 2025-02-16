@@ -332,7 +332,7 @@ def make_user(name: str, surname: str, email: str, _type: str, _class: str) -> t
 
 {LINK}/utente?id={login_code}
 
-Selezionando "Catalogo attività" dal menù in alto può visualizzare i laboratori che vengono tenuti dagli studenti e iscriversi a quelli che le interessano.
+Selezionando "Catalogo laboratori" dal menù in alto può visualizzare i laboratori che vengono tenuti dagli studenti e iscriversi a quelli che le interessano.
 
 Buon ForMe!
 """, 200
