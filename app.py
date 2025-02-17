@@ -566,7 +566,7 @@ def change_theme():
         return "", 400
 
     g.user_theme = new_theme
-    g.con.execute("UPDATE users SET theme = ? WHERE \"group\" = (SELECT \"group\" FROM users WHERE id = ?);", (new_theme, g.user_id))
+    g.con.execute("UPDATE users SET theme = ? WHERE id = ?;", (new_theme, g.user_id))
     g.con.commit()
 
     return "", 204
