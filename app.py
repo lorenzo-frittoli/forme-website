@@ -83,7 +83,7 @@ def login_page():
     if not email:
         return apology("email non valida", 200)
 
-    email = email.lower()
+    email = email.lower().strip()
 
     # Ensure password was submitted
     if not request.form.get("password"):
@@ -496,7 +496,7 @@ def verification_page():
         return apology("Account staff.", 200)
 
     return render_template(
-        "me.html",
+        "verify_me.html",
         schedule=generate_schedule(int(result[0]), result[1], g.con),
         user_type="impersonate", # This way the warning banner doesn't show up
         user_name = result[2],

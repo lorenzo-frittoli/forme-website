@@ -51,7 +51,7 @@
                     <tr>
                         <th>{{ timespan[1] }}</th>
                         {% for rem in availability %}
-                        <td>{{ rem[timespan[0]] }}</td>
+                        <td>{% if rem[timespan[0]] == -1 and g.user_type != "staff" %}0{% else %}{{ rem[timespan[0]] }}{% endif %}</td>
                         {% endfor %}
                     </tr>
                     {% endfor %}
@@ -68,7 +68,7 @@
                     <tr>
                         <td>{{ day[1] }}</td>
                         {% for rem in availability[loop.index0] %}
-                        <td>{{ rem }}</td>
+                        <td>{% if rem == -1 and g.user_type != "staff" %}0{% else %}{{ rem }}{% endif %}</td>
                         {% endfor %}
                     </tr>
                     {% endfor %}

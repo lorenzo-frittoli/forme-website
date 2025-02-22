@@ -17,9 +17,10 @@
         $(document).ready(function() {
             // select the input field
             let filter = $("#activities-filter");
-            filter.on("keyup", function() {
+            filter.on("input", function() {
                 filter_activities(filter[0].value);
             });
+            filter_activities(filter[0].value);
         });
     </script>
 
