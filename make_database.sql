@@ -7,8 +7,8 @@ CREATE TABLE users (
     surname TEXT NOT NULL,
     type TEXT NOT NULL,
     class TEXT,
-    verification_code TEXT KEY NOT NULL UNIQUE,
-    login_code TEXT KEY NOT NULL UNIQUE,
+    verification_code TEXT KEY NOT NULL UNIQUE DEFAULT (hex(RANDOMBLOB(5))),
+    login_code TEXT KEY NOT NULL UNIQUE DEFAULT (hex(RANDOMBLOB(5))),
     can_book INTEGER NOT NULL DEFAULT 1,
     theme TEXT NOT NULL DEFAULT "light",
     -- "Double quotes" indicate an identifier. `group` has to be escaped because it is a sql keyword.

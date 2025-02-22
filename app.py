@@ -7,7 +7,7 @@ from datetime import datetime
 from itertools import groupby
 
 from helpers import apology, login_required, admin_required, staff_required, make_registration, update_availability, get_image_path, fmt_activity_booking, qr_code_for, generate_schedule, fmt_timespan, normalize_text
-from manage_helpers import generate_password, valid_email
+from manage_helpers import valid_email
 import admin
 from constants import *
 
@@ -172,8 +172,8 @@ def register_page():
         return apology("Email già registrata", 200)
 
     # Save the new user & commit
-    g.con.execute("INSERT INTO users (email, hash, name, surname, type, verification_code) VALUES (?, ?, ?, ?, ?, ?);",
-                (email, generate_password_hash(password, method=GENERATE_PASSWORD_METHOD), name, surname, "guest", generate_password(20)))
+    g.con.execute("INSERT INTO users (email, hash, name, surname, type) VALUES (?, ?, ?, ?, ?, ?);",
+                (email, generate_password_hash(password, method=GENERATE_PASSWORD_METHOD), name, surname, "guest"))
     g.con.commit()
 
     # Redirect to the homepage
@@ -297,7 +297,7 @@ def activity_page():
             
         
         # g.user_type != "staff"
-        user_registrations = g.con.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ?", (g.user_id, )).fetchall()
+        user_registrations = g.con.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ?;", (g.user_id, )).fetchall()
 
         # Details of the activity
         activity_dict["booked"] = fmt_activity_booking(activity_id, g.con)
@@ -425,8 +425,8 @@ def group_page():
     # Create a new user that can only be accessed via this page
     # Create a new user with the same group and theme
     g.con.execute(
-        "INSERT INTO users (email, hash, name, surname, type, verification_code, login_code, \"group\") VALUES (?, ?, ?, ?, ?, ?, ?, (SELECT \"group\" from users where id = ?));",
-        (None, None, name, surname, "guest", generate_password(VERIFICATION_CODE_LENGTH), generate_password(LOGIN_CODE_LENGTH), g.user_id)
+        "INSERT INTO users (email, hash, name, surname, type, \"group\") VALUES (?, ?, ?, ?, ?, (SELECT \"group\" from users where id = ?));",
+        (None, None, name, surname, "guest", g.user_id)
     )
     g.con.commit()
 
@@ -473,7 +473,7 @@ def qr_code_page():
 def qr_code():
     """Generate the qr code for verification
     """
-    result = g.con.execute("SELECT verification_code FROM users WHERE id = ?", (g.user_id, )).fetchone()
+    result = g.con.execute("SELECT verification_code FROM users WHERE id = ?;", (g.user_id, )).fetchone()
     if not result:
         raise RuntimeError(f"User not found in qr_code: user_id {g.user_id}, email {g.user_email}")
 
@@ -488,7 +488,7 @@ def verification_page():
     except (KeyError, ValueError):
         return apology()
 
-    result = g.con.execute("SELECT id, type, name, surname, email FROM users WHERE verification_code = ?", (verification_code, )).fetchone()
+    result = g.con.execute("SELECT id, type, name, surname, email FROM users WHERE verification_code = ?;", (verification_code, )).fetchone()
     if not result:
         return apology("Utente non trovato.")
 

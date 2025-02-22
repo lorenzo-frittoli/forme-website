@@ -167,7 +167,7 @@ def update_availability(activity_id: int, day: int, module: int, amount: int, co
         ValueError if the availability is already 0.
     """
     # Load availability
-    result = con.execute("SELECT availability FROM activities WHERE id = ?", (activity_id,)).fetchone()
+    result = con.execute("SELECT availability FROM activities WHERE id = ?;", (activity_id,)).fetchone()
     if not result:
         raise ValueError()
 
@@ -211,7 +211,7 @@ def fmt_timespan(start: int, end: int):
 
 
 def fmt_activity_booking(activity_id: int, con: Connection) -> str:
-    span = con.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ? AND activity_id = ?", (g.user_id, activity_id)).fetchone()
+    span = con.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ? AND activity_id = ?;", (g.user_id, activity_id)).fetchone()
 
     if span is None:
         return ""

@@ -84,7 +84,7 @@ def change_password(user_email: str, new_password: str) -> tuple[str, int]:
         return "Cannot change an admin's password", 200
 
     # Check that the user exists
-    if not g.con.execute("SELECT 1 FROM users WHERE email = ?", (user_email, )).fetchone():
+    if not g.con.execute("SELECT 1 FROM users WHERE email = ?;", (user_email, )).fetchone():
         return "Email not found", 200
     
     # Create a random password in none is provided
@@ -93,7 +93,7 @@ def change_password(user_email: str, new_password: str) -> tuple[str, int]:
 
     password_hash = generate_password_hash(new_password, method=GENERATE_PASSWORD_METHOD)
 
-    g.con.execute("UPDATE users SET hash = ? WHERE email = ?", (password_hash, user_email))
+    g.con.execute("UPDATE users SET hash = ? WHERE email = ?;", (password_hash, user_email))
     g.con.commit()
 
     return f"New password for {user_email}: {new_password}", 200
@@ -317,12 +317,10 @@ def make_user(name: str, surname: str, email: str, _type: str, _class: str) -> t
 
     pwd = generate_password()
     pw_hash = generate_password_hash(pwd, GENERATE_PASSWORD_METHOD)
-    verification_code = generate_password(VERIFICATION_CODE_LENGTH)
-    login_code = generate_password(LOGIN_CODE_LENGTH)
 
     # Save user
     try:
-        g.con.execute("INSERT INTO users (type, email, hash, name, surname, verification_code, login_code) VALUES (?, ?, ?, ?, ?, ?, ?)", (_type, email, pw_hash, name, surname, verification_code, login_code))
+        login_code = g.con.execute("INSERT INTO users (type, email, hash, name, surname) VALUES (?, ?, ?, ?, ?) RETURNING login_code;", (_type, email, pw_hash, name, surname)).fetchone()[0]
     except sqlite3.DatabaseError as e:
         return f"{e.__class__.__name__}: {' '.join(e.args)}", 400
 
