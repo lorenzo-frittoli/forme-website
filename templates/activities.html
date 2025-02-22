@@ -20,13 +20,14 @@
             filter.on("input", function() {
                 filter_activities(filter[0].value);
             });
+            // filter on page load in case the browser has auto-filled the input
             filter_activities(filter[0].value);
         });
     </script>
 
     <div id="headers">
         <h1 class="mb-3">Laboratori</h1>
-        <input type="text" class="form-control" id="activities-filter" placeholder="Cerca">
+        <input autofocus type="text" class="form-control" id="activities-filter" placeholder="Cerca">
     </div>
     <div id="cards-container">
         {% for activity in activities %}
