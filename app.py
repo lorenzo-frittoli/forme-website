@@ -405,8 +405,8 @@ def group_page():
 
     if request.method == "GET":
         group_members = g.con.execute(
-            "SELECT login_code, surname, name FROM users WHERE \"group\" = (SELECT \"group\" from users where id = :id) AND id != :id;",
-            {"id": g.user_id}
+            "SELECT login_code, surname, name FROM users WHERE owner = ?;",
+            (g.user_id, )
         ).fetchall()
 
         return render_template("groups.html", group_members=group_members, link=LINK)
@@ -423,9 +423,8 @@ def group_page():
         return apology("Cognome non valido", 200)
 
     # Create a new user that can only be accessed via this page
-    # Create a new user with the same group and theme
     g.con.execute(
-        "INSERT INTO users (email, hash, name, surname, type, \"group\") VALUES (?, ?, ?, ?, ?, (SELECT \"group\" from users where id = ?));",
+        "INSERT INTO users (email, hash, name, surname, type, owner) VALUES (?, ?, ?, ?, ?, ?);",
         (None, None, name, surname, "guest", g.user_id)
     )
     g.con.commit()

@@ -1,3 +1,6 @@
+-- "Double quotes" indicate an identifier. E.g. "group" has to be escaped because it is a sql keyword.
+-- 'Single quotes' indicate string literals.
+
 -- Users table. Contains both users and guests
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -11,9 +14,7 @@ CREATE TABLE users (
     login_code TEXT KEY NOT NULL UNIQUE DEFAULT (hex(RANDOMBLOB(5))),
     can_book INTEGER NOT NULL DEFAULT 1,
     theme TEXT NOT NULL DEFAULT "light",
-    -- "Double quotes" indicate an identifier. `group` has to be escaped because it is a sql keyword.
-    -- 'Single quotes' indicate string literals.
-    "group" INTEGER KEY NOT NULL DEFAULT (random())
+    owner INTEGER KEY
 );
 
 -- Activities table
