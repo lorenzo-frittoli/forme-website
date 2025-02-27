@@ -336,6 +336,57 @@ Buon ForMe!
 """, 200
 
 
+@command
+def statistics() -> tuple[str, int]:
+    """Show summaries about the status of bookings."""
+    users_by_modules = g.con.execute(
+        "SELECT users.type, (SELECT CAST(TOTAL(module_end - module_start + 1) AS INTEGER) FROM registrations WHERE user_id=users.id) as modules, count(*) FROM users GROUP BY users.type, modules;"
+    ).fetchall()
+
+    users_by_modules = '\n'.join(
+        f"'{_type}' con {modules} 'moduli prenotati': {count}" for _type, modules, count in users_by_modules
+    )
+
+    modules_count = g.con.execute(
+        "SELECT users.type, CAST(total(module_end - module_start + 1) AS integer) FROM registrations JOIN users ON user_id=users.id GROUP BY users.type;"
+    ).fetchall()
+
+    modules_count = '\n'.join(
+        f"'{_type}': {modules} moduli prenotati" for _type, modules in modules_count
+    )
+
+    missing_by_class = g.con.execute(
+        "SELECT class, count(*) FROM users WHERE id NOT IN (SELECT user_id FROM registrations) AND type='student' GROUP BY class;"
+    ).fetchall()
+
+    missing_by_class = '\n'.join(
+        f"{_class}: {count} senza prenotazioni" for _class, count in missing_by_class
+    )
+
+    can_book_status = g.con.execute(
+        "SELECT type, can_book, count() FROM users GROUP BY type, can_book;"
+    ).fetchall()
+
+    can_book_status = '\n'.join(
+        f"'{_type}' con {can_book=}: {count}" for _type, can_book, count in can_book_status    
+    )
+
+    owned_guest_cnt = g.con.execute("SELECT count(*) FROM users WHERE type='guest' AND owner IS NOT NULL;").fetchone()[0]
+    ind_guest_cnt = g.con.execute("SELECT count(*) FROM users WHERE type='guest' AND owner IS NULL;").fetchone()[0]
+
+    guest_cnt = f"{owned_guest_cnt} esterni registrati da studenti\n{ind_guest_cnt} esterni registrati da admin"
+
+    owners = g.con.execute(
+        "SELECT email, owned, list FROM users JOIN (SELECT owner, count(*) as owned, group_concat(surname || ' ' || name) AS list FROM users GROUP BY owner) AS subquery ON subquery.owner=id ORDER BY owned;"
+    ).fetchall()
+
+    owners = '\n'.join(
+        f"{email}: {count} esterni ({esterni})" for email, count, esterni in owners
+    )
+
+    return "\n\n".join((users_by_modules, modules_count, missing_by_class, can_book_status, guest_cnt, owners)), 200
+
+
 def execute(command: str) -> Union[Response, tuple[str, int]]:
     """Executes a command."""
     if command not in commands:
