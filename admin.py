@@ -74,18 +74,20 @@ def download_db(backup: str) -> Union[Response, tuple[str, int]]:
     if not backup:
         backup = make_backup(MANUAL_BACKUPS_DIR)
     elif backup not in all_backups():
-        return "Invalid backup name", 200
+        return "Invalid backup name", 400
     return send_file(backup)
 
 
 @command
 def change_password(user_email: str, new_password: str) -> tuple[str, int]:
+    user_email = user_email.strip()
+
     if user_email in ADMIN_EMAILS:
-        return "Cannot change an admin's password", 200
+        return "Cannot change an admin's password", 400
 
     # Check that the user exists
     if not g.con.execute("SELECT 1 FROM users WHERE email = ?;", (user_email, )).fetchone():
-        return "Email not found", 200
+        return "Email not found", 400
     
     # Create a random password in none is provided
     if not new_password:
@@ -104,15 +106,16 @@ def block_students_booking() -> tuple[str, int]:
     g.con.execute("UPDATE users SET can_book = FALSE WHERE type = 'student';")
     g.con.commit()
 
-    return "Bookings blocked", 200
+    return "Student bookings blocked", 200
 
 
-@command
+# ##### TODO ##### Is useless as it does not stop new users from booking
+# @command
 def block_guests_booking() -> tuple[str, int]:
     g.con.execute("UPDATE users SET can_book = FALSE WHERE type = 'guest';")
     g.con.commit()
     
-    return "Bookings blocked", 200
+    return "Guest bookings blocked", 200
 
 
 @command
@@ -314,6 +317,9 @@ def make_user(name: str, surname: str, email: str, _type: str, _class: str) -> t
             return "Invalid class: " + _class, 400
     elif _class != "":
         return "Class would be empty for " + _type, 400
+
+    name = name.strip()
+    surname = surname.strip()
 
     pwd = generate_password()
     pw_hash = generate_password_hash(pwd, GENERATE_PASSWORD_METHOD)

@@ -152,6 +152,8 @@ def register_page():
     if not email:
         return apology("Email non valida", 200)
 
+    name = name.strip()
+    surname = surname.strip()
     email = email.lower().strip() # Some mobile browsers insert spaces for no reason
     if len(email) > MAX_FIELD_LENGTH or not valid_email(email):
         return apology("Email non valida", 200)
@@ -424,6 +426,9 @@ def group_page():
     if not surname or len(surname) > MAX_FIELD_LENGTH:
         return apology("Cognome non valido", 200)
 
+    name = name.strip()
+    surname = surname.strip()
+
     # Create a new user that can only be accessed via this page
     g.con.execute(
         "INSERT INTO users (email, hash, name, surname, type, owner) VALUES (?, ?, ?, ?, ?, ?);",
@@ -520,8 +525,8 @@ def search_page():
 
     query = query.lower().split()
 
-    if max(map(len, query), default=0) < 2:
-        return apology("Inserire almeno 2 caratteri per la ricerca", 200)
+    if not query:
+        return render_template("search_page.html")
 
     search_sql = "(name LIKE ? COLLATE NOCASE OR surname LIKE ? COLLATE NOCASE OR email LIKE ? COLLATE NOCASE OR class = ? COLLATE NOCASE)"
     sql_query = "SELECT surname, name, class, email, verification_code FROM users WHERE " + " AND ".join([search_sql] * len(query)) + " ORDER BY surname || name;"
