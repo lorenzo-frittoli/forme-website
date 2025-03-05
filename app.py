@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 from itertools import groupby
 
-from helpers import apology, login_required, admin_required, staff_required, make_registration, update_availability, get_image_path, fmt_activity_booking, qr_code_for, generate_schedule, fmt_timespan, normalize_text
+from helpers import apology, login_required, admin_required, staff_required, make_registration, update_availability, get_image_path, fmt_activity_booking, qr_code_for, generate_schedule, fmt_timespan, normalize_text, get_prev_activity, get_next_activity
 from manage_helpers import valid_email
 import admin
 from constants import *
@@ -235,6 +235,8 @@ def activity_page():
             "classroom": activity_classroom,
             "speakers": activity_speakers,
             "image": get_image_path(activity_image),
+            "prev": get_prev_activity(activity_id, g.con),
+            "next": get_next_activity(activity_id, g.con),
         }
 
         # JSON string -> list[list[remaining by time] by day]

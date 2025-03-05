@@ -188,6 +188,18 @@ def update_availability(activity_id: int, day: int, module: int, amount: int, co
     con.execute("UPDATE activities SET availability = ? WHERE id = ?;", (availability, activity_id))
 
 
+def get_prev_activity(id: int, con: Connection) -> int | None:
+    """Get the previous activity id"""
+    result = con.execute("SELECT id FROM activities WHERE id < ? ORDER BY id DESC LIMIT 1;", (id, )).fetchone()
+    return result[0] if result else None
+
+
+def get_next_activity(id: int, con: Connection) -> int | None:
+    """Get the previous activity id"""
+    result = con.execute("SELECT id FROM activities WHERE id > ? ORDER BY id LIMIT 1;", (id, )).fetchone()
+    return result[0] if result else None
+
+
 def normalize_text(text: str):
     """Remove accents and use lower case"""
     return unicodedata.normalize('NFKD', text).encode('ASCII', 'ignore').decode().lower()

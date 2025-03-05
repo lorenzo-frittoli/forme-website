@@ -344,7 +344,7 @@ def statistics() -> tuple[str, int]:
     ).fetchall()
 
     users_by_modules = '\n'.join(
-        f"'{_type}' con {modules} 'moduli prenotati': {count}" for _type, modules, count in users_by_modules
+        f"'{_type}' con {modules} moduli prenotati: {count}" for _type, modules, count in users_by_modules
     )
 
     modules_count = g.con.execute(

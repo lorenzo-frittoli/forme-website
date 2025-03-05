@@ -9,11 +9,32 @@
 
     <!-- Page Contents -->
     <!-- Heading -->
-    <div style="margin: 0 2.5%;">
-        <h1>{{ activity.title }}</h1>
-        <h6>{{ activity.speakers }}</h6>
-        <h5>{{ activity.type }} - {{ activity.classroom }}</h5>
+    <div style="display: flex">
+        {% if activity.prev %}
+        <a style="align-content: center; flex-grow: 1;" title="Precedente" href="/activity?id={{ activity.prev }}">
+            <svg width="3rem" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 10L8 14L6 14L-2.62268e-07 8L6 2L8 2L8 6L16 6L16 10L8 10Z" fill="#000000"/>
+            </svg>
+        </a>
+        {% else %}
+        <div style="width: 3rem; flex-grow: 1;"></div>
+        {% endif %}
+        <div id="activity-title" class="mx-2" style="align-content: center;">
+            <h1 class="mb-1">{{ activity.title }}</h1>
+        </div>
+        {% if activity.next %}
+        <a style="align-content: center; flex-grow: 1;" title="Prossimo" href="/activity?id={{ activity.next }}">
+            <svg width="3rem" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 6L8 2L10 2L16 8L10 14L8 14L8 10L-1.74845e-07 10L-3.01991e-07 6L8 6Z" fill="#000000"/>
+            </svg>
+        </a>
+        {% else %}
+        <div style="width: 3rem; flex-grow: 1;"></div>
+        {% endif %}
     </div>
+    <h6 class="mt-2">{{ activity.speakers }}</h6>
+    <h5>{{ activity.type }} - {{ activity.classroom }}</h5>
+
     <hr>
 
     <!-- Body -->
