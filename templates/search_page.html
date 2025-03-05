@@ -25,14 +25,10 @@
         {% for result in results %}
         <tr>
             <td>
-                <a href="{{ result[0][1] }}">
-                    {{ result[0][0] }}
-                </a>
+                <a href="{{ result[0][1] }}">{{ result[0][0] }}</a>
             </td>
             {% for field in result[1:] %}
-            <td>
-                {{ field }}
-            </td>
+            <td>{{ field }}</td>
             {% endfor %}
         </tr>
         {% endfor %}

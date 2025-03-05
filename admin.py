@@ -320,6 +320,7 @@ def make_user(name: str, surname: str, email: str, _type: str, _class: str) -> t
 
     name = name.strip()
     surname = surname.strip()
+    email = email.strip()
 
     pwd = generate_password()
     pw_hash = generate_password_hash(pwd, GENERATE_PASSWORD_METHOD)
