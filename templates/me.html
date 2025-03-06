@@ -6,7 +6,7 @@
 
 {% block main %}
     <!-- Makes a warning appear if you have already booked this course -->
-    {% if user_type == "student" %}
+    {% if g.user_type == "student" %}
     <script>
         $(document).ready(function() {
             schedule = JSON.parse('{{ schedule|tojson }}');
@@ -27,9 +27,8 @@
     <h3 class="warning" style="display: none;">Tutti i moduli vuoti verranno riempiti casualmente</h3>
     {% endif %}
 
-    <h1>{% if user_type == "impersonate" %}Verifica orario{% elif user_type == "staff" %}Informazioni per lo staff{% else %}Il mio orario{% endif %}</h1>
-    {% if user_email %}<p>{{ user_email }}</p>{% endif %}
-    {% if user_type != "staff" %}
+    <h1>Il mio orario</h1>
+    {% if g.user_email %}<p>{{ g.user_email }}</p>{% endif %}
     <div class="mb-3" style="margin: 2rem 0;">
         <table class="table table-striped" id="table-desktop">
             <!-- set the first column to 10% and the others all equal so they sum up to 90% -->
@@ -86,22 +85,4 @@
             {% endfor %}
         </table>
     </div>
-    {% else %}
-    <p>
-        Gli account staff possono visualizzare i laboratori normalmente, tuttavia
-        <h5>Non possono prenotarsi</h5>
-        <h5>Possono visualizzare le disponibilità per tutti i giorni del festival</h5>
-        <h5>Hanno accesso alle prenotazioni di ogni laboratorio</h5>
-        <p>
-            Le prenotazioni sono visibili il giorno stesso in fondo alla pagina del laboratorio, dove per gli altri account sono presenti i bottoni per prenotarsi.
-        </p>
-        <h5>Possono visualizzare l'orario dei singoli studenti</h5>
-        <p>
-            <b>Selezionare "ricerca utenti" dal menù del sito</b>
-            <br>
-            Oltre ai qr code di verifica (che possono essere visualizzati da chiunque, anche senza effettuare il login)
-            gli account staff possono cercare i singoli utenti per nome, cognome, email o classe.
-        </p>
-    </p>
-    {% endif %}
 {% endblock %}

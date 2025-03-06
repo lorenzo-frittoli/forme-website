@@ -392,9 +392,6 @@ def me_page():
     return render_template(
         "me.html",
         schedule=generate_schedule(g.user_id, g.user_type, g.con),
-        user_full_name = g.user_full_name,
-        user_email = g.user_email,
-        user_type=g.user_type
     )
 
 
