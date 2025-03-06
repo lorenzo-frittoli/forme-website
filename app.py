@@ -29,7 +29,7 @@ def before_request():
         if session.get("user_id") is None:
             return
 
-        query_result = g.con.execute("SELECT type, name, surname, email, can_book, theme FROM users WHERE id = ?;", (session["user_id"], )).fetchone()
+        query_result = g.con.execute("SELECT type, full_name, email, can_book, theme FROM users WHERE id = ?;", (session["user_id"], )).fetchone()
 
         # If the user has been deleted (this functionality is not implemented, this should not happen)
         if not query_result:
@@ -37,7 +37,7 @@ def before_request():
             return
 
         # Save all user info
-        g.user_type, g.user_name, g.user_surname, g.user_email , g.can_book, g.user_theme = query_result
+        g.user_type, g.user_full_name, g.user_email , g.can_book, g.user_theme = query_result
         g.user_id = session["user_id"]
 
 
@@ -152,8 +152,8 @@ def register_page():
     if not email:
         return apology("Email non valida", 200)
 
-    name = name.strip()
-    surname = surname.strip()
+    full_name = surname.strip() + ' ' + name.strip()
+
     email = email.lower().strip() # Some mobile browsers insert spaces for no reason
     if len(email) > MAX_FIELD_LENGTH or not valid_email(email):
         return apology("Email non valida", 200)
@@ -174,8 +174,8 @@ def register_page():
         return apology("Email già registrata", 200)
 
     # Save the new user & commit
-    g.con.execute("INSERT INTO users (email, hash, name, surname, type) VALUES (?, ?, ?, ?, ?, ?);",
-                (email, generate_password_hash(password, method=GENERATE_PASSWORD_METHOD), name, surname, "guest"))
+    g.con.execute("INSERT INTO users (email, hash, full_name, type) VALUES (?, ?, ?, ?);",
+                (email, generate_password_hash(password, method=GENERATE_PASSWORD_METHOD), full_name, "guest"))
     g.con.commit()
 
     # Redirect to the homepage
@@ -274,13 +274,13 @@ def activity_page():
                     has_bookings=False
                 )
 
-            query_result = g.con.execute("SELECT name, surname, class, module_start, module_end FROM users JOIN registrations ON users.id = registrations.user_id WHERE activity_id = ? AND day = ? ORDER BY type, surname || name;", (activity_id, day_index)).fetchall()
+            query_result = g.con.execute("SELECT full_name, class, module_start, module_end FROM users JOIN registrations ON users.id = registrations.user_id WHERE activity_id = ? AND day = ? ORDER BY type, full_name;", (activity_id, day_index)).fetchall()
             
             def parse_registration(booking: tuple) -> tuple:
-                if booking[2]:
-                    return booking[0], booking[2], int(booking[3]), int(booking[4])
+                if booking[1]:
+                    return booking[0], booking[1], int(booking[2]), int(booking[3])
                 else:
-                    return booking[1] + " " + booking[0], "Esterno", int(booking[3]), int(booking[4])
+                    return booking[0], "Esterno", int(booking[2]), int(booking[3])
             
             bookings = list(map(parse_registration, query_result))
 
@@ -392,8 +392,7 @@ def me_page():
     return render_template(
         "me.html",
         schedule=generate_schedule(g.user_id, g.user_type, g.con),
-        user_name = g.user_name,
-        user_surname = g.user_surname,
+        user_full_name = g.user_full_name,
         user_email = g.user_email,
         user_type=g.user_type
     )
@@ -409,7 +408,7 @@ def group_page():
 
     if request.method == "GET":
         group_members = g.con.execute(
-            "SELECT login_code, surname, name FROM users WHERE owner = ?;",
+            "SELECT login_code, full_name FROM users WHERE owner = ?;",
             (g.user_id, )
         ).fetchall()
 
@@ -426,13 +425,12 @@ def group_page():
     if not surname or len(surname) > MAX_FIELD_LENGTH:
         return apology("Cognome non valido", 200)
 
-    name = name.strip()
-    surname = surname.strip()
+    full_name = surname.strip() + ' ' + name.strip()
 
     # Create a new user that can only be accessed via this page
     g.con.execute(
-        "INSERT INTO users (email, hash, name, surname, type, owner) VALUES (?, ?, ?, ?, ?, ?);",
-        (None, None, name, surname, "guest", g.user_id)
+        "INSERT INTO users (full_name, type, owner) VALUES (?, ?, ?);",
+        (full_name, "guest", g.user_id)
     )
     g.con.commit()
 
@@ -494,7 +492,7 @@ def verification_page():
     except (KeyError, ValueError):
         return apology()
 
-    result = g.con.execute("SELECT id, type, name, surname, email FROM users WHERE verification_code = ?;", (verification_code, )).fetchone()
+    result = g.con.execute("SELECT id, type, full_name, email FROM users WHERE verification_code = ?;", (verification_code, )).fetchone()
     if not result:
         return apology("Utente non trovato.")
 
@@ -505,9 +503,8 @@ def verification_page():
         "verify_me.html",
         schedule=generate_schedule(int(result[0]), result[1], g.con),
         user_type="impersonate", # This way the warning banner doesn't show up
-        user_name = result[2],
-        user_surname = result[3],
-        user_email = result[4]
+        user_full_name = result[2],
+        user_email = result[3]
     )
 
 
@@ -528,13 +525,13 @@ def search_page():
     if not query:
         return render_template("search_page.html")
 
-    search_sql = "(name LIKE ? COLLATE NOCASE OR surname LIKE ? COLLATE NOCASE OR email LIKE ? COLLATE NOCASE OR class = ? COLLATE NOCASE)"
-    sql_query = "SELECT surname, name, class, email, verification_code FROM users WHERE " + " AND ".join([search_sql] * len(query)) + " ORDER BY surname || name;"
+    search_sql = "(full_name LIKE ? COLLATE NOCASE OR email LIKE ? COLLATE NOCASE OR class = ? COLLATE NOCASE)"
+    sql_query = "SELECT full_name, class, email, verification_code FROM users WHERE " + " AND ".join([search_sql] * len(query)) + " ORDER BY full_name;"
 
     results = g.con.execute(
         sql_query,
         # Use normalized text for the email
-        sum((('%'+q+'%', '%'+q+'%', '%'+normalize_text(q)+'%', q) for q in query), start=tuple())
+        sum((('%'+q+'%', '%'+normalize_text(q)+'%', q) for q in query), start=tuple())
     ).fetchall()
 
     # normalize text for the search that follows
@@ -542,7 +539,7 @@ def search_page():
 
     # Counts the numbers of keywords in the search that are exactly matched
     def count_exact_matches(res):
-        res = res[:2] # using only surname and name
+        res = res[0] # using only full name
         res = map(normalize_text, res)
         res = sum(map(str.split, res), start=[])
         return sum(q in res for q in query)
@@ -551,7 +548,7 @@ def search_page():
     results.sort(key=lambda res: count_exact_matches(res), reverse=True)
 
     def parse_row(row: tuple) -> tuple:
-        return (' '.join(row[:2]), url_for("verification_page", verification_code=row[4])), row[2] or "esterno", row[3]
+        return (row[0], url_for("verification_page", verification_code=row[3])), row[1] or "esterno", row[2]
 
     results = tuple(map(parse_row, results))
 

@@ -61,7 +61,7 @@
 </nav>
 {% if session["user_id"] %}
 <div class="border-bottom navbar">
-    <div class="fs-4 m-auto text-center">{{ g.user_surname }} {{ g.user_name }}</div>
+    <div class="fs-4 m-auto text-center">{{ g.user_full_name }}</div>
 </div>
 {% endif %}
 

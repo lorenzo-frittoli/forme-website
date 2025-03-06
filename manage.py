@@ -88,8 +88,7 @@ def load_students(filename: str) -> None:
 
     for student in students:
         password = generate_password()
-        student["name"] = student["name"].title()
-        student["surname"] = student["surname"].title()
+        student["full_name"] = student["full_name"].title()
         student["email"] = student["email"].lower()
         student["class"] = student["class"].upper()
         student["hash"] = generate_password_hash(password, method=GENERATE_PASSWORD_METHOD)
@@ -100,7 +99,7 @@ def load_students(filename: str) -> None:
         assert student["type"] in ("student", "staff")
     
     # Write to DB
-    con.executemany("INSERT INTO users (type, email, hash, name, surname, class) VALUES (:type, :email, :hash, :name, :surname, :class)", students)
+    con.executemany("INSERT INTO users (type, email, hash, full_name, class) VALUES (:type, :email, :hash, :full_name, :class)", students)
     con.commit()
 
     # Close sqlite3

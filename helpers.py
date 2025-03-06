@@ -98,7 +98,7 @@ def slot_already_booked(user_id: int, day: int, module_start: int, module_end: i
     # Searches for ranges intersecting (module_start, module_end)
     
     return bool(
-        con.execute(f"SELECT activity_id FROM registrations WHERE user_id = ? AND day = ? AND module_end >= ? AND module_start <= ?;", (user_id, day, module_start, module_end)).fetchall()
+        con.execute("SELECT activity_id FROM registrations WHERE user_id = ? AND day = ? AND module_end >= ? AND module_start <= ?;", (user_id, day, module_start, module_end)).fetchall()
     )
 
 

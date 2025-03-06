@@ -298,12 +298,11 @@ New availability: {new_availability}""", 200
 
 
 @command
-def make_user(name: str, surname: str, email: str, _type: str, _class: str) -> tuple[str, int]:
+def make_user(full_name: str, email: str, _type: str, _class: str) -> tuple[str, int]:
     """Create a new account
 
     Args:
-        name (str): name of the user
-        surname (str): surname of the user
+        full_name (str): surname || name of the user
         email (str): email of the user
         password (str): password of the user
         _type (str): type of the account
@@ -318,8 +317,7 @@ def make_user(name: str, surname: str, email: str, _type: str, _class: str) -> t
     elif _class != "":
         return "Class would be empty for " + _type, 400
 
-    name = name.strip()
-    surname = surname.strip()
+    full_name = full_name.strip()
     email = email.strip()
 
     pwd = generate_password()
@@ -327,7 +325,7 @@ def make_user(name: str, surname: str, email: str, _type: str, _class: str) -> t
 
     # Save user
     try:
-        login_code = g.con.execute("INSERT INTO users (type, email, hash, name, surname) VALUES (?, ?, ?, ?, ?) RETURNING login_code;", (_type, email, pw_hash, name, surname)).fetchone()[0]
+        login_code = g.con.execute("INSERT INTO users (type, email, hash, full_name) VALUES (?, ?, ?, ?) RETURNING login_code;", (_type, email, pw_hash, full_name)).fetchone()[0]
     except sqlite3.DatabaseError as e:
         return f"{e.__class__.__name__}: {' '.join(e.args)}", 400
 
@@ -384,7 +382,7 @@ def statistics() -> tuple[str, int]:
     guest_cnt = f"{owned_guest_cnt} esterni registrati da studenti\n{ind_guest_cnt} esterni registrati da admin"
 
     owners = g.con.execute(
-        "SELECT email, owned, list FROM users JOIN (SELECT owner, count(*) as owned, group_concat(surname || ' ' || name) AS list FROM users GROUP BY owner) AS subquery ON subquery.owner=id ORDER BY owned;"
+        "SELECT email, owned, list FROM users JOIN (SELECT owner, count(*) as owned, group_concat(full_name) AS list FROM users GROUP BY owner) AS subquery ON subquery.owner=id ORDER BY owned;"
     ).fetchall()
 
     owners = '\n'.join(

@@ -15,7 +15,7 @@ def get_students_from_file(filename: str) -> list[dict]:
 
 
     Returns:
-        list[dict]: list of students data: [{name, surname, class, email}, ...]
+        list[dict]: list containing one dictionary per user
     """
     output = []
     with open(filename, "r") as students_file:
@@ -24,13 +24,12 @@ def get_students_from_file(filename: str) -> list[dict]:
             # The values are ";"-separated
             student = student.rstrip("\n").split(",")
             # The csv is in the format:
-            # surname,name,email,class,type
+            # full_name,email,class,type
             output.append({
-                "surname": student[0],
-                "name": student[1],
-                "email": student[2],
-                "type": student[3],
-                "class": student[4]
+                "full_name": student[0],
+                "email": student[1],
+                "type": student[2],
+                "class": student[3]
             })
     
     return output

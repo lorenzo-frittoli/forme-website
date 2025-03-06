@@ -51,12 +51,12 @@ Relatori: {speakers} \\\\
                 # Get the registrations from the database
                 result = con.execute(
                     # Sort by type than by surname
-                    "SELECT name, surname, class FROM users JOIN registrations ON users.id = registrations.user_id WHERE activity_id = ? AND day = ? AND module_start = ? ORDER BY type, surname || name;",
+                    "SELECT full_name, class FROM users JOIN registrations ON users.id = registrations.user_id WHERE activity_id = ? AND day = ? AND module_start = ? ORDER BY type, full_name;",
                     (activity_id, day_index, module_start)
                 )
-                for name, surname, _class in result:
+                for full_name, _class in result:
                     # \\ : newline
-                    put(surname + " " + name, "&", _class if _class else "esterno", " & \\\\")
+                    put(full_name, "&", _class if _class else "esterno", " & \\\\")
                     put("\\hline")
                 put(
 """\\end{tabular}
