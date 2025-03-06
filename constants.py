@@ -1,7 +1,8 @@
 import os
 
 # Hosting
-LINK = "https://formecassini.eu.pythonanywhere.com"
+# LINK = "https://formecassini.eu.pythonanywhere.com"
+LINK = "http://localhost:5000"
 
 
 # Event details
