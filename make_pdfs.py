@@ -1,7 +1,6 @@
 from constants import *
 from helpers import fmt_timespan
 from jinja2 import Template
-import json
 import sqlite3
 
 TEMPLATE = "templates" + DIR_SEP + "pdfs.tex"
@@ -48,7 +47,7 @@ for day_index, day in enumerate(DAYS):
                 [(_class0 or "", full_name0, _class1 or "", full_name1) for (full_name0, _class0), (full_name1, _class1) in chunks(result, 2)],
             ])
 
-        data.append([activity_title, activity_speakers, bookings])
+        data.append([str(activity_id) + " - " + activity_title, activity_speakers, bookings])
 
     # File con '/' nel nome non sono validi
     with open(TEX_DIRECTORY + day.replace("/", "_")+".tex", "w", encoding="UTF-8") as outf:
