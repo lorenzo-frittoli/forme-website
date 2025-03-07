@@ -208,13 +208,25 @@ nav .navbar-brand {
     padding-top: 10px;
 }
 
+#activities-filter {
+    display: flex;
+    > input {
+        padding-right: 2rem;
+    }
+    > button {
+        border: none;
+        background: inherit;
+        margin-left: -2rem;
+    }
+}
+
 /* me.html, activities.html, activity.html */
 @media (max-width: 991.98px) {
     #activities-filter {
         position: relative;
         margin-bottom: 1rem;
-        width: 60%;
-        margin-left: 20%;
+        margin-left: 10%;
+        width: 80%;
     }
     .card-wrapper {
         width: 100%;
@@ -237,8 +249,7 @@ nav .navbar-brand {
     #activities-filter {
         position: absolute;
         left: calc(1% + 10px);
-        top: calc(50% - 0.9rem);
-        height: 2rem;
+        bottom: 0;
         width: 15rem;
     }
     .card-wrapper {

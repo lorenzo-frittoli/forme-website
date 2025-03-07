@@ -6,29 +6,52 @@
 
 {% block main %}
     <script>
-        function filter_activities(search) {
-            search = search.toLowerCase();
+        function filter_activities() {
+            keywords = $("#activities-filter-text")[0].value.toLowerCase().split(" ");
+            console.log(keywords);
             $(".card-wrapper").each(function(i, obj) {
-                let title = $(".card-title", obj)[0].textContent.toLowerCase() + $(".card-subtitle", obj)[0].textContent.toLowerCase();
-                obj.style.display = title.includes(search) ? "flex" : "none";
+                let elements = [
+                    $(".card-title", obj)[0],
+                    $(".card-subtitle", obj)[0],
+                ];
+                let show = keywords.every(
+                    (keyword) => {
+                        return elements.some(
+                            (element) => {
+                                return element.textContent.toLowerCase().includes(keyword)
+                            }
+                        );
+                    }
+                );
+                obj.style.display = show ? "flex" : "none";
             });
+        }
+
+        function clear_filter() {
+            $("#activities-filter-text")[0].value = "";
+            filter_activities();
         }
 
         $(document).ready(function() {
             // select the input field
-            let filter = $("#activities-filter");
-            filter.on("input", function() {
-                filter_activities(filter[0].value);
-            });
+            $("#activities-filter-text")[0].oninput = filter_activities;
             // filter on page load in case the browser has auto-filled the input
-            filter_activities(filter[0].value);
+            filter_activities();
         });
     </script>
 
     <div id="headers">
         <h1 class="mb-3">Laboratori</h1>
-        <input autofocus type="text" class="form-control" id="activities-filter" placeholder="Cerca">
+        <div id="activities-filter">
+            <input autofocus type="text" class="form-control" id="activities-filter-text" placeholder="Cerca">
+            <button onclick="clear_filter()">
+                <svg fill="#000000" width="1.2rem" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M0 14.545L1.455 16 8 9.455 14.545 16 16 14.545 9.455 8 16 1.455 14.545 0 8 6.545 1.455 0 0 1.455 6.545 8z"/>
+                </svg>
+            </button>
+        </div>
     </div>
+
     <div id="cards-container">
         {% for activity in activities %}
             <a class="card-wrapper mx-2 my-2" href="/activity?id={{ activity.id }}">
