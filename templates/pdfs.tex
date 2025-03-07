@@ -1,0 +1,34 @@
+\documentclass{article}
+
+\usepackage[italian]{babel}
+\usepackage[a4paper,top=2cm,bottom=2cm,left=2cm,right=2cm,marginparwidth=1.75cm]{geometry}
+\usepackage{array}
+
+% Disable section numbers
+\setcounter{secnumdepth}{0}
+% Disable page numbers
+\pagenumbering{gobble}
+
+\begin{document}
+%-j- for activity_title, activity_speakers, bookings in activities
+\Large\textbf{ Presenze - {{ day }}}
+\section{ {{ activity_title }} }
+%-j- for module_bookings in bookings
+% .01cm per overfillare i 17 cm di pagina e andare a capo
+\begin{minipage}{17.01cm}
+\subsection{ {{ module_bookings[0] }} }
+Relatori: {{ activity_speakers }} \\
+\\
+\begin{tabular}{ | m{1.6cm} | m{6.4cm} | m{1.6cm} | m{6.4cm} | }
+\hline
+%-j- for row in module_bookings[1]
+\centering {{ row[0] }} & {{ row[1] }} & \centering {{ row[2] }} & {{ row[3] }} \\
+\hline
+%-j- endfor
+\end{tabular}
+\vspace{0.5cm}
+\end{minipage}
+%-j- endfor
+\newpage
+%-j- endfor
+\end{document}
