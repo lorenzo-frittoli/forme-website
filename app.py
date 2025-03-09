@@ -22,7 +22,8 @@ Session(app)
 
 @app.before_request
 def before_request():
-    if "/static/" not in request.path:
+    print(request.path)
+    if not request.path.startswith("/static/"):
         # Open the connection to the database
         g.con = sqlite3.connect(DATABASE)
 
@@ -45,7 +46,7 @@ def before_request():
 def after_request(response):
     """Ensure responses aren't cached"""
 
-    if "/static/" in request.path:
+    if request.path.startswith("/static/"):
         # static file
         response.headers["Cache-Control"] = "public, max-age: 2592000"
 
