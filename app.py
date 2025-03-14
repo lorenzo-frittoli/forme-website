@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 from itertools import groupby
 
-from helpers import apology, login_required, admin_required, staff_required, make_registration, update_availability, get_image_path, fmt_activity_booking, qr_code_for, generate_schedule, fmt_timespan, normalize_text, get_prev_activity, get_next_activity
+from helpers import *
 from manage_helpers import valid_email
 import admin
 from constants import *
@@ -18,11 +18,12 @@ app = Flask(__name__)
 # I have no idea what this means just roll with it
 app.config["SESSION_PERMANENT"] = True
 app.config["SESSION_TYPE"] = "filesystem"
+app.jinja_env.trim_blocks = True
+app.jinja_env.lstrip_blocks = True
 Session(app)
 
 @app.before_request
 def before_request():
-    print(request.path)
     if not request.path.startswith("/static/"):
         # Open the connection to the database
         g.con = sqlite3.connect(DATABASE)
@@ -61,7 +62,6 @@ def after_request(response):
 
 
 @app.route("/")
-@app.route("/index.html")
 def index_page():
     """Homepage"""
     return render_template("index.html")
@@ -187,24 +187,17 @@ def register_page():
 def activities_page():
     """List of all activities"""
 
-    # Query DB for id, title, type of every activity in the form list[tuple[id: int, title: str, type: str]]
-    query_output = g.con.execute("SELECT id, title, type, description, length, image FROM activities;").fetchall()
-    
-    # If no activity is loaded yet, return apology
-    if not query_output:
-        return apology("Nessuna attività disponibile al momento", 200)
-    
-    # Make list of tuples into list of dicts for easy access with jinja
-    activities_list = [{"id": activity_id,
-                        "title": activity_title,
-                        "type": activity_type,
-                        "description": activity_description,
-                        "length": activity_length,
-                        "booked": fmt_activity_booking(activity_id, g.con) if "user_id" in session else "",
-                        "image": get_image_path(image_name)
-                        } for activity_id, activity_title, activity_type, activity_description, activity_length, image_name in query_output]
+    activities = get_activities()
 
-    return render_template("activities.html", activities=activities_list)
+    # If no activity is loaded yet, return apology
+    if not activities:
+        return apology("Nessuna attività disponibile al momento", 200)
+
+    for activity in activities:
+        if "user_id" in session:
+            activity["booked"] = fmt_activity_booking(activity["id"], g.con)
+
+    return render_template("activities.html", activities=activities)
 
 
 @app.route("/activity", methods=["GET", "POST"])
@@ -212,38 +205,27 @@ def activity_page():
     """Activity page w/ details"""
     try:
         activity_id = int(request.args["id"])
-        
+        # Check that the activity exists
+        activity_dict = get_activity(activity_id)
+
     except (KeyError, ValueError):
         return apology()
 
     # Method is GET
     if request.method == "GET":        
         # Query the database
-        query_result = g.con.execute("SELECT title, description, type, length, classroom, speakers, image, availability FROM activities WHERE id = ?;", [activity_id,]).fetchone()
+        query_result = g.con.execute("SELECT availability FROM activities WHERE id = ?;", (activity_id, )).fetchone()
 
         if query_result is None:
             return apology()
 
-        activity_title, activity_description, activity_type, activity_length, activity_classroom, activity_speakers, activity_image, activity_availability = query_result
+        # JSON string -> list[list[remaining by time] by day]
+        activity_availability = json.loads(query_result[0])
 
         activity_timespans = tuple(
-            (i//activity_length, fmt_timespan(i, i + activity_length - 1))
-            for i in range(0, len(TIMESPANS)-activity_length+1, activity_length)
+            (i//activity_dict["length"], fmt_timespan(i, i + activity_dict["length"] - 1))
+            for i in range(0, len(TIMESPANS)-activity_dict["length"]+1, activity_dict["length"])
         )
-
-        activity_dict = {
-            "title": activity_title,
-            "description": activity_description,
-            "type": activity_type,
-            "classroom": activity_classroom,
-            "speakers": activity_speakers,
-            "image": get_image_path(activity_image),
-            "prev": get_prev_activity(activity_id, g.con),
-            "next": get_next_activity(activity_id, g.con),
-        }
-
-        # JSON string -> list[list[remaining by time] by day]
-        activity_availability = json.loads(activity_availability)
 
         if "user_id" not in session:
             # For users not logged in
@@ -319,8 +301,8 @@ def activity_page():
                 assert user_free[booking_day][booking_timespan]
                 user_free[booking_day][booking_timespan] = False
 
-        user_free = [[all(day_free[module_start:module_start+activity_length])
-                     for module_start in range(0, len(TIMESPANS)-activity_length+1, activity_length)]
+        user_free = [[all(day_free[module_start:module_start+activity_dict["length"]])
+                     for module_start in range(0, len(TIMESPANS)-activity_dict["length"]+1, activity_dict["length"])]
                      for i, day_free in enumerate(user_free) if g.user_type in PERMISSIONS[i]]
         
         return render_template(
@@ -362,14 +344,12 @@ def activity_page():
     # If unbooking
     elif "unbooking-button" in request.form:
         registration = g.con.execute("SELECT day, module_start FROM registrations WHERE user_id = ? AND activity_id = ?;", (g.user_id, activity_id)).fetchone()
-        length = g.con.execute("SELECT length FROM activities WHERE id = ?;", (activity_id, )).fetchone()
         
-        if None in (registration, length):
+        if registration is None:
             return apology()
-        
-        length = length[0]
+
         day, module_start = registration
-        module = module_start // length
+        module = module_start // activity_dict["length"]
 
         # Update availability
         update_availability(activity_id, day, module, 1, g.con)
@@ -605,3 +585,40 @@ def admin_page():
     assert isinstance(result[0], str)
     assert isinstance(result[1], int)
     return render_template("admin_area.html", commands=admin.command_annotations, response=result[0].split("\n")), result[1]
+
+
+@app.route("/archive")
+def archive_page():
+    return render_template("archive.html")
+
+
+@app.route("/archive/<year>/activities")
+def archive_activities_page(year: str):
+    """List of all activities"""
+    try:
+        activities = get_activities(year)
+
+    except KeyError:
+        # invalid year
+        return apology()
+
+    return render_template("activities.html", activities=activities)
+
+
+@app.route("/archive/<year>/activity")
+def archive_activity_page(year: str):
+    """Activity page w/ details"""
+    try:
+        activity_id = int(request.args["id"])
+        # Check that the activity exists
+        activity_dict = get_activity(activity_id, year)
+
+    except (KeyError, ValueError):
+        return apology()
+
+    return render_template(
+        "activity_noavail.html",
+        id=activity_id,
+        activity=activity_dict,
+        days=tuple(enumerate(DAYS))
+    )

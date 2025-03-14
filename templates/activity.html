@@ -1,6 +1,6 @@
 {% extends "activity_layout.html" %}
 
-{% block scripts %}
+{% block bookings %}
     <!-- Handles booking buttons -->
     <script>
         // Function that enlarges buttons for mobile
@@ -11,7 +11,6 @@
             }
         }
 
-        // Enlarges buttons for mobile
         $(document).ready(enlarge);
 
 
@@ -60,9 +59,7 @@
             }
         });
     </script>
-{% endblock %}
 
-{% block bookings %}
     <!-- Booking / Unbooking -->
     {% if not activity.booked|length %}
     <div class="booking" style="margin: 2%;">

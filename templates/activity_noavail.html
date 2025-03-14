@@ -1,0 +1,60 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Laboratorio
+{% endblock %}
+
+{% block main %}
+    <!-- Heading -->
+    <div style="display: flex">
+        {% if activity.prev %}
+        <a style="align-content: center; flex-grow: 1;" title="Precedente" href="activity?id={{ activity.prev }}">
+            <svg width="3rem" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 10L8 14L6 14L-2.62268e-07 8L6 2L8 2L8 6L16 6L16 10L8 10Z" fill="#000000"/>
+            </svg>
+        </a>
+        {% else %}
+        <div style="width: 3rem; flex-grow: 1;"></div>
+        {% endif %}
+        <div id="activity-title" class="mx-2" style="align-content: center;">
+            <h1 class="mb-1">{{ activity.title }}</h1>
+        </div>
+        {% if activity.next %}
+        <a style="align-content: center; flex-grow: 1;" title="Prossimo" href="activity?id={{ activity.next }}">
+            <svg width="3rem" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 6L8 2L10 2L16 8L10 14L8 14L8 10L-1.74845e-07 10L-3.01991e-07 6L8 6Z" fill="#000000"/>
+            </svg>
+        </a>
+        {% else %}
+        <div style="width: 3rem; flex-grow: 1;"></div>
+        {% endif %}
+    </div>
+    <h6 class="mt-2">{{ activity.speakers }}</h6>
+    <h6>{{ activity.type }} - {% if activity.length > 1 %}{{ activity.length }} ore{% else %}1 ora{% endif %} - {{ activity.classroom }}</h6>
+
+    <hr>
+
+    <div class="row">
+        <!-- Left column -->
+        <div class="col" id="description-div" style="text-align: center;">
+
+            <!-- Flyer (mobile) -->
+            <div id="flyer-div-mobile" style="margin: 5%;">
+                <img class="img-fluid" src="{{ activity.image }}" alt="Locandina laboratorio {{ activity.id }}">
+            </div>
+
+            <div style="text-align: left; margin: 1.5rem;">
+                {# Makes \n linebreak, while adding a bit of extra spacing #}
+                {% for section in activity.description.split("\n") %}
+                <p>{{ section }}</p>
+                {% endfor %}
+            </div>
+            {% block avail %}{% endblock %}
+        </div>
+
+        <!-- Right column (desktop flyer) -->
+        <div class="col" id="flyer-div-desktop" style="margin-top: 1.5rem;">
+            <img class="img-fluid" style="max-height: 75vh;" src="{{ activity.image }}" alt="Locandina laboratorio {{ activity.id }}">
+        </div>
+    </div>
+{% endblock %}

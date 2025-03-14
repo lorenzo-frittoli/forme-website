@@ -21,33 +21,31 @@ with open(TEMPLATE, "r") as t_file:
 
 con = sqlite3.connect(DATABASE)
 
-activities = con.execute("SELECT title, length, id, speakers FROM activities ORDER BY id;").fetchall()
-
 # Create a separate pdf for each day
 for day_index, day in enumerate(DAYS):
     data = []
 
-    for activity_title, activity_length, activity_id, activity_speakers in activities:
-        activity_title = activity_title.replace('&', '\\&')
-        activity_speakers = activity_speakers.replace('&', '\\&')
+    for activity in get_activities():
+        activity["title"] = activity["title"].replace('&', '\\&')
+        activity["speakers"] = activity["speakers"].replace('&', '\\&')
 
         bookings = []
 
-        for module_start in range(0, len(TIMESPANS)-activity_length+1, activity_length):
+        for module_start in range(0, len(TIMESPANS)-activity["length"]+1, activity["length"]):
             result = con.execute(
                 "SELECT full_name, class FROM users JOIN registrations ON users.id = registrations.user_id WHERE activity_id = ? AND day = ? AND module_start = ? ORDER BY full_name;",
-                (activity_id, day_index, module_start)
+                (activity["id"], day_index, module_start)
             ).fetchall()
 
             if len(result) % 2:
                 result.append(("", ""))
 
             bookings.append([
-                fmt_timespan(module_start, module_start + activity_length - 1),
+                fmt_timespan(module_start, module_start + activity["length"] - 1),
                 [(_class0 or "", full_name0, _class1 or "", full_name1) for (full_name0, _class0), (full_name1, _class1) in chunks(result, 2)],
             ])
 
-        data.append([str(activity_id) + " - " + activity_title, activity_speakers, bookings])
+        data.append([str(activity["id"]) + " - " + activity["title"], activity["speakers"], bookings])
 
     # File con '/' nel nome non sono validi
     with open(TEX_DIRECTORY + day.replace("/", "_")+".tex", "w", encoding="UTF-8") as outf:

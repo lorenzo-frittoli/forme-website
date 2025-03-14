@@ -1,107 +1,42 @@
-{% extends "layout.html" %}
+{% extends "activity_noavail.html" %}
 
-{% block title %}
-    Laboratorio
-{% endblock %}
+{% block avail %}
+<!-- Availability table -->
+<h2>Disponibilità</h2>
+<div style="margin: 5%;">
+    <table class="table table-striped" id="table-mobile">
+        <thead>
+            <th> </th>
+            {% for day in days %}
+            <th>{{ day[1] }}</th>
+            {% endfor %}
+        </thead>
+        {% for timespan in timespans %}
+        <tr>
+            <th>{{ timespan[1] }}</th>
+            {% for rem in availability %}
+            <td>{% if rem[timespan[0]] == -1 and g.user_type != "staff" %}0{% else %}{{ rem[timespan[0]] }}{% endif %}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+    <table class="table table-striped" id="table-desktop">
+        <thead>
+            <th>Giorni</th>
+            {% for timespan in timespans %}
+            <th>{{ timespan[1] }}</th>
+            {% endfor %}
+        </thead>
+        {% for day in days %}
+        <tr>
+            <td>{{ day[1] }}</td>
+            {% for rem in availability[loop.index0] %}
+            <td>{% if rem == -1 and g.user_type != "staff" %}0{% else %}{{ rem }}{% endif %}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+</div>
 
-{% block main %}
-    {% block scripts %}{% endblock %}
-
-    <!-- Page Contents -->
-    <!-- Heading -->
-    <div style="display: flex">
-        {% if activity.prev %}
-        <a style="align-content: center; flex-grow: 1;" title="Precedente" href="/activity?id={{ activity.prev }}">
-            <svg width="3rem" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M8 10L8 14L6 14L-2.62268e-07 8L6 2L8 2L8 6L16 6L16 10L8 10Z" fill="#000000"/>
-            </svg>
-        </a>
-        {% else %}
-        <div style="width: 3rem; flex-grow: 1;"></div>
-        {% endif %}
-        <div id="activity-title" class="mx-2" style="align-content: center;">
-            <h1 class="mb-1">{{ activity.title }}</h1>
-        </div>
-        {% if activity.next %}
-        <a style="align-content: center; flex-grow: 1;" title="Prossimo" href="/activity?id={{ activity.next }}">
-            <svg width="3rem" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M8 6L8 2L10 2L16 8L10 14L8 14L8 10L-1.74845e-07 10L-3.01991e-07 6L8 6Z" fill="#000000"/>
-            </svg>
-        </a>
-        {% else %}
-        <div style="width: 3rem; flex-grow: 1;"></div>
-        {% endif %}
-    </div>
-    <h6 class="mt-2">{{ activity.speakers }}</h6>
-    <h5>{{ activity.type }} - {{ activity.classroom }}</h5>
-
-    <hr>
-
-    <!-- Body -->
-    <!-- Info -->
-    <div class="row">
-        <!-- Left column -->
-        <div class="col" id="description-div" style="text-align: center;">
-            <!-- Description -->
-            <!-- <h2 style="margin: 0">{{ activity.title }}</h2>
-            <h4 style="margin: 0">{{ activity.type }}</h4> -->
-            
-            <!-- Flyer (mobile) -->
-            <div id="flyer-div-mobile" style="margin: 5%;">
-                <img class="img-fluid" src="{{ activity.image }}" alt="Locandina laboratorio {{ activity.id }}">
-            </div>
-
-            <div style="text-align: left; margin: 1.5rem;">
-                <!-- Makes \n linebreak, while adding a bit of extra spacing -->
-                {% for section in activity.description.split("\n") %}
-                <p>{{ section }}</p>
-                {% endfor %}
-            </div>
-
-            <!-- Availability table -->
-            <h2>Disponibilità</h2>
-            <div style="margin: 5%;">
-                <table class="table table-striped" id="table-mobile">
-                    <thead>
-                        <th> </th>
-                        {% for day in days %}
-                        <th>{{ day[1] }}</th>
-                        {% endfor %}
-                    </thead>
-                    {% for timespan in timespans %}
-                    <tr>
-                        <th>{{ timespan[1] }}</th>
-                        {% for rem in availability %}
-                        <td>{% if rem[timespan[0]] == -1 and g.user_type != "staff" %}0{% else %}{{ rem[timespan[0]] }}{% endif %}</td>
-                        {% endfor %}
-                    </tr>
-                    {% endfor %}
-                </table>
-                <table class="table table-striped" id="table-desktop">
-                    <thead>
-                        <th>Giorni</th>
-                        {% for timespan in timespans %}
-                        <th>{{ timespan[1] }}</th>
-                        {% endfor %}
-                    </thead>
-                    
-                    {% for day in days %}
-                    <tr>
-                        <td>{{ day[1] }}</td>
-                        {% for rem in availability[loop.index0] %}
-                        <td>{% if rem == -1 and g.user_type != "staff" %}0{% else %}{{ rem }}{% endif %}</td>
-                        {% endfor %}
-                    </tr>
-                    {% endfor %}
-                </table>
-            </div>
-            
-            {% block bookings %}{% endblock %}        
-        </div>
-
-        <!-- Right column (desktop flyer) -->
-        <div class="col" id="flyer-div-desktop" style="margin-top: 1.5rem;">
-            <img class="img-fluid" style="max-height: 75vh;" src="{{ activity.image }}" alt="Locandina laboratorio {{ activity.id }}">
-        </div>
-    </div>
+{% block bookings %}{% endblock %}
 {% endblock %}

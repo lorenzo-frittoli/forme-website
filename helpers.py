@@ -188,33 +188,9 @@ def update_availability(activity_id: int, day: int, module: int, amount: int, co
     con.execute("UPDATE activities SET availability = ? WHERE id = ?;", (availability, activity_id))
 
 
-def get_prev_activity(id: int, con: Connection) -> int | None:
-    """Get the previous activity id"""
-    result = con.execute("SELECT id FROM activities WHERE id < ? ORDER BY id DESC LIMIT 1;", (id, )).fetchone()
-    return result[0] if result else None
-
-
-def get_next_activity(id: int, con: Connection) -> int | None:
-    """Get the previous activity id"""
-    result = con.execute("SELECT id FROM activities WHERE id > ? ORDER BY id LIMIT 1;", (id, )).fetchone()
-    return result[0] if result else None
-
-
 def normalize_text(text: str):
     """Remove accents and use lower case"""
     return unicodedata.normalize('NFKD', text).encode('ASCII', 'ignore').decode().lower()
-
-
-def get_image_path(image: str) -> str:
-    """Gets the path of an image from the name
-
-    Args:
-        image (str): name of the image
-
-    Returns:
-        str: path of the image.
-    """
-    return f"{ACTIVITY_IMAGES_DIRECTORY}/{image}"
 
 
 def fmt_timespan(start: int, end: int):
@@ -235,8 +211,6 @@ def qr_code_for(url: str) -> Response:
     """
     Args:
         url (str): link to create a qr code for.
-    Returns:
-        BytesIO: an object to be passed to send_file().
     """
     img_io = BytesIO()
     qrcode.make(url).save(img_io, "PNG")
@@ -247,27 +221,21 @@ def qr_code_for(url: str) -> Response:
 def generate_schedule(user_id: int, user_type: str, con: Connection):
     """Generate the schedule for the me page."""
 
-    # Fetch all user registrations -> list[tuple[..]]
-    result = """
-    SELECT activities.id, activities.title, registrations.day, registrations.module_start, registrations.module_end
-        FROM registrations JOIN
-        activities ON
-            registrations.activity_id = activities.id
-        WHERE user_id = ?;
-    """
-
-    user_registrations = con.execute(result, (user_id, )).fetchall()
+    user_registrations = con.execute(
+        "SELECT activity_id, day, module_start, module_end FROM registrations WHERE user_id = ?;",
+        (user_id, )
+    ).fetchall()
 
     # Make empty schedule
     schedule = {day: {timespan: ("", None) for timespan in TIMESPANS_TEXT}
                 for i, day in enumerate(DAYS) if user_type in PERMISSIONS[i]}
     
     # Fill with known data
-    for activity_id, title, day, module_start, module_end in user_registrations:
+    for activity_id, day, module_start, module_end in user_registrations:
         for timespan in range(module_start, module_end + 1):
             assert DAYS[day] in schedule
             assert schedule[DAYS[day]][TIMESPANS_TEXT[timespan]] == ("", None)
             link = url_for(".activity_page", id=activity_id)
-            schedule[DAYS[day]][TIMESPANS_TEXT[timespan]] = (title, link)
+            schedule[DAYS[day]][TIMESPANS_TEXT[timespan]] = (get_activity(activity_id)["title"], link)
 
     return schedule

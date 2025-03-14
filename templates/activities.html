@@ -54,14 +54,14 @@
 
     <div id="cards-container">
         {% for activity in activities %}
-            <a class="card-wrapper mx-2 my-2" href="/activity?id={{ activity.id }}">
+            <a class="card-wrapper mx-2 my-2" href="activity?id={{ activity.id }}">
                 <!-- desktop layout -->
                 <div class="card desktop-card">
                     <p class="card-header">
                         {% if activity.length > 1 %}
-                            {{ activity.length }} Ore
+                            {{ activity.length }} ore
                         {% else %}
-                            1 Ora
+                            1 ora
                         {% endif %}
                     </p>
                     <img class="card-img" src="{{ activity.image }}" alt="Locandina laboratorio {{ activity.id }}">
@@ -85,9 +85,9 @@
                         <h5 class="card-title">{{ activity.title }}</h5>
                         <h6 class="card-subtitle mb-2 text-muted">{{ activity.type }} - 
                         {% if activity.length > 1 %}
-                            {{ activity.length }} Ore
+                            {{ activity.length }} ore
                         {% else %}
-                            1 Ora
+                            1 ora
                         {% endif %}
                         </h6>
                         <!--img class="card-img" src="{{ activity.image }}"-->

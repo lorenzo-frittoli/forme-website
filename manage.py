@@ -52,20 +52,12 @@ def load_activities(filename: str) -> None:
     with open(filename, "r", encoding="UTF-8") as file:
         activities = json.load(file)
         for activity in activities:
-            activity["id"] = int(activity["id"])
-            activity["capacity"] = int(activity["capacity"])
-            activity["length"] = int(activity["length"])
             activity["availability"] = json.dumps(
                 create_availability(activity["capacity"], activity["length"])
             )
 
-    qry = """
-        INSERT INTO activities (id, title, description, type, length, classroom, image, speakers, availability)
-            VALUES (:id, :title, :description, :type, :length, :classroom, :image, :speakers, :availability);
-        """
-
     # Load activities in db
-    con.executemany(qry, activities)
+    con.executemany("INSERT INTO activities (id, length, availability) VALUES (:id, :length, :availability);", activities)
     con.commit()
 
     # Close sqlite3

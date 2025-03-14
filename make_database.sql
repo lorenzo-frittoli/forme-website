@@ -18,14 +18,8 @@ CREATE TABLE users (
 
 -- Activities table
 CREATE TABLE activities (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    description TEXT NOT NULL,
-    type TEXT NOT NULL,
+    id INTEGER PRIMARY KEY,
     length INTEGER NOT NULL,
-    classroom TEXT NOT NULL,
-    image TEXT,
-    speakers TEXT,
     availability TEXT NOT NULL
 );
 

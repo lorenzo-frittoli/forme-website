@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Archivio
+{% endblock %}
+
+{% block main %}
+    <script>
+        function collapse() {
+            $(".archive-row > div.collapse").collapse("hide");
+        }
+        $(document).ready(() => {
+            $(".archive-row [data-bs-toggle=collapse]").on("click", collapse);
+        });
+    </script>
+
+    <h4>Archivio</h4>
+    <p style="margin-bottom: 2rem;">
+        L'archivio permette di visualizzare il sito così come appariva nell'anno selezionato.<br>
+        Per gli anni prima del 2023 - 24 è disponibile solamente il catalogo in formato PDF.<br>
+        Generalmente il catalogo online, quando presente, è più completo.
+    </p>
+
+    <div class="archive-row">
+        <nav>
+            <div>23 - 24</div>
+            <a href="/archive/2324/activities">Catalogo online</a>
+            <a href="">Catalogo PDF</a>
+            <div type="button" data-bs-toggle="collapse" data-bs-target="#info-2024" aria-expanded="false"></div>
+        </nav>
+        <div class="collapse" id="info-2024">
+            <div><img src="/static/logo_forme.jpg"></div>
+            <div>
+                <p>Il festival si è tenuto dal ... al ...</p>
+                <p>Comitato ForMe</p>
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="archive-row">
+        <nav>
+            <div>16 - 17</div>
+            <div></div>
+            <a href="">Catalogo PDF</a>
+            <div type="button" data-bs-toggle="collapse" data-bs-target="#info-2017" aria-expanded="false"></div>
+        </nav>
+        <div class="collapse" id="info-2017">
+            <div><img src="/static/logo_forme.jpg"></div>
+        </div>
+    </div>
+{% endblock %}
