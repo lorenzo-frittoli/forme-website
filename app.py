@@ -602,7 +602,7 @@ def archive_activities_page(year: str):
         # invalid year
         return apology()
 
-    return render_template("activities.html", activities=activities)
+    return render_template("activities.html", activities=activities, year=year)
 
 
 @app.route("/archive/<year>/activity")

@@ -81,7 +81,7 @@ def _load_activities(file: str, images_dir: str) -> tuple[list[dict], dict[int, 
 # Using getters with deepcopy allows adding values to the dictionaries without modifying the original data
 _ACTIVITIES_CACHE = {
     None: _load_activities("activities_parsed.json", "/static/images/"), # Current year
-    "2324": _load_activities("activities_2324.json", "/static/images_2324/"),
+    "23-24": _load_activities("activities_23-24.json", "/static/images_23-24/"),
 }
 
 def get_activities(year=None) -> list[dict]:

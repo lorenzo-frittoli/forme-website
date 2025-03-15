@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Catalogo laboratori
+    Catalogo laboratori {{ year }}
 {% endblock %}
 
 {% block main %}
@@ -41,7 +41,7 @@
     </script>
 
     <div id="headers">
-        <h1 class="mb-3">Laboratori</h1>
+        <h1 class="mb-3">Laboratori {{ year }}</h1>
         <div id="activities-filter">
             <input autofocus type="text" class="form-control" id="activities-filter-text" placeholder="Cerca">
             <button onclick="clear_filter()">
