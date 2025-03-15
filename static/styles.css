@@ -234,10 +234,12 @@ nav .navbar-brand {
     }
     > div {
         display: flex;
-        margin: 0 5% 0 5%;
         > * {
-            margin-top: 1rem;
+            margin: 1rem 2% 0 2%;
             flex: 1 0 0;
+        }
+        > :not(:has(img)) {
+            text-align: left;
         }
         img {
             max-height: 40vh;
