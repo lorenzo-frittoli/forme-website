@@ -7,7 +7,6 @@ from datetime import datetime
 from itertools import groupby
 
 from helpers import *
-from manage_helpers import valid_email
 import admin
 from constants import *
 

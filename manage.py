@@ -6,8 +6,7 @@ import random
 from werkzeug.security import generate_password_hash
 
 
-from helpers import make_registration
-from manage_helpers import make_backup, get_students_from_file, generate_password, create_availability, valid_class, valid_email
+from helpers import make_registration, make_backup, generate_password, create_availability, valid_class, valid_email
 from constants import *
 
 
@@ -69,7 +68,17 @@ def load_students(filename: str) -> None:
     con = sqlite3.connect(DATABASE)
 
     # Load student data
-    students = get_students_from_file(filename)
+    students = []
+    with open(filename, "r") as students_file:
+        # Each line represents a student
+        for student in students_file.readlines():
+            student = student.rstrip("\n").split(",")
+            students.append({
+                "full_name": student[0],
+                "email": student[1],
+                "type": student[2],
+                "class": student[3]
+            })
 
     for student in students:
         password = generate_password()

@@ -1,5 +1,5 @@
 from constants import TIMED_BACKUPS_DIR
-from manage_helpers import make_backup
+from helpers import make_backup
 
 # This script is meant to be run each day as a scheduled task.
 
