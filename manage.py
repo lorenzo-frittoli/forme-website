@@ -38,23 +38,16 @@ def backup_db() -> None:
 
 
 @cli.command()
-@click.option("-f", "--filename", "filename", required=True, help="File where the activity data is stored")
-def load_activities(filename: str) -> None:
-    """Loads activities from a file
-
-    Args:
-        filename (str): name of the file where the activity data is stored
-    """
-
+def load_activities() -> None:
+    """Populates the database with the activities loaded in constants.py"""
     # Setup sqlite3
     con = sqlite3.connect(DATABASE)
 
-    with open(filename, "r", encoding="UTF-8") as file:
-        activities = json.load(file)
-        for activity in activities:
-            activity["availability"] = json.dumps(
-                create_availability(activity["capacity"], activity["length"])
-            )
+    activities = get_activities()
+    for activity in activities:
+        activity["availability"] = json.dumps(
+            create_availability(activity["capacity"], activity["length"])
+        )
 
     # Load activities in db
     con.executemany("INSERT INTO activities (id, length, availability) VALUES (:id, :length, :availability);", activities)
