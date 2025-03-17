@@ -1,0 +1,20 @@
+\documentclass[border=1.75cm]{standalone}
+
+\usepackage{array}
+
+% Disable section numbers
+\setcounter{secnumdepth}{0}
+
+\begin{document}
+\begin{minipage}{21cm}
+%-j- for activity_id, activity_title, status in activities
+\subsection{ {{ activity_id }} - {{ activity_title }} }
+\begin{tabular}{| m{4cm} | m{4cm} |}
+\hline
+%-j- for module, module_status in status
+{{ module }} & {{ module_status }} \\ \hline
+%-j- endfor
+\end{tabular}
+%-j- endfor
+\end{minipage}
+\end{document}
