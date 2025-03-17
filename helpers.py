@@ -3,7 +3,6 @@ from functools import wraps
 import qrcode
 from io import BytesIO
 import json
-from sqlite3 import Connection
 import unicodedata
 import re
 import string
@@ -73,7 +72,7 @@ def staff_required(f):
     return decorated_function
 
 
-def activity_already_booked(user_id: int, activity_id: int, con: Connection) -> bool:
+def activity_already_booked(user_id: int, activity_id: int, con: sqlite3.Connection) -> bool:
     """Checks wether a course has been booked already by that student.
 
     Args:
@@ -89,7 +88,7 @@ def activity_already_booked(user_id: int, activity_id: int, con: Connection) -> 
     )
 
 
-def slot_already_booked(user_id: int, day: int, module_start: int, module_end: int, con: Connection) -> bool:
+def slot_already_booked(user_id: int, day: int, module_start: int, module_end: int, con: sqlite3.Connection) -> bool:
     """Checks if a slot (a day/timespan couple) is already occupied by the user
 
     Args:
@@ -107,7 +106,7 @@ def slot_already_booked(user_id: int, day: int, module_start: int, module_end: i
     )
 
 
-def make_registration(user_id: int, activity_id: int, day: int, module: int, user_type: str, con: Connection):
+def make_registration(user_id: int, activity_id: int, day: int, module: int, user_type: str, con: sqlite3.Connection):
     """Add a registration to the database
 
     Args:
@@ -157,7 +156,7 @@ def make_registration(user_id: int, activity_id: int, day: int, module: int, use
     con.execute("INSERT INTO registrations (user_id, activity_id, day, module_start, module_end) VALUES (?, ?, ?, ?, ?);", (user_id, activity_id, day, module_start, module_end))
 
 
-def update_availability(activity_id: int, day: int, module: int, amount: int, con: Connection) -> None:
+def update_availability(activity_id: int, day: int, module: int, amount: int, con: sqlite3.Connection) -> None:
     """Updates the availability
 
     Args:
@@ -203,7 +202,7 @@ def fmt_timespan(start: int, end: int):
     return TIMESPANS[start][0] + ' - ' + TIMESPANS[end][1]
 
 
-def fmt_activity_booking(activity_id: int, con: Connection) -> str:
+def fmt_activity_booking(activity_id: int, con: sqlite3.Connection) -> str:
     span = con.execute("SELECT day, module_start, module_end FROM registrations WHERE user_id = ? AND activity_id = ?;", (g.user_id, activity_id)).fetchone()
 
     if span is None:
@@ -223,7 +222,7 @@ def qr_code_for(url: str) -> Response:
     return send_file(img_io, mimetype="image/png")
 
 
-def generate_schedule(user_id: int, user_type: str, con: Connection):
+def generate_schedule(user_id: int, user_type: str, con: sqlite3.Connection):
     """Generate the schedule for the me page."""
 
     user_registrations = con.execute(
