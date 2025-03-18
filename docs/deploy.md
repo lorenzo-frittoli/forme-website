@@ -55,7 +55,7 @@ Mentre prepari il sito, tienilo sempre aperto in locale per vedere come risultan
 - Avere cura di tenere il file contente le password per poterle poi mandare via mail
 
 # Aggiornare le pagine
-- Cambiare l'anno (ctrl-h #### in [layout.html](../templates/layout.html), [index.html](../templates/index.html), [admin_layout.html](../templates/admin_layout.html))
+- Cambiare l'anno (ctrl-h #### in [layout.html](../templates/layout.html), [index.html](../templates/index.html))
 - Aggiornare [index.html](../templates/index.html): come esempio è caricata la pagina del 2025.
 - Se esiste un pdf con il catalogo, caricarlo in [static/](../static/) e aggiungi un link per scaricarlo in [index.html](../templates/index.html).
 ```html
