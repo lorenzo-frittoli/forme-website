@@ -3,7 +3,6 @@ from flask import Flask, redirect, render_template, request, session, g, Respons
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 import json
-from datetime import datetime
 from itertools import groupby
 
 from helpers import *
@@ -239,45 +238,25 @@ def activity_page():
             )
 
         if g.user_type == "staff":
-            today = datetime.today().strftime("%d/%m")
-            activity_days = list(enumerate(DAYS))
-
-            try:
-                day_index = DAYS.index(today)
-            except ValueError:
-                # No registrations to be shown for today
-                return render_template(
-                    "activity_staff.html",
-                    id=activity_id,
-                    activity=activity_dict,
-                    days=activity_days,
-                    timespans=activity_timespans,
-                    availability=activity_availability,
-                    has_bookings=False
-                )
-
-            query_result = g.con.execute("SELECT full_name, class, module_start, module_end FROM users JOIN registrations ON users.id = registrations.user_id WHERE activity_id = ? AND day = ? ORDER BY type, full_name;", (activity_id, day_index)).fetchall()
-            
-            def parse_registration(booking: tuple) -> tuple:
-                if booking[1]:
-                    return booking[0], booking[1], int(booking[2]), int(booking[3])
-                else:
-                    return booking[0], "Esterno", int(booking[2]), int(booking[3])
-            
-            bookings = list(map(parse_registration, query_result))
+            bookings = g.con.execute(
+                "SELECT full_name, class, day, module_start, module_end FROM users JOIN registrations ON users.id = registrations.user_id WHERE activity_id = ? ORDER BY type, full_name;",
+                (activity_id, )
+            ).fetchall()
 
             # group the registrations by time
-            bookings = sorted(bookings, key=lambda reg: reg[2:4]) # required by groupby
-            bookings_by_time = {fmt_timespan(key[0], key[1]): tuple(map(lambda reg: reg[0:2], group)) for key, group in groupby(bookings, lambda reg: reg[2:4])}
+            bookings = sorted(bookings, key=lambda reg: reg[2:5]) # required by groupby
+            bookings_by_time = (
+                (DAYS_TEXT[key[0]] + " " + fmt_timespan(key[1], key[2]), map(lambda reg: reg[0:2], group))
+                for key, group in groupby(bookings, lambda reg: reg[2:5])
+            )
 
             return render_template(
                 "activity_staff.html",
                 id=activity_id,
                 activity=activity_dict,
-                days=activity_days,
+                days=tuple(enumerate(DAYS)),
                 timespans=activity_timespans,
                 availability=activity_availability,
-                has_bookings=True,
                 bookings=bookings_by_time
             )
             
