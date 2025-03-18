@@ -35,7 +35,8 @@ ALLOWED_CLASSES = ("678", "KP") # Classes are strings like '3A', '4F'
 MAX_BACKUPS = 100
 
 DIR_SEP = os.sep
-TEX_DIRECTORY = "tex" + DIR_SEP
+TEX_DIR = "tex" + DIR_SEP
+TEMPLATES_DIR = "templates" + DIR_SEP
 BACKUPS_DIR = "backups"
 MANUAL_BACKUPS_DIR = BACKUPS_DIR + DIR_SEP + "manual"
 TIMED_BACKUPS_DIR = BACKUPS_DIR + DIR_SEP + "timed"

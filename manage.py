@@ -4,9 +4,10 @@ import sqlite3
 import json
 import random
 from werkzeug.security import generate_password_hash
+from jinja2 import Template
 
 
-from helpers import make_registration, make_backup, generate_password, create_availability, valid_class, valid_email
+from helpers import make_registration, make_backup, generate_password, create_availability, valid_class, valid_email, fmt_timespan
 from constants import *
 
 
@@ -205,6 +206,84 @@ def fill_schedules(user_type: str) -> None:
 
     con.commit()
     con.close()
+
+
+def render_pdf(input, output, **kwargs) -> None:
+    if not os.path.exists(TEX_DIR):
+        os.makedirs(TEX_DIR)
+
+    with open(TEMPLATES_DIR + input, "r") as t_file, open(TEX_DIR + output, "w") as outf:
+        outf.write(Template(t_file.read(), line_statement_prefix="%-j-").render(**kwargs))
+
+
+@cli.command()
+def make_pdfs():
+    def chunks(lst, n):
+        """Yield successive n-sized chunks from lst."""
+        for i in range(0, len(lst), n):
+            yield lst[i:i + n]
+
+    con = sqlite3.connect(DATABASE)
+
+    # Create a separate pdf for each day
+    for day_index, day in enumerate(DAYS):
+        data = []
+
+        for activity in get_activities():
+            activity["title"] = activity["title"].replace('&', '\\&')
+            activity["speakers"] = activity["speakers"].replace('&', '\\&')
+
+            data.append((str(activity["id"]) + " - " + activity["title"], activity["speakers"], []))
+
+            for module_start in range(0, len(TIMESPANS)-activity["length"]+1, activity["length"]):
+                result = con.execute(
+                    "SELECT full_name, class FROM users JOIN registrations ON users.id = registrations.user_id WHERE activity_id = ? AND day = ? AND module_start = ? ORDER BY full_name;",
+                    (activity["id"], day_index, module_start)
+                ).fetchall()
+
+                if len(result) % 2:
+                    result.append(("", ""))
+
+                data[-1][2].append((
+                    fmt_timespan(module_start, module_start + activity["length"] - 1),
+                    [(_class0 or "", full_name0, _class1 or "", full_name1) for (full_name0, _class0), (full_name1, _class1) in chunks(result, 2)],
+                ))
+
+        # File con '/' nel nome non sono validi
+        render_pdf(
+            "pdfs.tex",
+            day.replace("/", "_")+".tex",
+            day=DAYS_TEXT[day_index],
+            activities=data,
+        )
+
+
+@cli.command()
+def make_cancelled():
+    DAY = 2
+
+    con = sqlite3.connect(DATABASE)
+
+    activities = con.execute("SELECT id, length, availability FROM activities ORDER BY id;").fetchall()
+
+    data = []
+
+    for activity_id, activity_length, activity_availability in activities:
+        activity_title = get_activity(activity_id)["title"].replace('&', '\\&')
+        activity_availability = json.loads(activity_availability)[DAY]
+
+        data.append((activity_id, activity_title, []))
+
+        for module, module_start in enumerate(range(0, len(TIMESPANS)-activity_length+1, activity_length)):
+            module_end = module_start + activity_length - 1
+            data[-1][2].append((fmt_timespan(module_start, module_end), 'ANNULLATO' if activity_availability[module] == -1 else ''))
+
+    render_pdf(
+        "cancelled.tex",
+        "cancelled.tex",
+        day=DAYS_TEXT[DAY],
+        activities=data,
+    )
 
 
 if __name__ == '__main__':

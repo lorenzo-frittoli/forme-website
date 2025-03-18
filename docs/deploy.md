@@ -93,7 +93,8 @@ Mentre prepari il sito, tienilo sempre aperto in locale per vedere come risultan
 - "Enable webapp" nel pannello "Web"
 - Il sito sarà visibile presso https://formecassini.eu.pythonanywhere.com/
 
-Attivare il backup giornaliero automatico nel pannello "Tasks"
+Attivare il backup giornaliero automatico nel pannello "Tasks"; \
+```cd sito_forme; python3 -c "from helpers import *; make_backup(TIMED_BACKUPS_DIR)"```
 
 # Inviare le credenziali agli studenti
 [Vedi la pagina dedicata](send_emails.md)
