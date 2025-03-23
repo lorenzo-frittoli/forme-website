@@ -159,19 +159,19 @@ def cancel_activity(id, day, module) -> tuple[str, int]:
         availability[day][module] = -1
         # Find the affected users
         affected_users = g.con.execute(
-            "SELECT email FROM users WHERE id IN (SELECT user_id FROM registrations WHERE activity_id = ? AND day = ? AND module_start = ?);",
+            "SELECT full_name, email FROM users WHERE id IN (SELECT user_id FROM registrations WHERE activity_id = ? AND day = ? AND module_start = ?);",
             (id, day, module * length)
         ).fetchall()
     else:
         # Cancel the entire day
         availability[day] = [-1] * len(availability[day])
         affected_users = g.con.execute(
-            "SELECT email FROM users WHERE id IN (SELECT user_id FROM registrations WHERE activity_id = ? AND day = ?);",
+            "SELECT full_name, email FROM users WHERE id IN (SELECT user_id FROM registrations WHERE activity_id = ? AND day = ?);",
             (id, day)
         ).fetchall()
 
     # The result is a series of tuples with only one value
-    affected_users = "\n".join(map(lambda x: x[0], affected_users))
+    affected_users = "\n".join(map(lambda x: str(x[0]) + " (" + str(x[1]) + ")", affected_users))
 
     availability = json.dumps(availability)
     g.con.execute("UPDATE activities SET availability = ? WHERE id = ?;", (availability, id))
