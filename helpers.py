@@ -9,6 +9,7 @@ import string
 from datetime import datetime
 import random
 import sqlite3
+from string import ascii_uppercase, digits
 
 from constants import *
 
@@ -291,7 +292,7 @@ def make_backup(dir: str) -> str:
 
 
 def valid_class(_class: str) -> bool:
-    return len(_class) == 2 and _class[0] in ALLOWED_CLASSES[0] and _class[1] in ALLOWED_CLASSES[1]
+    return len(_class) == 2 and _class[0] in digits and _class[1] in ascii_uppercase
 
 
 def valid_email(email: str) -> bool:
