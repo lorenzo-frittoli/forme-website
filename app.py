@@ -545,13 +545,14 @@ def admin_page():
     if command is None:
         return apology("", 400)
 
-    # Authentication page
-    if password is None:
-        return render_template("admin_auth.html", command=dict(request.form))
+    if ADMIN_PASSWORD is not None:
+        # Authentication page
+        if password is None:
+            return render_template("admin_auth.html", command=dict(request.form))
 
-    # Execute the command
-    if not check_password_hash(ADMIN_PASSWORD, password):
-        return apology("Auth failed", 403)
+        # Execute the command
+        if not check_password_hash(ADMIN_PASSWORD, password):
+            return apology("Auth failed", 403)
     
     result = admin.execute(command)
     
