@@ -6,7 +6,6 @@ import random
 from werkzeug.security import generate_password_hash
 from jinja2 import Template
 
-
 from helpers import make_registration, make_backup, generate_password, create_availability, valid_class, valid_email, fmt_timespan
 from constants import *
 
@@ -30,11 +29,6 @@ def make_db() -> None:
 
     con.commit()
     con.close()
-
-@cli.command()
-def backup_db() -> None:
-    """Create a backup of the database"""
-    make_backup(MANUAL_BACKUPS_DIR)
 
 
 @cli.command()
@@ -259,8 +253,15 @@ def make_pdfs():
 
 
 @cli.command()
-def make_cancelled():
-    DAY = 2
+@click.option("-d", "--day", "day", required=True)
+def make_cancelled(day: int):
+    try:
+        day = int(day)
+        assert day >= 0
+        assert day < len(DAYS)
+    except (ValueError, AssertionError):
+        print(f"Error: `day` should be an integer between 0 and {len(DAYS)-1}.")
+        return
 
     con = sqlite3.connect(DATABASE)
 
@@ -270,7 +271,7 @@ def make_cancelled():
 
     for activity_id, activity_length, activity_availability in activities:
         activity_title = get_activity(activity_id)["title"].replace('&', '\\&')
-        activity_availability = json.loads(activity_availability)[DAY]
+        activity_availability = json.loads(activity_availability)[2]
 
         data.append((activity_id, activity_title, []))
 
@@ -281,7 +282,7 @@ def make_cancelled():
     render_pdf(
         "cancelled.tex",
         "cancelled.tex",
-        day=DAYS_TEXT[DAY],
+        day=DAYS_TEXT[day],
         activities=data,
     )
 
