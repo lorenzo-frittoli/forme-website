@@ -5,9 +5,7 @@ from io import BytesIO
 import json
 import unicodedata
 import re
-import string
 from datetime import datetime
-import random
 import sqlite3
 from string import ascii_uppercase, digits
 
