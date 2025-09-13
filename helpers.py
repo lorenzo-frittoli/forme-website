@@ -241,25 +241,9 @@ def generate_schedule(user_id: int, user_type: str, con: sqlite3.Connection):
             assert DAYS[day] in schedule
             assert schedule[DAYS[day]][TIMESPANS_TEXT[timespan]] == ("", None)
             link = url_for(".activity_page", id=activity_id)
-            schedule[DAYS[day]][TIMESPANS_TEXT[timespan]] = (get_activity(activity_id)["title"], link)
+            schedule[DAYS[day]][TIMESPANS_TEXT[timespan]] = (get_activity(activity_id)["title"], link) # type: ignore
 
     return schedule
-
-
-def generate_password(length: int = GENERATED_PASSWORD_LENGTH) -> str:
-    """Generates a password
-
-    Args:
-        length (int, optional): length of the password. Configurable in `constants.py`. Defaults to GENERATED_PASSWORD_LENGTH.
-
-    Returns:
-        str: password
-    """
-    letters = string.ascii_letters + string.digits
-    
-    password = "".join(random.choices(letters, k=length))
-    
-    return password
 
 
 def make_backup(dir: str) -> str:

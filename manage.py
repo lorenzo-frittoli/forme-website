@@ -3,10 +3,9 @@ import click
 import sqlite3
 import json
 import random
-from werkzeug.security import generate_password_hash
 from jinja2 import Template
 
-from helpers import make_registration, make_backup, generate_password, create_availability, valid_class, valid_email, fmt_timespan
+from helpers import make_registration, make_backup, create_availability, valid_class, valid_email, fmt_timespan
 from constants import *
 
 
@@ -76,19 +75,18 @@ def load_students(filename: str) -> None:
             })
 
     for student in students:
-        password = generate_password()
         student["full_name"] = student["full_name"].title()
         student["email"] = student["email"].lower()
         student["class"] = student["class"].upper()
-        student["hash"] = generate_password_hash(password, method=GENERATE_PASSWORD_METHOD)
 
-        print(student["email"], password)
         assert valid_class(student["class"])
         assert valid_email(student["email"])
         assert student["type"] in ("student", "staff")
-    
+
+        result = con.execute("INSERT INTO users (type, email, full_name, class) VALUES (:type, :email, :full_name, :class) RETURNING login_code;", student).fetchone()
+        print(student["email"], f"{LINK}/utente?id={result[0]}")
+
     # Write to DB
-    con.executemany("INSERT INTO users (type, email, hash, full_name, class) VALUES (:type, :email, :hash, :full_name, :class)", students)
     con.commit()
 
     # Close sqlite3

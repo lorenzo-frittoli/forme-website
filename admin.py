@@ -5,9 +5,8 @@ import json
 from inspect import signature
 from typing import Union
 from functools import wraps
-from werkzeug.security import generate_password_hash
 
-from helpers import fmt_timespan, make_backup, generate_password, valid_class, create_availability
+from helpers import fmt_timespan, make_backup, valid_class, create_availability
 from constants import *
 
 commands = {}
@@ -75,29 +74,6 @@ def download_db(backup: str) -> Union[Response, tuple[str, int]]:
     elif backup not in all_backups():
         return "Invalid backup name", 400
     return send_file(backup)
-
-
-@command
-def change_password(user_email: str, new_password: str) -> tuple[str, int]:
-    user_email = user_email.strip()
-
-    if user_email in ADMIN_EMAILS:
-        return "Cannot change an admin's password", 400
-
-    # Check that the user exists
-    if not g.con.execute("SELECT 1 FROM users WHERE email = ?;", (user_email, )).fetchone():
-        return "Email not found", 400
-    
-    # Create a random password in none is provided
-    if not new_password:
-        new_password = generate_password()
-
-    password_hash = generate_password_hash(new_password, method=GENERATE_PASSWORD_METHOD)
-
-    g.con.execute("UPDATE users SET hash = ? WHERE email = ?;", (password_hash, user_email))
-    g.con.commit()
-
-    return f"New password for {user_email}: {new_password}", 200
 
 
 @command
@@ -303,7 +279,6 @@ def make_user(full_name: str, email: str, _type: str, _class: str) -> tuple[str,
     Args:
         full_name (str): surname || name of the user
         email (str): email of the user
-        password (str): password of the user
         _type (str): type of the account
         _class (str): class of the user
     """
@@ -319,12 +294,9 @@ def make_user(full_name: str, email: str, _type: str, _class: str) -> tuple[str,
     full_name = full_name.strip()
     email = email.strip()
 
-    pwd = generate_password()
-    pw_hash = generate_password_hash(pwd, GENERATE_PASSWORD_METHOD)
-
     # Save user
     try:
-        login_code = g.con.execute("INSERT INTO users (type, email, hash, full_name) VALUES (?, ?, ?, ?) RETURNING login_code;", (_type, email, pw_hash, full_name)).fetchone()[0]
+        login_code = g.con.execute("INSERT INTO users (type, email, full_name) VALUES (?, ?, ?, ?) RETURNING login_code;", (_type, email, full_name)).fetchone()[0]
     except sqlite3.DatabaseError as e:
         return f"{e.__class__.__name__}: {' '.join(e.args)}", 400
 
