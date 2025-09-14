@@ -4,6 +4,7 @@ import sqlite3
 import json
 import random
 from jinja2 import Template
+from typing import Union
 
 from helpers import make_registration, make_backup, create_availability, valid_class, valid_email, fmt_timespan
 from constants import *
@@ -93,19 +94,19 @@ def load_students(filename: str) -> None:
     con.close()
 
 
-def try_fill_schedules(user_type: str, k: int, seed: int, con: sqlite3.Connection) -> bool:
+def try_fill_schedules(k: int, seed: int, con: sqlite3.Connection) -> Union[list[tuple[int]], None]:
     """
     Args:
         user_type (str)
         k (int): a parameter for the fill. If k is high long activities will be filled first.
         con (sqlite3.Connection)
     Returns:
-        pair[int, int]: number of filled modules, number of non-filled modules
+        list[tuple[int]]: registrations to fill or None if the fill was not successful
     """
     # The days which are to be filled
-    fill_days: list[int] = [day for day in range(len(DAYS)) if user_type in PERMISSIONS[day]]
+    fill_days: list[int] = [day for day in range(len(DAYS)) if "student" in PERMISSIONS[day]]
     # All the users with the matching type
-    user_ids = list(map(lambda x: x[0], con.execute("SELECT id FROM users WHERE type = ?;", (user_type,)).fetchall()))
+    user_ids = list(map(lambda x: x[0], con.execute("SELECT id FROM users WHERE type = 'student';").fetchall()))
     # A different order will give different results.
     random.seed(seed)
     random.shuffle(user_ids)
@@ -129,6 +130,8 @@ def try_fill_schedules(user_type: str, k: int, seed: int, con: sqlite3.Connectio
     for slots in slots_by_avail:
         random.shuffle(slots)
 
+    made_registrations = []
+
     # Fill the slots with the most availability first.
     filled_modules = 0
     for curr_avail in range(len(slots_by_avail)-1, 0, -1):
@@ -137,10 +140,11 @@ def try_fill_schedules(user_type: str, k: int, seed: int, con: sqlite3.Connectio
         for slot in slots_by_avail[curr_avail]:
             for users_index in range(slot[4], len(user_ids)):
                 try:
-                    make_registration(user_ids[users_index], slot[0], slot[1], slot[2], user_type, con)
+                    make_registration(user_ids[users_index], slot[0], slot[1], slot[2], "student", con)
                 except ValueError:
                     pass
                 else:
+                    made_registrations.append((user_ids[users_index], slot[0], slot[1], slot[2], "student"))
                     # The registration was successful
                     filled_modules += slot[3] # Length of the activity
                     slot[4] = users_index+1
@@ -167,19 +171,17 @@ def try_fill_schedules(user_type: str, k: int, seed: int, con: sqlite3.Connectio
     else:
         print(f"Tutti i {filled_modules} moduli sono stati riempiti.")
 
-    return non_filled_modules == 0
+    return made_registrations if non_filled_modules == 0 else None
 
 
 @cli.command()
-@click.option("-t", "--user-type", "user_type", required=True, help="Type of user whose schedule is going to be filled")
-def fill_schedules(user_type: str) -> None:
+def fill_schedules() -> None:
     """Fill the empty schedules of users of the specified type with random activities"""
     # Avoid conflicts with people booking from the app
     if input("Eseguire solamente in locale. Proseguire? Y/n: ") != "Y":
         return
-    # Make a backup in case the fill isn't successful.
+
     make_backup(AUTO_BACKUPS_DIR)
-    print("Backup creato")
 
     # Setup sqlite3
     con = sqlite3.connect(DATABASE)
@@ -187,16 +189,14 @@ def fill_schedules(user_type: str) -> None:
     for k in range(20):
         for seed in range(50):
             print(f"Tentativo {k=}, {seed=}:", end='\t')
-            if try_fill_schedules(user_type, k, seed, con):
+            result = try_fill_schedules(k, seed, con)
+            con.rollback()
+            if result is not None:
+                print(json.dumps(result))
                 # The fill was successful
                 break
-            con.rollback()
-        else:
-            # Keep searching
-            continue
         break
 
-    con.commit()
     con.close()
 
 

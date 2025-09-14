@@ -6,7 +6,7 @@ from inspect import signature
 from typing import Union
 from functools import wraps
 
-from helpers import fmt_timespan, make_backup, valid_class, create_availability
+from helpers import fmt_timespan, make_backup, valid_class, create_availability, make_registration
 from constants import *
 
 commands = {}
@@ -310,6 +310,25 @@ Selezionando "Catalogo laboratori" dal menù in alto può visualizzare i laborat
 
 Buon ForMe!
 """, 200
+
+
+@command
+def load_filled_schedules(registrations_json: str):
+    """Load registrations created by fill_schedules"""
+    try:
+        registrations = json.loads(registrations_json)
+        for registration in registrations:
+            make_registration(*(registration + [g.con]))
+
+    except json.decoder.JSONDecodeError:
+        return "Invalid JSON", 400
+    except ValueError:
+        g.con.rollback()
+        return "Update failed (are registrations closed?)", 400
+
+    g.con.commit()
+
+    return f"{len(registrations)} registrations uploaded successfully", 200
 
 
 @command
