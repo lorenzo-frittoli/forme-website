@@ -29,16 +29,12 @@ MAX_FIELD_LENGTH = 50
 
 
 # Backups
-MAX_BACKUPS = 100
+MAX_BACKUPS = 5
 
 DIR_SEP = os.sep
 TEX_DIR = "tex" + DIR_SEP
 TEMPLATES_DIR = "templates" + DIR_SEP
-BACKUPS_DIR = "backups"
-MANUAL_BACKUPS_DIR = BACKUPS_DIR + DIR_SEP + "manual"
-TIMED_BACKUPS_DIR = BACKUPS_DIR + DIR_SEP + "timed"
-AUTO_BACKUPS_DIR = BACKUPS_DIR + DIR_SEP + "auto"
-
+BACKUPS_DIR = "backups" + DIR_SEP
 
 # Admins (list of emails)
 ADMIN_EMAILS = [

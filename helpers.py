@@ -7,6 +7,7 @@ import unicodedata
 import re
 from datetime import datetime
 import sqlite3
+import sys
 from string import ascii_uppercase, digits
 
 from constants import *
@@ -244,29 +245,38 @@ def generate_schedule(user_id: int, user_type: str, con: sqlite3.Connection):
     return schedule
 
 
-def make_backup(dir: str) -> str:
+def all_backups() -> list[str]:
+    """Returns a list with all currently present backups."""
+    if not os.path.exists(BACKUPS_DIR):
+        os.makedirs(BACKUPS_DIR)
+
+    return sorted(os.listdir(BACKUPS_DIR))
+
+
+def make_backup(reason: str = "") -> str:
     """Add backup to the rolling storage
 
     Args:
         dir (str): backup directory
     """
-    if not os.path.exists(dir):
-        os.makedirs(dir)
-    
-    FILENAME_FRMT = DATABASE.replace(".", "_%Y-%m-%d_%H-%M-%S.")
+    if not reason:
+        # Name of caller
+        reason = sys._getframe(1).f_code.co_name
+
+    TIME_FRMT = "%Y-%m-%d_%H-%M-%S"
     
     # Delete the old backups
-    backups = [(datetime.strptime(backup, FILENAME_FRMT), backup) for backup in os.listdir(dir)]
-    backups.sort()
-    for backup in backups[:1-MAX_BACKUPS]:
-        os.remove(dir + DIR_SEP + backup[1])
+    for backup in all_backups()[:1-MAX_BACKUPS]:
+        os.remove(BACKUPS_DIR + backup)
 
     # Lock the database and save the new backup
-    filename = dir + DIR_SEP + datetime.strftime(datetime.now(), FILENAME_FRMT)
-    con_backup = sqlite3.connect(filename)
+
+    filename = ".".join((datetime.strftime(datetime.now(), TIME_FRMT), reason, "db"))
+    con_backup = sqlite3.connect(BACKUPS_DIR + filename)
     con_live = sqlite3.connect(DATABASE)
     con_live.backup(con_backup)
     con_live.close()
+    con_backup.execute("VACUUM;")
     con_backup.commit()
     con_backup.close()
 

@@ -17,7 +17,7 @@ cli = FlaskGroup()
 def make_db() -> None:
     """Create a new empty database"""
     if os.path.exists(DATABASE):
-        make_backup(AUTO_BACKUPS_DIR)
+        make_backup()
         os.remove(DATABASE)
 
     with open(MAKE_DATABASE_COMMAND_FILE, 'r') as f:
@@ -181,7 +181,7 @@ def fill_schedules() -> None:
     if input("Eseguire solamente in locale. Proseguire? Y/n: ") != "Y":
         return
 
-    make_backup(AUTO_BACKUPS_DIR)
+    make_backup()
 
     # Setup sqlite3
     con = sqlite3.connect(DATABASE)

@@ -6,7 +6,7 @@ from inspect import signature
 from typing import Union
 from functools import wraps
 
-from helpers import fmt_timespan, make_backup, valid_class, create_availability, make_registration
+from helpers import fmt_timespan, all_backups, make_backup, valid_class, create_availability, make_registration
 from constants import *
 
 commands = {}
@@ -42,27 +42,17 @@ def command(f):
     return f
 
 
-def all_backups() -> list[str]:
-    """Returns a list with all currently present backups."""
-    backups = []
-    for dir in (AUTO_BACKUPS_DIR, MANUAL_BACKUPS_DIR, TIMED_BACKUPS_DIR):
-        if not os.path.exists(dir):
-            os.makedirs(dir)
-        backups += [dir + DIR_SEP + filename for filename in os.listdir(dir)]
-    return sorted(backups)
-
-
 @command
 def backup_db() -> tuple[str, int]:
     """Creates a new backup."""
-    filename = make_backup(MANUAL_BACKUPS_DIR)
+    filename = make_backup()
     return "Backup created: " + filename, 200
 
 
 @command
 def list_backups() -> tuple[str, int]:
     """Shows all currently present backups."""
-    return "\n".join(all_backups()), 200
+    return "\n".join(reversed(all_backups())), 200
 
 
 @command
@@ -70,10 +60,10 @@ def download_db(backup: str) -> Union[Response, tuple[str, int]]:
     """Downloads a backup.
     If a backup name is specified the selected backup us downloaded, otherwise a new one is created and sent."""
     if not backup:
-        backup = make_backup(MANUAL_BACKUPS_DIR)
+        backup = make_backup()
     elif backup not in all_backups():
         return "Invalid backup name", 400
-    return send_file(backup)
+    return send_file(BACKUPS_DIR + backup)
 
 
 @command
@@ -190,8 +180,7 @@ def remove_cancelled_activity_registrations(id, day, module) -> tuple[str, int]:
 
     length, availability = result[0], json.loads(result[1])
 
-    # Create a backup
-    make_backup(AUTO_BACKUPS_DIR)
+    make_backup()
 
     # possible BUG: `if module:` treats 0 as false 
     if module is not None:
