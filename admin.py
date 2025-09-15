@@ -302,6 +302,16 @@ Buon ForMe!
 
 
 @command
+def retrieve_login_code(email: str):
+    result = g.con.execute("SELECT login_code FROM users WHERE email = ?;", (email, )).fetchone()
+
+    if result is None:
+        return "Email not found", 400
+
+    return f"{email}: {LINK}/utente?id={result[0]}", 200
+
+
+@command
 def load_filled_schedules(registrations_json: str):
     """Load registrations created by fill_schedules"""
     try:
