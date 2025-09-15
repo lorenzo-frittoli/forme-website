@@ -7,5 +7,6 @@
 *.db
 /venv
 /tex
+/data_backup
 flake.lock
 flake.nix
