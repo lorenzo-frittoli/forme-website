@@ -1,9 +1,9 @@
 # Invio credenziali
-**COSA NON FARE:** *non iscrivere gli studenti e lasciare che si registrino da soli. Te ne pentirai.*
+**COSA NON FARE:** *lasciare che gli studenti si registrino da soli. Te ne pentirai.*
 
 Dopo aver registrato tutti gli studenti è necessario fargli avere in qualche modo le credenziali. Il metodo consigliato è inviargliele all'indirizzo email scolastico in modo automatizzato.
 
-*Una possibile alternativa è stampare un foglio con le credenziali degli studenti di ogni classe e consegnare i fogli a mano. Forse richiede meno conoscenze tecniche ma probabilmente è molto più incasinato. Fate Vobis.*
+*Una possibile alternativa è stampare un foglio con le credenziali degli studenti per ogni classe e consegnare i fogli a mano. Forse richiede meno conoscenze tecniche ma probabilmente è molto più incasinato (e dovete implementarvelo voi). Fate Vobis.*
 
 ## Invio via email
 
@@ -35,7 +35,7 @@ Le password per le app si possono gestire da
     ```
     In questo modo è possibile verificare che le credenziali siano state inviate correttamente.
 
-- Il limite giornaliero di invio email tramite i server Google è di 1000 email (al momento della scrittura di questo documento). Assicurati di non eccedere il limite.
+- Il limite giornaliero di invio tramite i server Google è di 1000 email (al momento della scrittura di questo documento). Assicurati di non eccedere il limite.
 
 - Spesso anche se non vengono raggiunti i limiti giornalieri l'invio di grandi quantità di email in poco tempo può causare dei blocchi temporanei. Per questo [send_emails.py](../data/send_emails.py) resetta la connessione al server ogni 50 email.\
 Nel caso dovesse disconnettersi il server, riprendete l'invio delle mail dall'ultima non inviata.

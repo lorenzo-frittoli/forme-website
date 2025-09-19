@@ -46,4 +46,5 @@ Open an [issue on github](https://github.com/lorenzo-frittoli/forme-website/issu
 
 ## Deployed by
 
-- 2024/2025: [Lorenzo Frittoli](https://www.github.com/lorenzo-frittoli), [Luca Baglietto](https://www.github.com/BestCrazyNoob)
+- 2023-24: [Lorenzo Frittoli](https://www.github.com/lorenzo-frittoli), [Luca Baglietto](https://www.github.com/BestCrazyNoob)
+- 2024-25: [Lorenzo Frittoli](https://www.github.com/lorenzo-frittoli), [Luca Baglietto](https://www.github.com/BestCrazyNoob)

@@ -21,32 +21,47 @@
         Generalmente il catalogo online, quando presente, è più completo.
     </p>
 
-    <div class="archive-row">
+    
+    <div class="archive-row"> <!-- Inizio del blocco dell'anno 23-24  -->
         <nav>
+            <!-- Anno -->
             <div>23 - 24</div>
+
+            <!-- Link al catalogo online dell'anno -->
             <a href="/archive/23-24/activities">Catalogo online</a>
+
+            <!-- Link al catalogo PDF dell'anno -->
             <a href="">Catalogo PDF</a>
+
+            <!-- Bottone per espandere la sezione a tendina -->
+            <!-- ATTENZIONE: l'attributo "data-bs-target" del bottone indica l'id della tendina al quale è associato -->
+            <!-- Il bottone di ogni anno deve essere correttamente associato alla tendina di quell'anno -->
             <div type="button" data-bs-toggle="collapse" data-bs-target="#info-23-24" aria-expanded="false"></div>
         </nav>
+        <!-- Sezione a tendina -->
+        <!-- ATTENZIONE: l'id della sezione a tendina deve essere diverso per ogni anno -->
         <div class="collapse" id="info-23-24">
-            <div><img src="/static/logo_forme.jpg"></div>
+            <!-- Ulteriori informazioni -->
             <div>
                 <p>Il festival si è tenuto dal ... al ...</p>
                 <p>Comitato ForMe</p>
             </div>
-        </div>
-    </div>
 
-    <hr>
+            <!-- logo dell'anno 23-24-->
+            <div><img src="/static/logo_forme.jpg"></div>
+        </div>
+    </div> <!-- Fine del blocco -->
+
+    <hr> <!-- Separatore fra i vari anni -->
 
     <div class="archive-row">
         <nav>
             <div>16 - 17</div>
-            <div></div>
+            <div></div> <!-- Per gli anni prima del 2023 non esiste il catalogo online -->
             <a href="">Catalogo PDF</a>
-            <div type="button" data-bs-toggle="collapse" data-bs-target="#info-2017" aria-expanded="false"></div>
+            <div type="button" data-bs-toggle="collapse" data-bs-target="#info-16-17" aria-expanded="false"></div>
         </nav>
-        <div class="collapse" id="info-2017">
+        <div class="collapse" id="info-16-17"> <!-- Notare che l'id della sezione a tendina cambia -->
             <div><img src="/static/logo_forme.jpg"></div>
         </div>
     </div>
