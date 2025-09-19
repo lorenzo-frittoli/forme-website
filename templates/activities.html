@@ -8,7 +8,7 @@
     <script>
         function filter_activities() {
             keywords = $("#activities-filter-text")[0].value.toLowerCase().split(" ");
-            console.log(keywords);
+
             $(".card-wrapper").each(function(i, obj) {
                 let elements = [
                     $(".card-title", obj)[0],
