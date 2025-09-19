@@ -6,8 +6,9 @@ import random
 from jinja2 import Template
 from typing import Union
 
-from helpers import make_registration, make_backup, create_availability, valid_class, valid_email, fmt_timespan
+from helpers import *
 from constants import *
+from archive import *
 
 
 # SETUP
@@ -192,6 +193,7 @@ def fill_schedules() -> None:
             result = try_fill_schedules(k, seed, con)
             con.rollback()
             if result is not None:
+                print("Missing registrations (json format):")
                 print(json.dumps(result))
                 # The fill was successful
                 break
